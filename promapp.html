@@ -10,80 +10,39 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet"/>
 
 <!-- ════════════════════════════════════════════════════════════════════
-  ProMapp — Phase 1 (Auth + Projects + Tasks + Chat + Ideas)
+  ProMapp — v2 (Workspaces + Members + Projects + Tasks + Chat + Ideas)
 
-  A single-file web app that combines the messaging feel of Slack with
-  the work-tracking of Azure DevOps. Backend is Supabase (auth + Postgres
-  + Realtime). Companion app to KitchenOPS Cloud — shares its visual
-  language (warm dark, amber accent, Barlow + Bebas).
+  A single-file web app combining Slack-style messaging with ADO-style
+  work tracking. Backend: Supabase (auth + Postgres + Realtime).
 
   ⚠️ CONFIG REQUIRED — fill in the two values below before running.
-  Get them from: Supabase Dashboard → Settings → API
-
-  - SUPABASE_URL is the project URL (https://xxx.supabase.co)
-  - SUPABASE_ANON_KEY is the "anon public" key (safe to put in client code)
-
-  Do NOT put your service_role key here.
-
-  ⚠️ DATABASE SCHEMA: see schema.sql — run it in the Supabase SQL editor
-  before first use.
+  ⚠️ DATABASE SCHEMA: run schema.sql in the Supabase SQL editor first.
 ═══════════════════════════════════════════════════════════════════════ -->
 
 <style>
 :root{
-  --black:#0e0c0a;
-  --dark:#161310;
-  --panel:#1e1a16;
-  --panel2:#252017;
-  --border:#312b22;
-  --border2:#423a2c;
-  --amber:#e8a045;
-  --amber2:#f0b865;
-  --amber-dim:rgba(232,160,69,0.12);
-  --cream:#f0e8d8;
-  --cream2:#c8bfb0;
-  --muted:#7a6f62;
-  --muted2:#504840;
-  --red:#e05c4a;
-  --red-dim:rgba(224,92,74,0.12);
-  --green:#6aab78;
-  --green-dim:rgba(106,171,120,0.12);
-  --blue:#5b8dee;
-  --blue-dim:rgba(91,141,238,0.12);
-  --purple:#a878d8;
-  --purple-dim:rgba(168,120,216,0.12);
-  --on-amber:#1a1108;
-  --shadow:rgba(0,0,0,0.4);
-  --r:5px;--rm:8px;
-  --hd:'Bebas Neue',sans-serif;
-  --cond:'Barlow Condensed',sans-serif;
-  --body:'Barlow',sans-serif;
+  --black:#0e0c0a; --dark:#161310; --panel:#1e1a16; --panel2:#252017;
+  --border:#312b22; --border2:#423a2c;
+  --amber:#e8a045; --amber2:#f0b865; --amber-dim:rgba(232,160,69,0.12);
+  --cream:#f0e8d8; --cream2:#c8bfb0; --muted:#7a6f62; --muted2:#504840;
+  --red:#e05c4a; --red-dim:rgba(224,92,74,0.12);
+  --green:#6aab78; --green-dim:rgba(106,171,120,0.12);
+  --blue:#5b8dee;  --blue-dim:rgba(91,141,238,0.12);
+  --purple:#a878d8; --purple-dim:rgba(168,120,216,0.12);
+  --on-amber:#1a1108; --shadow:rgba(0,0,0,0.4);
+  --r:5px; --rm:8px;
+  --hd:'Bebas Neue',sans-serif; --cond:'Barlow Condensed',sans-serif; --body:'Barlow',sans-serif;
 }
-
 html[data-theme="light"]{
-  --black:#ffffff;
-  --dark:#f4f1ea;
-  --panel:#ffffff;
-  --panel2:#ece7dc;
-  --border:#e0d9ca;
-  --border2:#cdc3ad;
-  --amber:#c87f1e;
-  --amber2:#a8691a;
-  --amber-dim:rgba(200,127,30,0.12);
-  --cream:#2a241c;
-  --cream2:#5c5345;
-  --muted:#8a8070;
-  --muted2:#ada291;
-  --red:#c8412f;
-  --red-dim:rgba(200,65,47,0.10);
-  --green:#3f8a4f;
-  --green-dim:rgba(63,138,79,0.10);
-  --blue:#3866c8;
-  --blue-dim:rgba(56,102,200,0.10);
-  --purple:#7a4eb8;
-  --purple-dim:rgba(122,78,184,0.10);
-  --on-amber:#ffffff;
-  --shadow:rgba(80,60,20,0.16);
+  --black:#ffffff; --dark:#f4f1ea; --panel:#ffffff; --panel2:#ece7dc;
+  --border:#e0d9ca; --border2:#cdc3ad;
+  --amber:#c87f1e; --amber2:#a8691a; --amber-dim:rgba(200,127,30,0.12);
+  --cream:#2a241c; --cream2:#5c5345; --muted:#8a8070; --muted2:#ada291;
+  --red:#c8412f; --red-dim:rgba(200,65,47,0.10);
+  --green:#3f8a4f; --green-dim:rgba(63,138,79,0.10);
+  --blue:#3866c8;  --blue-dim:rgba(56,102,200,0.10);
+  --purple:#7a4eb8; --purple-dim:rgba(122,78,184,0.10);
+  --on-amber:#ffffff; --shadow:rgba(80,60,20,0.16);
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
@@ -104,16 +63,33 @@ a{color:var(--amber);text-decoration:none}
 #config-err code{display:block;padding:6px 8px;margin:6px 0;background:var(--black);border:1px solid var(--border);border-radius:var(--r);font-family:ui-monospace,monospace;font-size:13px;color:var(--amber)}
 
 /* ── HEADER ── */
-header.top{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--black);border-bottom:1px solid var(--border)}
-.brand{display:flex;align-items:center;gap:10px}
-.brand .logo{width:32px;height:32px;border-radius:var(--r);background:linear-gradient(135deg,var(--amber) 0%,var(--amber2) 100%);display:grid;place-items:center;color:var(--on-amber);font-family:var(--hd);font-size:18px;letter-spacing:.02em}
-.brand h1{font-family:var(--hd);font-size:22px;letter-spacing:.08em;color:var(--cream)}
+header.top{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--black);border-bottom:1px solid var(--border);gap:10px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand .logo{width:32px;height:32px;border-radius:var(--r);background:linear-gradient(135deg,var(--amber) 0%,var(--amber2) 100%);display:grid;place-items:center;color:var(--on-amber);font-family:var(--hd);font-size:18px;flex:0 0 auto}
+.brand h1{font-family:var(--hd);font-size:22px;letter-spacing:.08em;color:var(--cream);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .brand h1 .sub{color:var(--amber);font-size:14px;margin-left:6px}
-.top-actions{display:flex;gap:8px;align-items:center}
-.icon-btn{width:34px;height:34px;display:grid;place-items:center;border-radius:var(--r);color:var(--cream2);border:1px solid transparent;transition:.15s}
+.ws-switch{display:flex;align-items:center;gap:6px;padding:5px 10px;border:1px solid var(--border);border-radius:999px;color:var(--cream2);font-family:var(--cond);font-weight:600;font-size:12px;cursor:pointer;transition:.15s;max-width:180px}
+.ws-switch:hover{border-color:var(--amber);color:var(--amber)}
+.ws-switch .name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px}
+.ws-switch .caret{opacity:.5;font-size:9px}
+.top-actions{display:flex;gap:6px;align-items:center;flex:0 0 auto}
+.icon-btn{width:34px;height:34px;display:grid;place-items:center;border-radius:var(--r);color:var(--cream2);border:1px solid transparent;transition:.15s;font-size:16px}
 .icon-btn:hover{background:var(--panel2);color:var(--amber);border-color:var(--border)}
-.user-chip{display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--border);border-radius:999px;font-family:var(--cond);font-weight:600;color:var(--cream2);font-size:13px}
-.user-chip .dot{width:8px;height:8px;border-radius:50%;background:var(--green)}
+.user-chip{display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--border);border-radius:999px;font-family:var(--cond);font-weight:600;color:var(--cream2);font-size:13px;max-width:140px;overflow:hidden}
+.user-chip .dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex:0 0 auto}
+.user-chip .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* WS picker dropdown */
+.ws-picker{position:absolute;top:60px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--border);border-radius:var(--rm);box-shadow:0 12px 40px var(--shadow);min-width:260px;z-index:80;display:none}
+.ws-picker.show{display:block}
+.ws-picker .ws-item{display:flex;align-items:center;gap:8px;padding:10px 14px;color:var(--cream2);cursor:pointer;border-bottom:1px solid var(--border)}
+.ws-picker .ws-item:last-child{border-bottom:none}
+.ws-picker .ws-item:hover{background:var(--panel2)}
+.ws-picker .ws-item.current{color:var(--amber)}
+.ws-picker .ws-name{flex:1;font-family:var(--cond);font-weight:600}
+.ws-picker .ws-role{font-size:11px;color:var(--muted);font-family:var(--cond);text-transform:uppercase;letter-spacing:.08em}
+.ws-picker .ws-new{padding:10px 14px;color:var(--amber);font-family:var(--cond);font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:12px;cursor:pointer;border-top:1px solid var(--border)}
+.ws-picker .ws-new:hover{background:var(--amber-dim)}
 
 /* ── AUTH SCREEN ── */
 #auth{min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse at top,var(--panel) 0%,var(--dark) 60%)}
@@ -125,14 +101,14 @@ header.top{display:flex;align-items:center;justify-content:space-between;padding
 .field input,.field textarea,.field select{width:100%;padding:10px 12px;background:var(--black);border:1px solid var(--border);border-radius:var(--r);color:var(--cream);outline:none;transition:border-color .15s}
 .field input:focus,.field textarea:focus,.field select:focus{border-color:var(--amber)}
 .field textarea{resize:vertical;min-height:80px;font-family:inherit}
-.btn{padding:10px 16px;border-radius:var(--r);background:var(--amber);color:var(--on-amber);font-family:var(--cond);font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:13px;transition:.15s;display:inline-flex;align-items:center;gap:6px}
+.btn{padding:10px 16px;border-radius:var(--r);background:var(--amber);color:var(--on-amber);font-family:var(--cond);font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:13px;transition:.15s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
 .btn:hover:not(:disabled){background:var(--amber2)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 .btn.ghost{background:transparent;color:var(--cream2);border:1px solid var(--border)}
 .btn.ghost:hover:not(:disabled){background:var(--panel2);color:var(--cream);border-color:var(--border2)}
 .btn.danger{background:var(--red);color:#fff}
 .btn.danger:hover:not(:disabled){opacity:.85;background:var(--red)}
-.btn.full{width:100%;justify-content:center}
+.btn.full{width:100%}
 .btn.sm{padding:6px 10px;font-size:12px}
 .tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border)}
 .tabs button{flex:1;padding:10px 8px;color:var(--muted);font-family:var(--cond);font-weight:600;letter-spacing:.04em;text-transform:uppercase;font-size:12px;border-bottom:2px solid transparent;transition:.15s}
@@ -152,27 +128,31 @@ header.top{display:flex;align-items:center;justify-content:space-between;padding
 .sidebar .section-h{padding:14px 16px 6px;font-family:var(--cond);font-weight:700;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;justify-content:space-between}
 .sidebar .section-h .add{color:var(--amber);cursor:pointer;font-size:18px;line-height:1;padding:2px 6px;border-radius:var(--r)}
 .sidebar .section-h .add:hover{background:var(--panel2)}
-.proj-list{flex:1;overflow:auto;padding:0 8px 16px}
+.proj-list{flex:1;overflow:auto;padding:0 8px}
 .proj-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--r);margin-bottom:2px;color:var(--cream2);cursor:pointer;font-family:var(--cond);font-weight:600;font-size:14px;transition:.1s}
 .proj-item:hover{background:var(--panel2);color:var(--cream)}
 .proj-item.active{background:var(--amber-dim);color:var(--amber)}
 .proj-item .hash{opacity:.6;font-weight:700}
-.proj-item .badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;padding:1px 6px;border-radius:999px;font-family:var(--body);font-weight:700}
 .proj-empty{padding:14px 16px;font-size:13px;color:var(--muted);font-style:italic}
+.sidebar-foot{padding:8px;border-top:1px solid var(--border)}
+.sidebar-foot button{display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;border-radius:var(--r);color:var(--cream2);font-family:var(--cond);font-weight:600;font-size:13px;transition:.1s;text-align:left}
+.sidebar-foot button:hover{background:var(--panel2);color:var(--cream)}
+.sidebar-foot button.active{background:var(--amber-dim);color:var(--amber)}
+.sidebar-foot button .ico{font-size:14px;opacity:.8}
 
 /* ── MAIN PANE ── */
 .main{display:flex;flex-direction:column;min-height:0;background:var(--dark)}
-.main-h{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.main-h{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .main-h h2{font-family:var(--hd);font-size:22px;letter-spacing:.06em;color:var(--cream)}
 .main-h .desc{color:var(--muted);font-size:13px;margin-left:auto}
-.view-tabs{display:flex;gap:0;padding:0 20px;border-bottom:1px solid var(--border);background:var(--black)}
-.view-tabs button{padding:10px 16px;color:var(--muted);font-family:var(--cond);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:12px;border-bottom:2px solid transparent;transition:.15s}
+.view-tabs{display:flex;gap:0;padding:0 20px;border-bottom:1px solid var(--border);background:var(--black);overflow-x:auto}
+.view-tabs button{padding:10px 16px;color:var(--muted);font-family:var(--cond);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:12px;border-bottom:2px solid transparent;transition:.15s;white-space:nowrap}
 .view-tabs button.active{color:var(--amber);border-bottom-color:var(--amber)}
 .view-tabs button:hover:not(.active){color:var(--cream2)}
 .view{flex:1;overflow:auto;min-height:0}
 .empty-pane{height:100%;display:grid;place-items:center;color:var(--muted);font-style:italic;padding:40px;text-align:center}
 
-/* ── BOARD VIEW (tasks, Kanban) ── */
+/* ── BOARD VIEW ── */
 .board{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:16px;min-height:100%}
 .col{background:var(--panel);border:1px solid var(--border);border-radius:var(--rm);display:flex;flex-direction:column;min-height:0}
 .col-h{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-family:var(--cond);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:12px}
@@ -193,7 +173,7 @@ header.top{display:flex;align-items:center;justify-content:space-between;padding
 .add-task{padding:8px;background:transparent;border:1px dashed var(--border);border-radius:var(--r);color:var(--muted);font-family:var(--cond);font-weight:600;letter-spacing:.04em;text-transform:uppercase;font-size:11px;cursor:pointer;transition:.15s}
 .add-task:hover{border-color:var(--amber);color:var(--amber)}
 
-/* ── CHAT VIEW (messages, Slack-style) ── */
+/* ── CHAT VIEW ── */
 .chat{display:flex;flex-direction:column;height:100%}
 .messages{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px}
 .message{display:grid;grid-template-columns:36px 1fr;gap:10px;padding:6px 0}
@@ -206,13 +186,13 @@ header.top{display:flex;align-items:center;justify-content:space-between;padding
 .composer textarea{flex:1;background:var(--panel);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;color:var(--cream);outline:none;resize:none;max-height:160px;min-height:40px;font-size:14px}
 .composer textarea:focus{border-color:var(--amber)}
 
-/* ── IDEAS VIEW (brainstorm) ── */
+/* ── IDEAS VIEW ── */
 .ideas{padding:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;align-content:start}
 .idea{background:var(--panel);border:1px solid var(--border);border-radius:var(--rm);padding:14px;display:flex;flex-direction:column;gap:8px;transition:.15s}
 .idea:hover{border-color:var(--border2)}
 .idea .title{font-family:var(--cond);font-weight:700;font-size:16px;color:var(--cream);letter-spacing:.02em}
 .idea .body{color:var(--cream2);font-size:13px;white-space:pre-wrap}
-.idea .foot{display:flex;align-items:center;gap:8px;padding-top:6px;border-top:1px solid var(--border);margin-top:4px}
+.idea .foot{display:flex;align-items:center;gap:8px;padding-top:6px;border-top:1px solid var(--border);margin-top:4px;flex-wrap:wrap}
 .idea .foot .author{font-family:var(--cond);font-weight:600;font-size:12px;color:var(--muted)}
 .idea .vote-btn{margin-left:auto;display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;background:var(--panel2);color:var(--cream2);border:1px solid var(--border);font-family:var(--cond);font-weight:700;font-size:12px;cursor:pointer;transition:.15s}
 .idea .vote-btn:hover{border-color:var(--amber);color:var(--amber)}
@@ -223,18 +203,51 @@ header.top{display:flex;align-items:center;justify-content:space-between;padding
 .ideas-top input{flex:1;padding:8px 12px;background:var(--panel);border:1px solid var(--border);border-radius:var(--r);color:var(--cream);outline:none}
 .ideas-top input:focus{border-color:var(--amber)}
 
+/* ── MEMBERS PAGE ── */
+.members-wrap{padding:20px;max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.panel-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--rm);padding:16px}
+.panel-card h3{font-family:var(--hd);font-size:18px;letter-spacing:.06em;color:var(--amber);margin-bottom:12px}
+.member-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border)}
+.member-row:last-child{border-bottom:none}
+.member-row .avatar{width:32px;height:32px;border-radius:var(--r);background:var(--amber);color:var(--on-amber);display:grid;place-items:center;font-family:var(--hd);font-size:14px;flex:0 0 auto}
+.member-row .nm{flex:1;font-weight:600;color:var(--cream);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.member-row .em{color:var(--muted);font-size:12px;font-family:var(--cond)}
+.member-row .role-pill{font-size:10px;font-family:var(--cond);font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:2px 8px;border-radius:999px;background:var(--panel2);color:var(--muted2)}
+.member-row .role-pill.owner{background:var(--amber-dim);color:var(--amber)}
+.invite-form{display:flex;gap:8px}
+.invite-form input{flex:1;padding:8px 12px;background:var(--black);border:1px solid var(--border);border-radius:var(--r);color:var(--cream);outline:none}
+.invite-form input:focus{border-color:var(--amber)}
+.invite-card{background:var(--amber-dim);border:1px solid var(--amber);border-radius:var(--rm);padding:14px;display:flex;flex-direction:column;gap:10px}
+.invite-card .head{font-family:var(--cond);font-weight:700;color:var(--amber)}
+.invite-card .sub{font-size:13px;color:var(--cream2)}
+.invite-card .actions{display:flex;gap:8px}
+
+/* ── HOME / OVERVIEW ── */
+.home{padding:20px;max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.stat{background:var(--panel);border:1px solid var(--border);border-radius:var(--rm);padding:14px}
+.stat .lbl{font-family:var(--cond);font-weight:600;color:var(--muted);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.stat .val{font-family:var(--hd);font-size:32px;color:var(--amber);letter-spacing:.04em;margin-top:4px}
+
+/* ── KITCHENOPS LINK CARD ── */
+.kops-card{background:linear-gradient(135deg,var(--amber-dim) 0%,var(--panel) 60%);border:1px solid var(--amber);border-radius:var(--rm);padding:16px;display:flex;align-items:center;gap:14px}
+.kops-card .ico{font-size:30px}
+.kops-card .txt{flex:1}
+.kops-card .ttl{font-family:var(--hd);font-size:18px;color:var(--amber);letter-spacing:.06em}
+.kops-card .sb{font-size:13px;color:var(--cream2)}
+
 /* ── MODAL ── */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;display:grid;place-items:center;padding:20px}
 .modal{background:var(--panel);border:1px solid var(--border);border-radius:var(--rm);max-width:480px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 12px 40px var(--shadow)}
 .modal-h{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
 .modal-h h3{font-family:var(--hd);font-size:20px;letter-spacing:.06em;color:var(--amber)}
-.modal-h .x{font-size:22px;color:var(--muted);cursor:pointer;padding:0 6px}
+.modal-h .x{font-size:22px;color:var(--muted);cursor:pointer;padding:0 6px;background:none;border:none}
 .modal-h .x:hover{color:var(--red)}
 .modal-b{padding:20px}
 .modal-f{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
 
 /* ── TOAST ── */
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:10px 18px;border-radius:var(--rm);background:var(--panel);border:1px solid var(--border);color:var(--cream);box-shadow:0 8px 24px var(--shadow);z-index:200;font-family:var(--cond);font-weight:600;letter-spacing:.04em;font-size:13px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:10px 18px;border-radius:var(--rm);background:var(--panel);border:1px solid var(--border);color:var(--cream);box-shadow:0 8px 24px var(--shadow);z-index:200;font-family:var(--cond);font-weight:600;letter-spacing:.04em;font-size:13px;max-width:90%}
 .toast.err{border-color:var(--red);color:var(--red)}
 .toast.ok{border-color:var(--green);color:var(--green)}
 
@@ -245,6 +258,9 @@ header.top{display:flex;align-items:center;justify-content:space-between;padding
   .sidebar.show{display:flex;position:fixed;inset:0;z-index:50;width:100%}
   .board{grid-template-columns:1fr}
   .icon-btn.menu{display:grid !important}
+  .brand h1{font-size:18px}
+  .ws-switch{display:none}
+  #app.show .ws-switch{display:flex}
 }
 .icon-btn.menu{display:none}
 </style>
@@ -259,8 +275,8 @@ header.top{display:flex;align-items:center;justify-content:space-between;padding
   <div class="box">
     <h2>Configuration required</h2>
     <p>Fill in your Supabase credentials in the script section of this file before running.</p>
-    <code>const SUPABASE_URL = '';</code>
-    <code>const SUPABASE_ANON_KEY = '..';</code>
+    <code>const SUPABASE_URL = '…';</code>
+    <code>const SUPABASE_ANON_KEY = '…';</code>
     <p style="margin-top:10px;color:var(--cream2);font-size:13px">Get these from Supabase Dashboard → Settings → API.</p>
   </div>
 </div>
@@ -299,22 +315,29 @@ header.top{display:flex;align-items:center;justify-content:space-between;padding
 </div>
 
 <!-- ─── APP SHELL ─── -->
-<div id="app">
+<div id="app" style="position:relative">
   <header class="top">
     <div class="brand">
       <button class="icon-btn menu" id="btn-menu" aria-label="Toggle sidebar">☰</button>
       <div class="logo">P</div>
-      <h1>ProMapp<span class="sub">Cloud</span></h1>
+      <h1>ProMapp</h1>
     </div>
+    <button class="ws-switch" id="btn-ws"><span class="name" id="ws-name">—</span><span class="caret">▾</span></button>
     <div class="top-actions">
       <button class="icon-btn" id="btn-theme" title="Toggle theme" aria-label="Toggle theme">◐</button>
-      <div class="user-chip"><span class="dot"></span><span id="user-name">…</span></div>
+      <div class="user-chip"><span class="dot"></span><span class="nm" id="user-name">…</span></div>
       <button class="icon-btn" id="btn-signout" title="Sign out" aria-label="Sign out">⎋</button>
     </div>
   </header>
 
+  <!-- workspace picker dropdown -->
+  <div class="ws-picker" id="ws-picker">
+    <div id="ws-picker-list"></div>
+    <div class="ws-new" id="ws-new-btn">+ New workspace</div>
+  </div>
+
   <div class="shell">
-    <!-- ─── SIDEBAR: projects ─── -->
+    <!-- ─── SIDEBAR ─── -->
     <aside class="sidebar" id="sidebar">
       <div class="section-h">
         <span>Projects</span>
@@ -323,18 +346,41 @@ header.top{display:flex;align-items:center;justify-content:space-between;padding
       <div class="proj-list" id="proj-list">
         <div class="proj-empty">Loading…</div>
       </div>
+      <div class="sidebar-foot">
+        <button id="nav-home" class="active"><span class="ico">⌂</span><span>Overview</span></button>
+        <button id="nav-members"><span class="ico">👥</span><span>Members</span></button>
+        <button id="nav-kops"><span class="ico">🍳</span><span>KitchenOPS</span></button>
+      </div>
     </aside>
 
     <!-- ─── MAIN PANE ─── -->
     <main class="main">
-      <div id="main-empty" class="empty-pane">
-        <div>
-          <div style="font-family:var(--hd);font-size:28px;color:var(--amber);letter-spacing:.08em;margin-bottom:8px">No project selected</div>
-          <div>Pick a project from the sidebar — or create one to get started.</div>
+
+      <!-- HOME / OVERVIEW -->
+      <div id="page-home" class="view">
+        <div class="home">
+          <div id="invites-slot"></div>
+          <div class="main-h" style="padding:0;border:none">
+            <h2 id="home-ws-name">Overview</h2>
+          </div>
+          <div class="stats" id="home-stats"></div>
+          <div class="panel-card">
+            <h3>Recent activity</h3>
+            <div id="home-recent" style="color:var(--muted);font-style:italic">Pick a project from the sidebar to start.</div>
+          </div>
+          <div class="kops-card" id="kops-card">
+            <div class="ico">🍳</div>
+            <div class="txt">
+              <div class="ttl">KitchenOPS Cloud</div>
+              <div class="sb">Open your kitchen management app in a new tab.</div>
+            </div>
+            <button class="btn" id="kops-open">Open</button>
+          </div>
         </div>
       </div>
 
-      <div id="main-proj" class="hidden" style="display:flex;flex-direction:column;min-height:0;flex:1">
+      <!-- PROJECT VIEW -->
+      <div id="page-project" class="hidden" style="display:none;flex-direction:column;min-height:0;flex:1">
         <div class="main-h">
           <h2 id="proj-name">—</h2>
           <span class="desc" id="proj-desc"></span>
@@ -345,7 +391,6 @@ header.top{display:flex;align-items:center;justify-content:space-between;padding
           <button class="v-tab" data-view="ideas" role="tab">Ideas</button>
         </div>
 
-        <!-- BOARD -->
         <div class="view" id="view-board">
           <div class="board">
             <div class="col" data-status="todo">
@@ -366,7 +411,6 @@ header.top{display:flex;align-items:center;justify-content:space-between;padding
           </div>
         </div>
 
-        <!-- CHAT -->
         <div class="view chat hidden" id="view-chat">
           <div class="messages" id="messages"></div>
           <div class="composer">
@@ -375,7 +419,6 @@ header.top{display:flex;align-items:center;justify-content:space-between;padding
           </div>
         </div>
 
-        <!-- IDEAS -->
         <div class="view hidden" id="view-ideas">
           <div class="ideas-top">
             <input type="text" id="idea-title" placeholder="Quick idea title…" maxlength="120">
@@ -384,71 +427,86 @@ header.top{display:flex;align-items:center;justify-content:space-between;padding
           <div class="ideas" id="ideas-list"></div>
         </div>
       </div>
+
+      <!-- MEMBERS -->
+      <div id="page-members" class="view hidden">
+        <div class="members-wrap">
+          <div class="panel-card">
+            <h3>Workspace members</h3>
+            <div id="members-list"></div>
+          </div>
+          <div class="panel-card" id="invite-block">
+            <h3>Invite by email</h3>
+            <div id="invite-msg" style="color:var(--muted);font-size:13px;margin-bottom:10px">Owners can invite anyone with a ProMapp account by email. Invites expire after 7 days.</div>
+            <div class="invite-form">
+              <input type="email" id="inv-email" placeholder="teammate@example.com" autocomplete="off">
+              <button class="btn" id="btn-invite">Invite</button>
+            </div>
+          </div>
+          <div class="panel-card" id="pending-block">
+            <h3>Pending invitations</h3>
+            <div id="pending-list"></div>
+          </div>
+          <div class="panel-card" id="leave-block">
+            <h3>Leave workspace</h3>
+            <div style="color:var(--muted);font-size:13px;margin-bottom:10px">You'll lose access to all projects here. The owner can re-invite you later.</div>
+            <button class="btn danger sm" id="btn-leave">Leave workspace</button>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 </div>
 
-<!-- ─── MODALS (created on demand) ─── -->
 <div id="modal-root"></div>
 
-<!-- ─── SUPABASE CLIENT ─── -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script>
 // ════════════════════════════════════════════════════════════════════════
 // ⚠️ FILL IN YOUR SUPABASE PROJECT CREDENTIALS HERE
-// Get them from: Supabase Dashboard → Settings → API
 // ════════════════════════════════════════════════════════════════════════
 const SUPABASE_URL = 'https://ouppawndgtiejiebamph.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91cHBhd25kZ3RpZWppZWJhbXBoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3OTQ1OTgwNywiZXhwIjoyMDk1MDM1ODA3fQ.6JulKkQfgOj4TRDrbDebE6-5ZM7FLQ51vE5yinLDWEk';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91cHBhd25kZ3RpZWppZWJhbXBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0NTk4MDcsImV4cCI6MjA5NTAzNTgwN30.m-YVFqAAxJJBkJP1X4e59Ou99NSpE2WdZZvgcyRvMK4';
 // ════════════════════════════════════════════════════════════════════════
 
-const IS_HOSTED = false; // set true after deploying to a real URL (enables magic link)
+// URL of your KitchenOPS deployment (the "🍳 KitchenOPS" button opens this).
+// Replace with your real KitchenOPS URL once deployed.
+const KITCHENOPS_URL = 'https://papakvas.github.io/KitchenOPS-cloud/KitchenOPS-cloud.html';
+
+const IS_HOSTED = true;  // set true once deployed to a real URL (enables magic link)
 
 // ─── CONFIG CHECK ───────────────────────────────────────────────────────
-(function checkConfig(){
+(function(){
   if(!SUPABASE_URL || SUPABASE_URL.includes('PASTE_YOUR') ||
      !SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.includes('PASTE_YOUR')){
     document.getElementById('boot').classList.add('hidden');
     document.getElementById('config-err').classList.remove('hidden');
-    throw new Error('Supabase config missing — edit the HTML file');
+    throw new Error('Supabase config missing');
   }
 })();
 
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth:{
-    persistSession:true,
-    autoRefreshToken:true,
-    detectSessionInUrl:true,
-    storage:window.localStorage,
-  },
+  auth:{ persistSession:true, autoRefreshToken:true, detectSessionInUrl:true, storage:window.localStorage },
 });
 
-// ─── DOM HELPERS ────────────────────────────────────────────────────────
+// ─── HELPERS ────────────────────────────────────────────────────────────
 const $ = (id) => document.getElementById(id);
 const show = (id) => $(id).classList.remove('hidden');
 const hide = (id) => $(id).classList.add('hidden');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const initial = (n) => (n||'?').trim().charAt(0).toUpperCase();
 
-// ─── THEME SYSTEM ───────────────────────────────────────────────────────
-const themeSystem = (()=>{
-  let pref = 'dark';
-  try{ pref = localStorage.getItem('pm:theme') || 'dark'; }catch{}
-  if(pref !== 'dark' && pref !== 'light') pref = 'dark';
-  function apply(){ document.documentElement.setAttribute('data-theme', pref); }
-  return {
-    get(){ return pref; },
-    toggle(){ pref = pref === 'dark' ? 'light' : 'dark'; try{ localStorage.setItem('pm:theme', pref);}catch{}; apply(); },
-    init(){ apply(); },
-  };
-})();
-themeSystem.init();
+function fmtTime(iso){
+  const d = new Date(iso); const now = new Date();
+  return d.toDateString() === now.toDateString()
+    ? d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })
+    : d.toLocaleString([],   { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+}
 
-// ─── TOAST ──────────────────────────────────────────────────────────────
 let _toastT;
 function toast(text, kind=''){
-  const old = document.querySelector('.toast');
-  if(old) old.remove();
+  const old = document.querySelector('.toast'); if(old) old.remove();
   const el = document.createElement('div');
   el.className = 'toast' + (kind ? ' '+kind : '');
   el.textContent = text;
@@ -457,13 +515,32 @@ function toast(text, kind=''){
   _toastT = setTimeout(()=>el.remove(), 2800);
 }
 
-// ─── AUTH MESSAGES ──────────────────────────────────────────────────────
+// Friendly error mapping — extract a usable message even from Supabase error shapes
+function friendlyError(err){
+  if(!err) return 'Unknown error';
+  if(typeof err === 'string') return err;
+  return err.message || err.error_description || err.error || JSON.stringify(err);
+}
+
 function authMsg(text, kind='err'){
   const el = $('auth-msg');
   el.innerHTML = text ? `<div class="msg ${kind}">${esc(text)}</div>` : '';
 }
 
-// ─── AUTH UI ────────────────────────────────────────────────────────────
+// ─── THEME ──────────────────────────────────────────────────────────────
+const themeSystem = (()=>{
+  let pref = 'dark';
+  try{ pref = localStorage.getItem('pm:theme') || 'dark'; }catch{}
+  if(pref !== 'dark' && pref !== 'light') pref = 'dark';
+  function apply(){ document.documentElement.setAttribute('data-theme', pref); }
+  return {
+    toggle(){ pref = pref==='dark' ? 'light' : 'dark'; try{localStorage.setItem('pm:theme',pref);}catch{}; apply(); },
+    init(){ apply(); },
+  };
+})();
+themeSystem.init();
+
+// ─── AUTH TABS ──────────────────────────────────────────────────────────
 function setAuthTab(name){
   ['signin','signup','magic'].forEach(n=>{
     $(`tab-${n}`).classList.toggle('active', n===name);
@@ -473,11 +550,8 @@ function setAuthTab(name){
 }
 $('tab-signin').onclick = ()=> setAuthTab('signin');
 $('tab-signup').onclick = ()=> setAuthTab('signup');
-$('tab-magic').onclick = ()=>{
-  if(!IS_HOSTED){
-    authMsg('Magic link requires a hosted URL (Supabase will reject localhost). Use sign-in or sign-up for now.','err');
-    return;
-  }
+$('tab-magic').onclick  = ()=>{
+  if(!IS_HOSTED){ authMsg('Magic link requires a hosted URL.','err'); return; }
   setAuthTab('magic');
 };
 
@@ -489,8 +563,7 @@ $('form-signin').addEventListener('submit', async (e)=>{
   try{
     const { error } = await sb.auth.signInWithPassword({ email, password });
     if(error) throw error;
-    // onAuthStateChange will swap UI
-  }catch(err){ authMsg(err.message || 'Sign-in failed','err'); btn.disabled = false; }
+  }catch(err){ authMsg(friendlyError(err),'err'); btn.disabled = false; }
 });
 
 $('form-signup').addEventListener('submit', async (e)=>{
@@ -508,7 +581,7 @@ $('form-signup').addEventListener('submit', async (e)=>{
     if(!data.session){
       authMsg('Account created. Check your email for the confirmation link.','ok');
     }
-  }catch(err){ authMsg(err.message || 'Sign-up failed','err'); }
+  }catch(err){ authMsg(friendlyError(err),'err'); }
   finally{ btn.disabled = false; }
 });
 
@@ -523,60 +596,158 @@ $('form-magic').addEventListener('submit', async (e)=>{
     });
     if(error) throw error;
     authMsg('Magic link sent — check your email.','ok');
-  }catch(err){ authMsg(err.message || 'Could not send link','err'); }
+  }catch(err){ authMsg(friendlyError(err),'err'); }
   finally{ btn.disabled = false; }
 });
 
-$('btn-signout').onclick = async ()=>{
-  await sb.auth.signOut();
-  // onAuthStateChange handles UI
-};
-
+$('btn-signout').onclick = async ()=> { await sb.auth.signOut(); };
 $('btn-theme').onclick = ()=> themeSystem.toggle();
-$('btn-menu').onclick = ()=> $('sidebar').classList.toggle('show');
+$('btn-menu').onclick  = ()=> $('sidebar').classList.toggle('show');
 
 // ════════════════════════════════════════════════════════════════════════
-// APP STATE
+// STATE
 // ════════════════════════════════════════════════════════════════════════
 const state = {
   user: null,
-  profile: null,        // { id, display_name }
+  profile: null,
+  memberships: [],     // [{ workspace_id, role, workspaces:{id,name,owner_id} }]
+  currentWsId: null,
+  currentRole: 'member',
   projects: [],
   currentProjectId: null,
-  currentView: 'board', // 'board' | 'chat' | 'ideas'
-  tasks: [],
-  messages: [],
-  ideas: [],
-  votes: new Set(),     // idea_ids the current user voted for
-  channels: { messages:null, tasks:null, ideas:null, votes:null }, // realtime subs
+  currentView: 'board',
+  currentPage: 'home', // 'home' | 'project' | 'members'
+  tasks: [], messages: [], ideas: [],
+  votes: new Set(),
+  members: [],
+  invites: [],
+  myInvites: [],
+  channels: { messages:null, tasks:null, ideas:null, votes:null, invites:null, members:null },
 };
 
-// ─── PROFILE: ensure a row in public.profiles exists ────────────────────
+// ─── ENSURE PROFILE ─────────────────────────────────────────────────────
 async function ensureProfile(user){
-  // try fetch
-  const { data, error } = await sb
-    .from('profiles')
-    .select('id, display_name')
-    .eq('id', user.id)
-    .maybeSingle();
-  if(error){ console.warn('profiles fetch', error); }
+  let { data } = await sb.from('profiles').select('id, display_name, email').eq('id', user.id).maybeSingle();
   if(data) return data;
-  // create
+  // Fallback insert (the SQL trigger should have created it, but just in case)
   const display_name = user.user_metadata?.display_name || (user.email||'').split('@')[0] || 'User';
-  const ins = await sb.from('profiles').insert({ id:user.id, display_name }).select('id, display_name').single();
-  if(ins.error){ console.warn('profiles insert', ins.error); return { id:user.id, display_name }; }
-  return ins.data;
+  const ins = await sb.from('profiles').insert({ id:user.id, display_name, email:user.email }).select().single();
+  return ins.data || { id:user.id, display_name, email:user.email };
 }
 
-// ─── LOAD PROJECTS ──────────────────────────────────────────────────────
+// ─── LOAD WORKSPACES (memberships) ──────────────────────────────────────
+async function loadWorkspaces(){
+  const { data, error } = await sb
+    .from('workspace_members')
+    .select('id, role, joined_at, workspaces ( id, name, owner_id )')
+    .eq('user_id', state.user.id)
+    .order('joined_at', { ascending:true });
+  if(error){ toast('Workspaces: ' + friendlyError(error),'err'); return; }
+  state.memberships = (data||[]).filter(m => m.workspaces);
+}
+
+function pickInitialWorkspace(){
+  if(!state.memberships.length) return null;
+  let saved = null; try{ saved = localStorage.getItem('pm:active_ws'); }catch{}
+  const hit = state.memberships.find(m => m.workspaces.id === saved);
+  return hit ? hit.workspaces.id : state.memberships[0].workspaces.id;
+}
+
+async function setActiveWorkspace(wsId){
+  const m = state.memberships.find(x => x.workspaces.id === wsId);
+  if(!m){ return; }
+  state.currentWsId = wsId;
+  state.currentRole = m.role;
+  try{ localStorage.setItem('pm:active_ws', wsId); }catch{}
+  $('ws-name').textContent = m.workspaces.name;
+  // Reset
+  state.currentProjectId = null;
+  state.projects = [];
+  unsubAll();
+  await loadProjects();
+  goPage('home');
+  renderWsPicker();
+}
+
+// ─── WS PICKER ──────────────────────────────────────────────────────────
+function renderWsPicker(){
+  const list = $('ws-picker-list');
+  list.innerHTML = state.memberships.map(m => {
+    const cur = m.workspaces.id === state.currentWsId;
+    return `<div class="ws-item ${cur?'current':''}" data-ws="${esc(m.workspaces.id)}">
+      <span class="ws-name">${esc(m.workspaces.name)}</span>
+      <span class="ws-role">${esc(m.role)}</span>
+      ${cur ? '<span style="color:var(--amber)">✓</span>' : ''}
+    </div>`;
+  }).join('');
+  list.querySelectorAll('[data-ws]').forEach(el => {
+    el.onclick = ()=>{
+      $('ws-picker').classList.remove('show');
+      setActiveWorkspace(el.dataset.ws);
+    };
+  });
+}
+$('btn-ws').onclick = (e)=>{ e.stopPropagation(); $('ws-picker').classList.toggle('show'); };
+document.addEventListener('click', (e)=>{
+  const p = $('ws-picker'); if(!p) return;
+  if(!p.contains(e.target) && e.target.id !== 'btn-ws' && !$('btn-ws').contains(e.target)){
+    p.classList.remove('show');
+  }
+});
+$('ws-new-btn').onclick = ()=>{ $('ws-picker').classList.remove('show'); openNewWorkspaceModal(); };
+
+function openNewWorkspaceModal(){
+  const root = $('modal-root');
+  root.innerHTML = `
+    <div class="modal-bg">
+      <div class="modal">
+        <div class="modal-h"><h3>New workspace</h3><button class="x" id="mx">×</button></div>
+        <div class="modal-b">
+          <div class="field"><label>Name</label><input id="nw-name" placeholder="My team" maxlength="60"></div>
+        </div>
+        <div class="modal-f">
+          <button class="btn ghost" id="nw-cancel">Cancel</button>
+          <button class="btn" id="nw-save">Create</button>
+        </div>
+      </div>
+    </div>`;
+  const close = ()=> root.innerHTML='';
+  $('mx').onclick = close; $('nw-cancel').onclick = close;
+  $('nw-save').onclick = async ()=>{
+    const name = $('nw-name').value.trim();
+    if(!name){ toast('Name required','err'); return; }
+    try{
+      // 1) create workspace
+      const { data: ws, error: e1 } = await sb.from('workspaces')
+        .insert({ name, owner_id: state.user.id }).select().single();
+      if(e1) throw e1;
+      // 2) add me as owner
+      const { error: e2 } = await sb.from('workspace_members')
+        .insert({ workspace_id: ws.id, user_id: state.user.id, role:'owner' });
+      if(e2) throw e2;
+      close();
+      toast('Workspace created','ok');
+      await loadWorkspaces();
+      await setActiveWorkspace(ws.id);
+    }catch(err){ toast(friendlyError(err),'err'); }
+  };
+  setTimeout(()=>$('nw-name').focus(), 30);
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// PROJECTS
+// ════════════════════════════════════════════════════════════════════════
 async function loadProjects(){
+  if(!state.currentWsId){ state.projects = []; renderProjects(); return; }
   const { data, error } = await sb
     .from('projects')
     .select('id, name, description, created_at')
+    .eq('workspace_id', state.currentWsId)
     .order('created_at', { ascending:true });
-  if(error){ toast('Could not load projects: '+error.message,'err'); return; }
+  if(error){ toast('Projects: ' + friendlyError(error),'err'); return; }
   state.projects = data || [];
   renderProjects();
+  renderHomeStats();
 }
 
 function renderProjects(){
@@ -588,41 +759,34 @@ function renderProjects(){
   el.innerHTML = state.projects.map(p => `
     <div class="proj-item ${p.id===state.currentProjectId?'active':''}" data-id="${esc(p.id)}">
       <span class="hash">#</span><span>${esc(p.name)}</span>
-    </div>
-  `).join('');
-  el.querySelectorAll('.proj-item').forEach(node=>{
-    node.onclick = ()=> selectProject(node.dataset.id);
-  });
+    </div>`).join('');
+  el.querySelectorAll('.proj-item').forEach(n => n.onclick = ()=> selectProject(n.dataset.id));
 }
 
 async function selectProject(id){
   state.currentProjectId = id;
+  goPage('project');
   renderProjects();
   const p = state.projects.find(x=>x.id===id);
   if(!p) return;
-  $('main-empty').classList.add('hidden');
-  $('main-proj').classList.remove('hidden');
   $('proj-name').textContent = '#' + p.name;
   $('proj-desc').textContent = p.description || '';
-  // close mobile sidebar
   $('sidebar').classList.remove('show');
-  // unsubscribe previous realtime
   unsubAll();
-  // load all views' data + subscribe
+  state.currentView = 'board';
+  setView('board');
   await Promise.all([ loadTasks(), loadMessages(), loadIdeas() ]);
   subscribeRealtime();
-  setView(state.currentView);
 }
 
-// ─── PROJECT CREATE ─────────────────────────────────────────────────────
 $('btn-new-proj').onclick = ()=> openProjectModal();
-
 function openProjectModal(){
+  if(!state.currentWsId){ toast('Pick a workspace first','err'); return; }
   const root = $('modal-root');
   root.innerHTML = `
     <div class="modal-bg">
       <div class="modal">
-        <div class="modal-h"><h3>New project</h3><span class="x" id="mx">×</span></div>
+        <div class="modal-h"><h3>New project</h3><button class="x" id="mx">×</button></div>
         <div class="modal-b">
           <div class="field"><label>Name</label><input id="np-name" placeholder="marketing-q3" maxlength="48"></div>
           <div class="field"><label>Description</label><textarea id="np-desc" placeholder="What's this project about?" maxlength="240"></textarea></div>
@@ -633,32 +797,37 @@ function openProjectModal(){
         </div>
       </div>
     </div>`;
-  const close = ()=> root.innerHTML = '';
+  const close = ()=> root.innerHTML='';
   $('mx').onclick = close; $('np-cancel').onclick = close;
   $('np-save').onclick = async ()=>{
     const name = $('np-name').value.trim().toLowerCase().replace(/\s+/g,'-');
     const description = $('np-desc').value.trim();
     if(!name){ toast('Name required','err'); return; }
-    const { data, error } = await sb.from('projects').insert({ name, description, owner_id: state.user.id }).select().single();
-    if(error){ toast(error.message,'err'); return; }
-    state.projects.push(data);
-    renderProjects();
-    close();
-    selectProject(data.id);
+    try{
+      const { data, error } = await sb.from('projects').insert({
+        workspace_id: state.currentWsId, name, description, created_by: state.user.id,
+      }).select().single();
+      if(error) throw error;
+      state.projects.push(data);
+      renderProjects();
+      close();
+      selectProject(data.id);
+    }catch(err){ toast(friendlyError(err),'err'); }
   };
   setTimeout(()=>$('np-name').focus(), 30);
 }
 
 // ════════════════════════════════════════════════════════════════════════
-// TASKS (Board view)
+// TASKS
 // ════════════════════════════════════════════════════════════════════════
 async function loadTasks(){
+  if(!state.currentProjectId){ state.tasks = []; renderTasks(); return; }
   const { data, error } = await sb
     .from('tasks')
-    .select('id, title, description, status, priority, assignee_id, created_at, profiles:assignee_id(display_name)')
+    .select('id, title, description, status, priority, assignee_id, created_at, assignee:assignee_id(display_name)')
     .eq('project_id', state.currentProjectId)
     .order('created_at', { ascending:true });
-  if(error){ toast('Tasks: '+error.message,'err'); return; }
+  if(error){ toast('Tasks: ' + friendlyError(error),'err'); return; }
   state.tasks = data || [];
   renderTasks();
 }
@@ -670,7 +839,7 @@ function renderTasks(){
     $('count-'+status).textContent = groups[status].length;
     $('col-'+status).innerHTML = groups[status].map(t=>{
       const prio = t.priority || 'med';
-      const assignee = t.profiles?.display_name || '';
+      const assignee = t.assignee?.display_name || '';
       return `
         <div class="task" data-id="${esc(t.id)}">
           <div class="title">${esc(t.title)}</div>
@@ -681,28 +850,34 @@ function renderTasks(){
         </div>`;
     }).join('');
   }
-  document.querySelectorAll('.task').forEach(node=>{
-    node.onclick = ()=> openTaskModal(node.dataset.id);
-  });
-  document.querySelectorAll('.add-task').forEach(node=>{
-    node.onclick = ()=> openTaskModal(null, node.dataset.status);
-  });
+  document.querySelectorAll('.task').forEach(n => n.onclick = ()=> openTaskModal(n.dataset.id));
 }
+
+// Add-task buttons are static — wire once at boot
+document.querySelectorAll('.add-task').forEach(node => {
+  node.addEventListener('click', ()=>{
+    if(!state.currentProjectId){ toast('Select a project first','err'); return; }
+    openTaskModal(null, node.dataset.status);
+  });
+});
 
 async function openTaskModal(taskId, initialStatus='todo'){
   const editing = !!taskId;
   const t = editing ? state.tasks.find(x=>x.id===taskId) : { title:'', description:'', status:initialStatus, priority:'med', assignee_id:null };
-  if(editing && !t){ return; }
+  if(editing && !t) return;
 
-  // collect member options: profiles of users who've posted in this project + project owner
-  // For simplicity v1: list all profiles (RLS-permitting). Could be scoped to project members later.
-  const { data: people } = await sb.from('profiles').select('id, display_name').order('display_name');
+  // Members of this workspace = assignee options
+  const { data: peopleRows } = await sb
+    .from('workspace_members')
+    .select('user_id, profiles:user_id(id, display_name)')
+    .eq('workspace_id', state.currentWsId);
+  const people = (peopleRows||[]).map(r => r.profiles).filter(Boolean);
 
   const root = $('modal-root');
   root.innerHTML = `
     <div class="modal-bg">
       <div class="modal">
-        <div class="modal-h"><h3>${editing?'Edit task':'New task'}</h3><span class="x" id="mx">×</span></div>
+        <div class="modal-h"><h3>${editing?'Edit task':'New task'}</h3><button class="x" id="mx">×</button></div>
         <div class="modal-b">
           <div class="field"><label>Title</label><input id="t-title" maxlength="160" value="${esc(t.title)}"></div>
           <div class="field"><label>Description</label><textarea id="t-desc" maxlength="2000">${esc(t.description||'')}</textarea></div>
@@ -723,7 +898,7 @@ async function openTaskModal(taskId, initialStatus='todo'){
           <div class="field"><label>Assignee</label>
             <select id="t-assignee">
               <option value="">— Unassigned —</option>
-              ${(people||[]).map(p=>`<option value="${esc(p.id)}"${t.assignee_id===p.id?' selected':''}>${esc(p.display_name)}</option>`).join('')}
+              ${people.map(p=>`<option value="${esc(p.id)}"${t.assignee_id===p.id?' selected':''}>${esc(p.display_name)}</option>`).join('')}
             </select>
           </div>
         </div>
@@ -734,7 +909,7 @@ async function openTaskModal(taskId, initialStatus='todo'){
         </div>
       </div>
     </div>`;
-  const close = ()=> root.innerHTML = '';
+  const close = ()=> root.innerHTML='';
   $('mx').onclick = close; $('t-cancel').onclick = close;
 
   $('t-save').onclick = async ()=>{
@@ -746,71 +921,63 @@ async function openTaskModal(taskId, initialStatus='todo'){
       assignee_id: $('t-assignee').value || null,
     };
     if(!payload.title){ toast('Title required','err'); return; }
-    if(editing){
-      const { error } = await sb.from('tasks').update(payload).eq('id', taskId);
-      if(error){ toast(error.message,'err'); return; }
-    }else{
-      payload.project_id = state.currentProjectId;
-      payload.created_by = state.user.id;
-      const { error } = await sb.from('tasks').insert(payload);
-      if(error){ toast(error.message,'err'); return; }
-    }
-    close();
-    // realtime will refresh — but call loadTasks for immediate feedback
-    loadTasks();
+    try{
+      if(editing){
+        const { error } = await sb.from('tasks').update(payload).eq('id', taskId);
+        if(error) throw error;
+      }else{
+        payload.project_id = state.currentProjectId;
+        payload.created_by = state.user.id;
+        const { error } = await sb.from('tasks').insert(payload);
+        if(error) throw error;
+      }
+      close();
+      loadTasks();
+    }catch(err){ toast(friendlyError(err),'err'); }
   };
-
   if(editing){
     $('t-del').onclick = async ()=>{
       if(!confirm('Delete this task?')) return;
-      const { error } = await sb.from('tasks').delete().eq('id', taskId);
-      if(error){ toast(error.message,'err'); return; }
-      close();
-      loadTasks();
+      try{
+        const { error } = await sb.from('tasks').delete().eq('id', taskId);
+        if(error) throw error;
+        close();
+        loadTasks();
+      }catch(err){ toast(friendlyError(err),'err'); }
     };
   }
   setTimeout(()=>$('t-title').focus(), 30);
 }
 
 // ════════════════════════════════════════════════════════════════════════
-// MESSAGES (Chat view)
+// MESSAGES
 // ════════════════════════════════════════════════════════════════════════
 async function loadMessages(){
+  if(!state.currentProjectId){ state.messages = []; renderMessages(); return; }
   const { data, error } = await sb
     .from('messages')
-    .select('id, body, created_at, user_id, profiles:user_id(display_name)')
+    .select('id, body, created_at, user_id, author:user_id(display_name)')
     .eq('project_id', state.currentProjectId)
     .order('created_at', { ascending:true })
     .limit(200);
-  if(error){ toast('Messages: '+error.message,'err'); return; }
+  if(error){ toast('Messages: ' + friendlyError(error),'err'); return; }
   state.messages = data || [];
   renderMessages();
 }
-
-function fmtTime(iso){
-  const d = new Date(iso);
-  const now = new Date();
-  const sameDay = d.toDateString() === now.toDateString();
-  return sameDay
-    ? d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })
-    : d.toLocaleString([], { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
-}
-function initial(name){ return (name||'?').trim().charAt(0).toUpperCase(); }
 
 function renderMessages(){
   const el = $('messages');
   el.innerHTML = state.messages.map(m => `
     <div class="message">
-      <div class="avatar">${esc(initial(m.profiles?.display_name))}</div>
+      <div class="avatar">${esc(initial(m.author?.display_name))}</div>
       <div class="body">
         <div class="head">
-          <span class="name">${esc(m.profiles?.display_name || 'Unknown')}</span>
+          <span class="name">${esc(m.author?.display_name || 'Unknown')}</span>
           <span class="time">${esc(fmtTime(m.created_at))}</span>
         </div>
         <div class="text">${esc(m.body)}</div>
       </div>
-    </div>
-  `).join('');
+    </div>`).join('');
   el.scrollTop = el.scrollHeight;
 }
 
@@ -822,31 +989,28 @@ async function sendMessage(){
   const ta = $('msg-input');
   const body = ta.value.trim();
   if(!body) return;
+  if(!state.currentProjectId){ toast('Pick a project first','err'); return; }
   ta.value = '';
   const { error } = await sb.from('messages').insert({
-    project_id: state.currentProjectId,
-    user_id: state.user.id,
-    body,
+    project_id: state.currentProjectId, user_id: state.user.id, body,
   });
-  if(error){ toast(error.message,'err'); ta.value = body; }
-  // realtime will append the message
+  if(error){ toast(friendlyError(error),'err'); ta.value = body; }
 }
 
 // ════════════════════════════════════════════════════════════════════════
-// IDEAS (Brainstorm view)
+// IDEAS
 // ════════════════════════════════════════════════════════════════════════
 async function loadIdeas(){
+  if(!state.currentProjectId){ state.ideas = []; renderIdeas(); return; }
   const { data, error } = await sb
     .from('ideas')
-    .select('id, title, body, created_at, user_id, profiles:user_id(display_name), idea_votes(user_id)')
+    .select('id, title, body, created_at, user_id, author:user_id(display_name), idea_votes(user_id)')
     .eq('project_id', state.currentProjectId)
     .order('created_at', { ascending:false });
-  if(error){ toast('Ideas: '+error.message,'err'); return; }
+  if(error){ toast('Ideas: ' + friendlyError(error),'err'); return; }
   state.ideas = data || [];
   state.votes = new Set();
-  state.ideas.forEach(i => {
-    (i.idea_votes||[]).forEach(v => { if(v.user_id === state.user.id) state.votes.add(i.id); });
-  });
+  state.ideas.forEach(i => (i.idea_votes||[]).forEach(v => { if(v.user_id === state.user.id) state.votes.add(i.id); }));
   renderIdeas();
 }
 
@@ -864,16 +1028,16 @@ function renderIdeas(){
         <div class="title">${esc(i.title)}</div>
         ${i.body ? `<div class="body">${esc(i.body)}</div>` : ''}
         <div class="foot">
-          <span class="author">— ${esc(i.profiles?.display_name || 'Unknown')}</span>
+          <span class="author">— ${esc(i.author?.display_name || 'Unknown')}</span>
           <button class="promote-btn" data-act="promote">Promote → Task</button>
           <button class="vote-btn ${voted?'voted':''}" data-act="vote">▲ ${voteCount}</button>
         </div>
       </div>`;
   }).join('');
-  el.querySelectorAll('.idea').forEach(node=>{
-    const id = node.dataset.id;
-    node.querySelector('[data-act="vote"]').onclick = (e)=>{ e.stopPropagation(); toggleVote(id); };
-    node.querySelector('[data-act="promote"]').onclick = (e)=>{ e.stopPropagation(); promoteIdea(id); };
+  el.querySelectorAll('.idea').forEach(n => {
+    const id = n.dataset.id;
+    n.querySelector('[data-act="vote"]').onclick = (e)=>{ e.stopPropagation(); toggleVote(id); };
+    n.querySelector('[data-act="promote"]').onclick = (e)=>{ e.stopPropagation(); promoteIdea(id); };
   });
 }
 
@@ -886,28 +1050,24 @@ async function postIdea(){
   const input = $('idea-title');
   const title = input.value.trim();
   if(!title){ toast('Idea title required','err'); return; }
+  if(!state.currentProjectId){ toast('Pick a project first','err'); return; }
   input.value = '';
   const { error } = await sb.from('ideas').insert({
-    project_id: state.currentProjectId,
-    user_id: state.user.id,
-    title,
-    body: '',
+    project_id: state.currentProjectId, user_id: state.user.id, title, body:'',
   });
-  if(error){ toast(error.message,'err'); input.value = title; }
+  if(error){ toast(friendlyError(error),'err'); input.value = title; }
 }
 
 async function toggleVote(ideaId){
   if(state.votes.has(ideaId)){
-    const { error } = await sb.from('idea_votes').delete()
-      .eq('idea_id', ideaId).eq('user_id', state.user.id);
-    if(error){ toast(error.message,'err'); return; }
+    const { error } = await sb.from('idea_votes').delete().eq('idea_id', ideaId).eq('user_id', state.user.id);
+    if(error){ toast(friendlyError(error),'err'); return; }
     state.votes.delete(ideaId);
   }else{
     const { error } = await sb.from('idea_votes').insert({ idea_id: ideaId, user_id: state.user.id });
-    if(error){ toast(error.message,'err'); return; }
+    if(error){ toast(friendlyError(error),'err'); return; }
     state.votes.add(ideaId);
   }
-  // refresh counts (cheap query)
   loadIdeas();
 }
 
@@ -919,53 +1079,263 @@ async function promoteIdea(ideaId){
     project_id: state.currentProjectId,
     created_by: state.user.id,
     title: idea.title,
-    description: idea.body || `Promoted from idea by ${idea.profiles?.display_name || 'someone'}.`,
-    status: 'todo',
-    priority: 'med',
+    description: idea.body || `Promoted from idea by ${idea.author?.display_name || 'someone'}.`,
+    status:'todo', priority:'med',
   });
-  if(error){ toast(error.message,'err'); return; }
+  if(error){ toast(friendlyError(error),'err'); return; }
   toast('Idea promoted to task','ok');
   loadTasks();
 }
 
 // ════════════════════════════════════════════════════════════════════════
-// VIEW SWITCHER
+// VIEW SWITCH (within project page)
 // ════════════════════════════════════════════════════════════════════════
-document.querySelectorAll('.v-tab').forEach(btn=>{
-  btn.onclick = ()=> setView(btn.dataset.view);
-});
+document.querySelectorAll('.v-tab').forEach(btn => btn.onclick = ()=> setView(btn.dataset.view));
 function setView(v){
   state.currentView = v;
   document.querySelectorAll('.v-tab').forEach(b => b.classList.toggle('active', b.dataset.view===v));
   ['board','chat','ideas'].forEach(n => $('view-'+n).classList.toggle('hidden', n!==v));
-  if(v==='chat'){ const m = $('messages'); m.scrollTop = m.scrollHeight; }
+  if(v==='chat'){ const m=$('messages'); m.scrollTop = m.scrollHeight; }
 }
+
+// ════════════════════════════════════════════════════════════════════════
+// PAGE SWITCH (home / project / members)
+// ════════════════════════════════════════════════════════════════════════
+$('nav-home').onclick    = ()=> goPage('home');
+$('nav-members').onclick = ()=> goPage('members');
+$('nav-kops').onclick    = ()=> openKitchenOps();
+$('kops-open').onclick   = ()=> openKitchenOps();
+
+function openKitchenOps(){
+  if(!KITCHENOPS_URL || KITCHENOPS_URL.includes('YOUR_KITCHENOPS')){
+    toast('Set KITCHENOPS_URL in the source code first','err');
+    return;
+  }
+  window.open(KITCHENOPS_URL, '_blank', 'noopener,noreferrer');
+}
+
+function goPage(name){
+  state.currentPage = name;
+  $('page-home').classList.toggle('hidden', name!=='home');
+  $('page-project').style.display = (name==='project' ? 'flex' : 'none');
+  $('page-members').classList.toggle('hidden', name!=='members');
+
+  $('nav-home').classList.toggle('active', name==='home');
+  $('nav-members').classList.toggle('active', name==='members');
+
+  $('sidebar').classList.remove('show');
+
+  if(name==='home'){
+    renderHomeStats();
+    loadMyInvites();
+  }else if(name==='members'){
+    loadMembersPage();
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// HOME / OVERVIEW
+// ════════════════════════════════════════════════════════════════════════
+function renderHomeStats(){
+  const m = state.memberships.find(x => x.workspaces.id === state.currentWsId);
+  $('home-ws-name').textContent = m ? m.workspaces.name : 'Overview';
+  // Counts come from current loaded data — best-effort
+  $('home-stats').innerHTML = `
+    <div class="stat"><div class="lbl">Projects</div><div class="val">${state.projects.length}</div></div>
+    <div class="stat"><div class="lbl">Open tasks</div><div class="val">${state.tasks.filter(t=>t.status!=='done').length}</div></div>
+    <div class="stat"><div class="lbl">Your role</div><div class="val" style="font-size:20px">${esc(state.currentRole)}</div></div>
+  `;
+}
+
+async function loadMyInvites(){
+  const slot = $('invites-slot');
+  if(!slot) return;
+  try{
+    const { data, error } = await sb.rpc('my_pending_invitations');
+    if(error) throw error;
+    state.myInvites = data || [];
+  }catch(err){ console.warn('my_pending_invitations', err); state.myInvites = []; }
+
+  if(!state.myInvites.length){ slot.innerHTML = ''; return; }
+
+  slot.innerHTML = state.myInvites.map(inv => {
+    const daysLeft = Math.max(0, Math.ceil((new Date(inv.expires_at) - new Date()) / 86400000));
+    return `<div class="invite-card">
+      <div class="head">📨 Invitation to "${esc(inv.workspace_name)}"</div>
+      <div class="sub">Expires in ${daysLeft} day${daysLeft===1?'':'s'}.</div>
+      <div class="actions">
+        <button class="btn ghost sm" data-decline="${esc(inv.id)}">Decline</button>
+        <button class="btn sm" data-accept="${esc(inv.id)}" data-wsname="${esc(inv.workspace_name)}">✓ Accept</button>
+      </div>
+    </div>`;
+  }).join('');
+  slot.querySelectorAll('[data-accept]').forEach(b => b.onclick = async ()=>{
+    const inviteId = b.dataset.accept;
+    b.disabled = true;
+    try{
+      const { data: wsId, error } = await sb.rpc('accept_invitation', { invite_id: inviteId });
+      if(error) throw error;
+      toast('Joined "' + b.dataset.wsname + '"','ok');
+      await loadWorkspaces();
+      if(wsId) await setActiveWorkspace(wsId);
+      else await loadMyInvites();
+    }catch(err){ toast(friendlyError(err),'err'); b.disabled = false; }
+  });
+  slot.querySelectorAll('[data-decline]').forEach(b => b.onclick = async ()=>{
+    const inviteId = b.dataset.decline;
+    try{
+      const { error } = await sb.rpc('decline_invitation', { invite_id: inviteId });
+      if(error) throw error;
+      loadMyInvites();
+    }catch(err){ toast(friendlyError(err),'err'); }
+  });
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// MEMBERS PAGE
+// ════════════════════════════════════════════════════════════════════════
+async function loadMembersPage(){
+  if(!state.currentWsId) return;
+  const isOwner = state.currentRole === 'owner';
+  $('invite-block').classList.toggle('hidden', !isOwner);
+  $('pending-block').classList.toggle('hidden', !isOwner);
+  $('leave-block').classList.toggle('hidden', isOwner);
+
+  // Members
+  const { data: mems, error: e1 } = await sb
+    .from('workspace_members')
+    .select('id, role, joined_at, user_id, profiles:user_id(id, display_name, email)')
+    .eq('workspace_id', state.currentWsId)
+    .order('joined_at', { ascending:true });
+  if(e1){ toast('Members: '+friendlyError(e1),'err'); return; }
+  state.members = mems || [];
+  renderMembers();
+
+  // Pending invites (owner only)
+  if(isOwner){
+    const { data: inv, error: e2 } = await sb
+      .from('invitations')
+      .select('id, email, created_at, expires_at')
+      .eq('workspace_id', state.currentWsId)
+      .is('accepted_at', null)
+      .gt('expires_at', new Date().toISOString())
+      .order('created_at', { ascending:false });
+    if(e2){ toast('Invites: '+friendlyError(e2),'err'); return; }
+    state.invites = inv || [];
+    renderPendingInvites();
+  }
+}
+
+function renderMembers(){
+  const el = $('members-list');
+  el.innerHTML = state.members.map(m => {
+    const p = m.profiles || {};
+    const isMe = m.user_id === state.user.id;
+    const canRemove = state.currentRole === 'owner' && !isMe && m.role !== 'owner';
+    return `<div class="member-row">
+      <div class="avatar">${esc(initial(p.display_name))}</div>
+      <div>
+        <div class="nm">${esc(p.display_name || 'Unknown')}${isMe?' (you)':''}</div>
+        <div class="em">${esc(p.email || '')}</div>
+      </div>
+      <span style="flex:1"></span>
+      <span class="role-pill ${m.role==='owner'?'owner':''}">${esc(m.role)}</span>
+      ${canRemove ? `<button class="btn ghost sm" data-rm="${esc(m.id)}" data-name="${esc(p.display_name||'')}">Remove</button>` : ''}
+    </div>`;
+  }).join('');
+  el.querySelectorAll('[data-rm]').forEach(b => b.onclick = async ()=>{
+    if(!confirm('Remove ' + b.dataset.name + ' from this workspace?')) return;
+    try{
+      const { error } = await sb.from('workspace_members').delete().eq('id', b.dataset.rm);
+      if(error) throw error;
+      toast('Member removed','ok');
+      loadMembersPage();
+    }catch(err){ toast(friendlyError(err),'err'); }
+  });
+}
+
+function renderPendingInvites(){
+  const el = $('pending-list');
+  if(!state.invites.length){ el.innerHTML = '<div style="color:var(--muted);font-style:italic">No pending invitations.</div>'; return; }
+  el.innerHTML = state.invites.map(i => {
+    const daysLeft = Math.max(0, Math.ceil((new Date(i.expires_at) - new Date()) / 86400000));
+    return `<div class="member-row">
+      <div class="avatar">✉</div>
+      <div>
+        <div class="nm">${esc(i.email)}</div>
+        <div class="em">Expires in ${daysLeft} day${daysLeft===1?'':'s'}</div>
+      </div>
+      <span style="flex:1"></span>
+      <button class="btn ghost sm" data-revoke="${esc(i.id)}">Revoke</button>
+    </div>`;
+  }).join('');
+  el.querySelectorAll('[data-revoke]').forEach(b => b.onclick = async ()=>{
+    if(!confirm('Revoke this invitation?')) return;
+    try{
+      const { error } = await sb.from('invitations').delete().eq('id', b.dataset.revoke);
+      if(error) throw error;
+      toast('Revoked','ok');
+      loadMembersPage();
+    }catch(err){ toast(friendlyError(err),'err'); }
+  });
+}
+
+$('btn-invite').onclick = async ()=>{
+  const email = $('inv-email').value.trim().toLowerCase();
+  if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ toast('Valid email required','err'); return; }
+  try{
+    // duplicate check
+    const { data: dupes } = await sb.from('invitations')
+      .select('id')
+      .eq('workspace_id', state.currentWsId).ilike('email', email)
+      .is('accepted_at', null).gt('expires_at', new Date().toISOString()).limit(1);
+    if(dupes && dupes.length){ toast('Already invited','err'); return; }
+    const { error } = await sb.from('invitations').insert({
+      workspace_id: state.currentWsId, email, invited_by: state.user.id,
+    });
+    if(error) throw error;
+    $('inv-email').value = '';
+    toast('Invitation sent','ok');
+    loadMembersPage();
+  }catch(err){ toast(friendlyError(err),'err'); }
+};
+
+$('btn-leave').onclick = async ()=>{
+  if(state.currentRole === 'owner'){ toast('Owners cannot leave','err'); return; }
+  if(!confirm('Leave this workspace? You\'ll lose access immediately.')) return;
+  try{
+    const { error } = await sb.from('workspace_members').delete()
+      .eq('workspace_id', state.currentWsId).eq('user_id', state.user.id);
+    if(error) throw error;
+    toast('Left workspace','ok');
+    await loadWorkspaces();
+    if(state.memberships.length){ await setActiveWorkspace(state.memberships[0].workspaces.id); }
+    else { goPage('home'); }
+  }catch(err){ toast(friendlyError(err),'err'); }
+};
 
 // ════════════════════════════════════════════════════════════════════════
 // REALTIME
 // ════════════════════════════════════════════════════════════════════════
 function unsubAll(){
-  for(const key of Object.keys(state.channels)){
-    if(state.channels[key]){ sb.removeChannel(state.channels[key]); state.channels[key] = null; }
+  for(const k of Object.keys(state.channels)){
+    if(state.channels[k]){ sb.removeChannel(state.channels[k]); state.channels[k] = null; }
   }
 }
 function subscribeRealtime(){
   const pid = state.currentProjectId;
+  if(!pid) return;
   state.channels.messages = sb.channel('msg-'+pid)
-    .on('postgres_changes', { event:'INSERT', schema:'public', table:'messages', filter:`project_id=eq.${pid}` },
-        ()=> loadMessages())
+    .on('postgres_changes', { event:'INSERT', schema:'public', table:'messages', filter:`project_id=eq.${pid}` }, ()=> loadMessages())
     .subscribe();
   state.channels.tasks = sb.channel('task-'+pid)
-    .on('postgres_changes', { event:'*', schema:'public', table:'tasks', filter:`project_id=eq.${pid}` },
-        ()=> loadTasks())
+    .on('postgres_changes', { event:'*', schema:'public', table:'tasks', filter:`project_id=eq.${pid}` }, ()=> loadTasks())
     .subscribe();
   state.channels.ideas = sb.channel('idea-'+pid)
-    .on('postgres_changes', { event:'*', schema:'public', table:'ideas', filter:`project_id=eq.${pid}` },
-        ()=> loadIdeas())
+    .on('postgres_changes', { event:'*', schema:'public', table:'ideas', filter:`project_id=eq.${pid}` }, ()=> loadIdeas())
     .subscribe();
   state.channels.votes = sb.channel('vote-'+pid)
-    .on('postgres_changes', { event:'*', schema:'public', table:'idea_votes' },
-        ()=> loadIdeas())
+    .on('postgres_changes', { event:'*', schema:'public', table:'idea_votes' }, ()=> loadIdeas())
     .subscribe();
 }
 
@@ -975,11 +1345,8 @@ function subscribeRealtime(){
 async function boot(){
   const { data: { session } } = await sb.auth.getSession();
   hide('boot');
-  if(session?.user){
-    await enterApp(session.user);
-  }else{
-    show('auth');
-  }
+  if(session?.user){ await enterApp(session.user); }
+  else{ show('auth'); }
 }
 
 async function enterApp(user){
@@ -988,31 +1355,42 @@ async function enterApp(user){
   $('user-name').textContent = state.profile.display_name;
   hide('auth');
   $('app').classList.add('show');
-  await loadProjects();
-  // auto-select first project
-  if(state.projects.length){ selectProject(state.projects[0].id); }
+
+  await loadWorkspaces();
+  if(!state.memberships.length){
+    // The signup trigger should have created one. If somehow missing, create a default.
+    toast('Creating your workspace…','');
+    try{
+      const { data: ws } = await sb.from('workspaces')
+        .insert({ name: (state.profile.display_name || 'My') + "'s workspace", owner_id: user.id })
+        .select().single();
+      if(ws){
+        await sb.from('workspace_members').insert({ workspace_id: ws.id, user_id: user.id, role:'owner' });
+        await loadWorkspaces();
+      }
+    }catch(err){ console.warn(err); }
+  }
+  const wsId = pickInitialWorkspace();
+  if(wsId) await setActiveWorkspace(wsId);
+  await loadMyInvites();
 }
 
-sb.auth.onAuthStateChange((event, session)=>{
-  if(event === 'SIGNED_IN' && session?.user && !state.user){
-    enterApp(session.user);
-  }else if(event === 'SIGNED_OUT'){
+sb.auth.onAuthStateChange((event, session) => {
+  if(event === 'SIGNED_IN' && session?.user && !state.user){ enterApp(session.user); }
+  else if(event === 'SIGNED_OUT'){
     unsubAll();
-    state.user = null; state.profile = null; state.projects = [];
-    state.currentProjectId = null;
+    state.user = null; state.profile = null; state.memberships = [];
+    state.currentWsId = null; state.currentProjectId = null;
+    state.projects = []; state.tasks = []; state.messages = []; state.ideas = [];
     $('app').classList.remove('show');
-    $('main-empty').classList.remove('hidden');
-    $('main-proj').classList.add('hidden');
     $('proj-list').innerHTML = '';
     show('auth');
     setAuthTab('signin');
-    // clear inputs
-    ['si-email','si-pwd','su-name','su-email','su-pwd','mg-email'].forEach(id=>{ const el = $(id); if(el) el.value=''; });
+    ['si-email','si-pwd','su-name','su-email','su-pwd','mg-email'].forEach(id => { const el=$(id); if(el) el.value=''; });
   }
 });
 
 boot();
 </script>
-
 </body>
 </html>
