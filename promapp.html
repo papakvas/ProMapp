@@ -229,14 +229,25 @@ header.top{display:flex;align-items:center;justify-content:space-between;padding
 .stat .lbl{font-family:var(--cond);font-weight:600;color:var(--muted);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
 .stat .val{font-family:var(--hd);font-size:32px;color:var(--amber);letter-spacing:.04em;margin-top:4px}
 
-/* ── KITCHENOPS LINK CARD ── */
-.kops-card{background:linear-gradient(135deg,var(--amber-dim) 0%,var(--panel) 60%);border:1px solid var(--amber);border-radius:var(--rm);padding:16px;display:flex;align-items:center;gap:14px}
-.kops-card .ico{font-size:30px}
-.kops-card .txt{flex:1}
-.kops-card .ttl{font-family:var(--hd);font-size:18px;color:var(--amber);letter-spacing:.06em}
-.kops-card .sb{font-size:13px;color:var(--cream2)}
+/* ── HOME PROJECT TILES (new) ── */
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.tile{background:var(--panel);border:1px solid var(--border);border-radius:var(--rm);padding:14px;cursor:pointer;transition:.15s;display:flex;flex-direction:column;gap:6px}
+.tile:hover{border-color:var(--amber);transform:translateY(-1px)}
+.tile .tn{font-family:var(--cond);font-weight:700;font-size:16px;color:var(--cream);letter-spacing:.02em}
+.tile .tn .h{color:var(--amber);opacity:.7;margin-right:4px}
+.tile .td{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.tile .tm{display:flex;gap:8px;margin-top:auto;padding-top:6px;font-family:var(--cond);font-weight:600;font-size:11px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.tile .tm .num{color:var(--cream2)}
+.tile.new-tile{display:grid;place-items:center;border-style:dashed;color:var(--muted);min-height:90px}
+.tile.new-tile:hover{color:var(--amber)}
 
-/* ── MODAL ── */
+/* ── ONBOARDING HINT (shows when nothing exists yet) ── */
+.hint{background:var(--amber-dim);border:1px solid var(--amber);border-radius:var(--rm);padding:14px;display:flex;align-items:flex-start;gap:12px}
+.hint .ico{font-size:22px;flex:0 0 auto}
+.hint .ti{font-family:var(--cond);font-weight:700;color:var(--amber);margin-bottom:4px}
+.hint .bd{font-size:13px;color:var(--cream2)}
+
+
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;display:grid;place-items:center;padding:20px}
 .modal{background:var(--panel);border:1px solid var(--border);border-radius:var(--rm);max-width:480px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 12px 40px var(--shadow)}
 .modal-h{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
@@ -349,7 +360,6 @@ header.top{display:flex;align-items:center;justify-content:space-between;padding
       <div class="sidebar-foot">
         <button id="nav-home" class="active"><span class="ico">⌂</span><span>Overview</span></button>
         <button id="nav-members"><span class="ico">👥</span><span>Members</span></button>
-        <button id="nav-kops"><span class="ico">🍳</span><span>KitchenOPS</span></button>
       </div>
     </aside>
 
@@ -362,19 +372,23 @@ header.top{display:flex;align-items:center;justify-content:space-between;padding
           <div id="invites-slot"></div>
           <div class="main-h" style="padding:0;border:none">
             <h2 id="home-ws-name">Overview</h2>
+            <span class="desc" id="home-ws-role"></span>
           </div>
+          <div id="home-hint-slot"></div>
           <div class="stats" id="home-stats"></div>
+
           <div class="panel-card">
-            <h3>Recent activity</h3>
-            <div id="home-recent" style="color:var(--muted);font-style:italic">Pick a project from the sidebar to start.</div>
+            <h3 style="display:flex;align-items:center;gap:8px">
+              <span>Projects</span>
+              <span style="flex:1"></span>
+              <button class="btn sm" id="home-new-proj">+ New project</button>
+            </h3>
+            <div class="tiles" id="home-tiles"></div>
           </div>
-          <div class="kops-card" id="kops-card">
-            <div class="ico">🍳</div>
-            <div class="txt">
-              <div class="ttl">KitchenOPS Cloud</div>
-              <div class="sb">Open your kitchen management app in a new tab.</div>
-            </div>
-            <button class="btn" id="kops-open">Open</button>
+
+          <div class="panel-card">
+            <h3>Your open tasks</h3>
+            <div id="home-mytasks" style="color:var(--muted);font-style:italic">No tasks assigned to you yet.</div>
           </div>
         </div>
       </div>
@@ -469,10 +483,6 @@ header.top{display:flex;align-items:center;justify-content:space-between;padding
 const SUPABASE_URL = 'https://ouppawndgtiejiebamph.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91cHBhd25kZ3RpZWppZWJhbXBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0NTk4MDcsImV4cCI6MjA5NTAzNTgwN30.m-YVFqAAxJJBkJP1X4e59Ou99NSpE2WdZZvgcyRvMK4';
 // ════════════════════════════════════════════════════════════════════════
-
-// URL of your KitchenOPS deployment (the "🍳 KitchenOPS" button opens this).
-// Replace with your real KitchenOPS URL once deployed.
-const KITCHENOPS_URL = 'https://papakvas.github.io/KitchenOPS-cloud/KitchenOPS-cloud.html';
 
 const IS_HOSTED = true;  // set true once deployed to a real URL (enables magic link)
 
@@ -747,7 +757,7 @@ async function loadProjects(){
   if(error){ toast('Projects: ' + friendlyError(error),'err'); return; }
   state.projects = data || [];
   renderProjects();
-  renderHomeStats();
+  if(state.currentPage === 'home') renderHome();
 }
 
 function renderProjects(){
@@ -1103,16 +1113,7 @@ function setView(v){
 // ════════════════════════════════════════════════════════════════════════
 $('nav-home').onclick    = ()=> goPage('home');
 $('nav-members').onclick = ()=> goPage('members');
-$('nav-kops').onclick    = ()=> openKitchenOps();
-$('kops-open').onclick   = ()=> openKitchenOps();
-
-function openKitchenOps(){
-  if(!KITCHENOPS_URL || KITCHENOPS_URL.includes('YOUR_KITCHENOPS')){
-    toast('Set KITCHENOPS_URL in the source code first','err');
-    return;
-  }
-  window.open(KITCHENOPS_URL, '_blank', 'noopener,noreferrer');
-}
+$('home-new-proj').onclick = ()=> openProjectModal();
 
 function goPage(name){
   state.currentPage = name;
@@ -1126,7 +1127,7 @@ function goPage(name){
   $('sidebar').classList.remove('show');
 
   if(name==='home'){
-    renderHomeStats();
+    renderHome();
     loadMyInvites();
   }else if(name==='members'){
     loadMembersPage();
@@ -1136,15 +1137,111 @@ function goPage(name){
 // ════════════════════════════════════════════════════════════════════════
 // HOME / OVERVIEW
 // ════════════════════════════════════════════════════════════════════════
-function renderHomeStats(){
+async function renderHome(){
   const m = state.memberships.find(x => x.workspaces.id === state.currentWsId);
   $('home-ws-name').textContent = m ? m.workspaces.name : 'Overview';
-  // Counts come from current loaded data — best-effort
+  $('home-ws-role').textContent = m ? ('role: ' + m.role) : '';
+
+  // Fetch all tasks across all projects in this workspace (for stats + my-tasks)
+  // and per-project counts for the tiles.
+  let allTasks = [];
+  let projTasks = {};
+  if(state.projects.length){
+    const ids = state.projects.map(p => p.id);
+    const { data, error } = await sb
+      .from('tasks')
+      .select('id, title, status, priority, project_id, assignee_id, created_at')
+      .in('project_id', ids);
+    if(!error && data){
+      allTasks = data;
+      for(const t of data){
+        (projTasks[t.project_id] ||= []).push(t);
+      }
+    }
+  }
+
+  const openTasks = allTasks.filter(t => t.status !== 'done');
+  const myTasks   = openTasks.filter(t => t.assignee_id === state.user.id);
+
+  // Onboarding hint — shows only on first run when there's nothing yet
+  const hintSlot = $('home-hint-slot');
+  if(!state.projects.length){
+    hintSlot.innerHTML = `
+      <div class="hint">
+        <span class="ico">👋</span>
+        <div>
+          <div class="ti">Welcome to ProMapp</div>
+          <div class="bd">Create your first project to start tracking tasks, chatting with your team, and capturing ideas. Use the <b>+ New project</b> button below or the <b>+</b> in the sidebar.</div>
+        </div>
+      </div>`;
+  } else if(state.memberships.length === 1 && state.currentRole === 'owner') {
+    // Single-user workspace owner — nudge them to invite people
+    hintSlot.innerHTML = `
+      <div class="hint">
+        <span class="ico">👥</span>
+        <div>
+          <div class="ti">You're working solo</div>
+          <div class="bd">Invite teammates from <b>Members</b> to assign tasks and brainstorm together.</div>
+        </div>
+      </div>`;
+  } else {
+    hintSlot.innerHTML = '';
+  }
+
+  // Stats
   $('home-stats').innerHTML = `
     <div class="stat"><div class="lbl">Projects</div><div class="val">${state.projects.length}</div></div>
-    <div class="stat"><div class="lbl">Open tasks</div><div class="val">${state.tasks.filter(t=>t.status!=='done').length}</div></div>
-    <div class="stat"><div class="lbl">Your role</div><div class="val" style="font-size:20px">${esc(state.currentRole)}</div></div>
+    <div class="stat"><div class="lbl">Open tasks</div><div class="val">${openTasks.length}</div></div>
+    <div class="stat"><div class="lbl">Assigned to you</div><div class="val">${myTasks.length}</div></div>
   `;
+
+  // Project tiles
+  const tiles = $('home-tiles');
+  if(!state.projects.length){
+    tiles.innerHTML = `<div class="tile new-tile" id="tile-new">+ Create your first project</div>`;
+  } else {
+    tiles.innerHTML = state.projects.map(p => {
+      const tasks = projTasks[p.id] || [];
+      const open = tasks.filter(t => t.status !== 'done').length;
+      const done = tasks.filter(t => t.status === 'done').length;
+      return `<div class="tile" data-pid="${esc(p.id)}">
+        <div class="tn"><span class="h">#</span>${esc(p.name)}</div>
+        ${p.description ? `<div class="td">${esc(p.description)}</div>` : '<div class="td" style="color:var(--muted2);font-style:italic">No description</div>'}
+        <div class="tm">
+          <span><span class="num">${open}</span> open</span>
+          <span><span class="num">${done}</span> done</span>
+        </div>
+      </div>`;
+    }).join('') + `<div class="tile new-tile" id="tile-new">+ New project</div>`;
+  }
+  tiles.querySelectorAll('[data-pid]').forEach(t => t.onclick = ()=> selectProject(t.dataset.pid));
+  const newBtn = $('tile-new'); if(newBtn) newBtn.onclick = ()=> openProjectModal();
+
+  // My open tasks
+  const myEl = $('home-mytasks');
+  if(!myTasks.length){
+    myEl.innerHTML = `<span style="color:var(--muted);font-style:italic">Nothing assigned to you right now. ${state.projects.length ? 'Open a project to see all tasks.' : 'Create a project first.'}</span>`;
+  } else {
+    myEl.innerHTML = myTasks
+      .sort((a,b) => (a.priority==='high'?0:a.priority==='med'?1:2) - (b.priority==='high'?0:b.priority==='med'?1:2))
+      .slice(0, 8)
+      .map(t => {
+        const proj = state.projects.find(p => p.id === t.project_id);
+        const prio = t.priority || 'med';
+        return `<div class="member-row" data-pid="${esc(t.project_id)}" data-tid="${esc(t.id)}" style="cursor:pointer">
+          <span class="role-pill ${prio==='high'?'owner':''}" style="${prio==='high'?'background:var(--red-dim);color:var(--red)':''}">${prio}</span>
+          <div style="flex:1;min-width:0">
+            <div class="nm" style="font-weight:600">${esc(t.title)}</div>
+            <div class="em">#${esc(proj?.name || 'project')} · ${esc(t.status)}</div>
+          </div>
+        </div>`;
+      }).join('');
+    myEl.querySelectorAll('[data-tid]').forEach(row => {
+      row.onclick = ()=>{
+        selectProject(row.dataset.pid).then(()=> setTimeout(()=> openTaskModal(row.dataset.tid), 250));
+      };
+    });
+  }
 }
 
 async function loadMyInvites(){
