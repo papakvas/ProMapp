@@ -101,6 +101,17 @@ header.top{display:flex;align-items:center;justify-content:space-between;padding
 .field input,.field textarea,.field select{width:100%;padding:10px 12px;background:var(--black);border:1px solid var(--border);border-radius:var(--r);color:var(--cream);outline:none;transition:border-color .15s}
 .field input:focus,.field textarea:focus,.field select:focus{border-color:var(--amber)}
 .field textarea{resize:vertical;min-height:80px;font-family:inherit}
+
+/* Browser autofill darkens inputs — force our colors so text stays readable. */
+.field input:-webkit-autofill,
+.field input:-webkit-autofill:hover,
+.field input:-webkit-autofill:focus,
+.field input:-webkit-autofill:active{
+  -webkit-text-fill-color: var(--cream) !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--black) inset !important;
+  caret-color: var(--cream);
+  transition: background-color 9999s ease-in-out 0s;
+}
 .btn{padding:10px 16px;border-radius:var(--r);background:var(--amber);color:var(--on-amber);font-family:var(--cond);font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:13px;transition:.15s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
 .btn:hover:not(:disabled){background:var(--amber2)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
@@ -202,6 +213,33 @@ header.top{display:flex;align-items:center;justify-content:space-between;padding
 .ideas-top{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;gap:8px}
 .ideas-top input{flex:1;padding:8px 12px;background:var(--panel);border:1px solid var(--border);border-radius:var(--r);color:var(--cream);outline:none}
 .ideas-top input:focus{border-color:var(--amber)}
+
+/* clickable idea cards (whole card body opens discussion) */
+.idea{cursor:pointer}
+.idea .foot button{cursor:pointer}
+
+/* Idea discussion modal — bigger than the standard one, two-pane layout */
+.modal.large{max-width:560px}
+.idea-disc-h .title{font-family:var(--cond);font-weight:700;font-size:18px;color:var(--cream)}
+.idea-disc-h .by{font-size:12px;color:var(--muted);font-family:var(--cond);font-weight:600;margin-top:2px}
+.idea-disc-body{color:var(--cream2);font-size:14px;white-space:pre-wrap;padding:10px 14px;background:var(--panel2);border-radius:var(--r);margin:10px 0 14px;border-left:3px solid var(--amber)}
+.idea-disc-actions{display:flex;align-items:center;gap:8px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.idea-disc-actions .vote-btn{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:999px;background:var(--panel2);color:var(--cream2);border:1px solid var(--border);font-family:var(--cond);font-weight:700;font-size:13px;cursor:pointer;transition:.15s}
+.idea-disc-actions .vote-btn:hover{border-color:var(--amber);color:var(--amber)}
+.idea-disc-actions .vote-btn.voted{background:var(--amber-dim);border-color:var(--amber);color:var(--amber)}
+
+/* Thread */
+.thread{display:flex;flex-direction:column;gap:10px;max-height:280px;overflow-y:auto;margin-bottom:12px}
+.thread .cm{display:grid;grid-template-columns:30px 1fr;gap:8px}
+.thread .cm .av{width:30px;height:30px;border-radius:var(--r);background:var(--amber);color:var(--on-amber);display:grid;place-items:center;font-family:var(--hd);font-size:13px}
+.thread .cm .hd{display:flex;gap:6px;align-items:baseline}
+.thread .cm .nm{font-weight:700;color:var(--cream);font-size:13px}
+.thread .cm .tm{font-size:11px;color:var(--muted);font-family:var(--cond);font-weight:600}
+.thread .cm .tx{color:var(--cream2);font-size:13px;white-space:pre-wrap;word-wrap:break-word;margin-top:1px}
+.thread .empty{color:var(--muted);font-style:italic;font-size:13px;text-align:center;padding:16px}
+.thread-input{display:flex;gap:8px;align-items:flex-end}
+.thread-input textarea{flex:1;background:var(--black);border:1px solid var(--border);border-radius:var(--r);padding:8px 10px;color:var(--cream);outline:none;resize:none;min-height:40px;max-height:120px;font-size:13px}
+.thread-input textarea:focus{border-color:var(--amber)}
 
 /* ── MEMBERS PAGE ── */
 .members-wrap{padding:20px;max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
@@ -632,8 +670,25 @@ const state = {
   members: [],
   invites: [],
   myInvites: [],
-  channels: { messages:null, tasks:null, ideas:null, votes:null, invites:null, members:null },
+  channels: { messages:null, tasks:null, ideas:null, votes:null, comments:null, invites:null, members:null },
 };
+
+// ─── ROUTE PERSISTENCE ──────────────────────────────────────────────────
+// Save the user's current location so a refresh restores them where they were.
+function saveRoute(){
+  try{
+    localStorage.setItem('pm:route', JSON.stringify({
+      ws:   state.currentWsId,
+      page: state.currentPage,
+      proj: state.currentProjectId,
+      view: state.currentView,
+    }));
+  }catch{}
+}
+function loadRoute(){
+  try{ return JSON.parse(localStorage.getItem('pm:route') || 'null') || null; }
+  catch{ return null; }
+}
 
 // ─── ENSURE PROFILE ─────────────────────────────────────────────────────
 async function ensureProfile(user){
@@ -663,7 +718,7 @@ function pickInitialWorkspace(){
   return hit ? hit.workspaces.id : state.memberships[0].workspaces.id;
 }
 
-async function setActiveWorkspace(wsId){
+async function setActiveWorkspace(wsId, {skipLand=false} = {}){
   const m = state.memberships.find(x => x.workspaces.id === wsId);
   if(!m){ return; }
   state.currentWsId = wsId;
@@ -675,7 +730,7 @@ async function setActiveWorkspace(wsId){
   state.projects = [];
   unsubAll();
   await loadProjects();
-  goPage('home');
+  if(!skipLand) goPage('home');
   renderWsPicker();
 }
 
@@ -1004,7 +1059,10 @@ async function sendMessage(){
   const { error } = await sb.from('messages').insert({
     project_id: state.currentProjectId, user_id: state.user.id, body,
   });
-  if(error){ toast(friendlyError(error),'err'); ta.value = body; }
+  if(error){ toast(friendlyError(error),'err'); ta.value = body; return; }
+  // Reload right away — Realtime would push it eventually, but we want
+  // instant feedback in case Realtime isn't enabled on this table.
+  loadMessages();
 }
 
 // ════════════════════════════════════════════════════════════════════════
@@ -1048,6 +1106,8 @@ function renderIdeas(){
     const id = n.dataset.id;
     n.querySelector('[data-act="vote"]').onclick = (e)=>{ e.stopPropagation(); toggleVote(id); };
     n.querySelector('[data-act="promote"]').onclick = (e)=>{ e.stopPropagation(); promoteIdea(id); };
+    // Click anywhere else on the card → open discussion
+    n.onclick = ()=> openIdeaDiscussion(id);
   });
 }
 
@@ -1097,6 +1157,141 @@ async function promoteIdea(ideaId){
   loadTasks();
 }
 
+// ─── IDEA DISCUSSION (per-idea thread) ─────────────────────────────────
+let _ideaCommentsChannel = null;
+
+async function openIdeaDiscussion(ideaId){
+  const idea = state.ideas.find(i => i.id === ideaId);
+  if(!idea) return;
+
+  const root = $('modal-root');
+  const voted = state.votes.has(ideaId);
+  const voteCount = (idea.idea_votes||[]).length;
+
+  root.innerHTML = `
+    <div class="modal-bg">
+      <div class="modal large">
+        <div class="modal-h idea-disc-h">
+          <div>
+            <div class="title">${esc(idea.title)}</div>
+            <div class="by">— ${esc(idea.author?.display_name || 'Unknown')}</div>
+          </div>
+          <button class="x" id="mx">×</button>
+        </div>
+        <div class="modal-b">
+          ${idea.body ? `<div class="idea-disc-body">${esc(idea.body)}</div>` : ''}
+          <div class="idea-disc-actions">
+            <button class="vote-btn ${voted?'voted':''}" id="disc-vote">▲ <span id="disc-vc">${voteCount}</span> ${voteCount===1?'vote':'votes'}</button>
+            <button class="btn ghost sm" id="disc-promote">Promote → Task</button>
+            <span style="flex:1"></span>
+            <button class="btn danger sm" id="disc-delete" style="${idea.user_id===state.user.id?'':'display:none'}">Delete</button>
+          </div>
+          <div style="font-family:var(--cond);font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Discussion</div>
+          <div class="thread" id="thread"><div class="empty">Loading…</div></div>
+          <div class="thread-input">
+            <textarea id="cm-input" placeholder="Add a thought…" rows="1"></textarea>
+            <button class="btn sm" id="cm-send">Post</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  const close = ()=>{
+    if(_ideaCommentsChannel){ sb.removeChannel(_ideaCommentsChannel); _ideaCommentsChannel = null; }
+    root.innerHTML = '';
+  };
+  $('mx').onclick = close;
+
+  // Close on backdrop click
+  root.querySelector('.modal-bg').addEventListener('click', (e)=>{
+    if(e.target === root.querySelector('.modal-bg')) close();
+  });
+
+  // Wire vote
+  $('disc-vote').onclick = async ()=>{
+    await toggleVote(ideaId);
+    // After toggleVote runs loadIdeas, our state.votes is fresh
+    const nowVoted = state.votes.has(ideaId);
+    const i = state.ideas.find(x => x.id === ideaId);
+    const c = (i?.idea_votes||[]).length;
+    $('disc-vote').classList.toggle('voted', nowVoted);
+    $('disc-vc').textContent = c;
+  };
+
+  // Wire promote
+  $('disc-promote').onclick = async ()=>{
+    close();
+    promoteIdea(ideaId);
+  };
+
+  // Wire delete (only own ideas)
+  $('disc-delete').onclick = async ()=>{
+    if(!confirm('Delete this idea? All its comments will be lost.')) return;
+    try{
+      const { error } = await sb.from('ideas').delete().eq('id', ideaId);
+      if(error) throw error;
+      close();
+      toast('Idea deleted','ok');
+      loadIdeas();
+    }catch(err){ toast(friendlyError(err),'err'); }
+  };
+
+  // Wire send-comment
+  const send = async ()=>{
+    const ta = $('cm-input');
+    const body = ta.value.trim();
+    if(!body) return;
+    ta.value = '';
+    const { error } = await sb.from('idea_comments').insert({
+      idea_id: ideaId, user_id: state.user.id, body,
+    });
+    if(error){ toast(friendlyError(error),'err'); ta.value = body; return; }
+    loadIdeaComments(ideaId);
+  };
+  $('cm-send').onclick = send;
+  $('cm-input').addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); send(); }
+  });
+
+  // Realtime subscription for this idea's comments
+  if(_ideaCommentsChannel) sb.removeChannel(_ideaCommentsChannel);
+  _ideaCommentsChannel = sb.channel('idea-cm-'+ideaId)
+    .on('postgres_changes',
+      { event:'*', schema:'public', table:'idea_comments', filter:`idea_id=eq.${ideaId}` },
+      ()=> loadIdeaComments(ideaId))
+    .subscribe();
+
+  // Initial load
+  loadIdeaComments(ideaId);
+}
+
+async function loadIdeaComments(ideaId){
+  const thread = $('thread');
+  if(!thread) return;
+  const { data, error } = await sb
+    .from('idea_comments')
+    .select('id, body, created_at, user_id, author:user_id(display_name)')
+    .eq('idea_id', ideaId)
+    .order('created_at', { ascending:true });
+  if(error){ thread.innerHTML = `<div class="empty">Could not load comments: ${esc(friendlyError(error))}</div>`; return; }
+  if(!data || data.length === 0){
+    thread.innerHTML = `<div class="empty">No comments yet. Start the discussion.</div>`;
+    return;
+  }
+  thread.innerHTML = data.map(c => `
+    <div class="cm">
+      <div class="av">${esc(initial(c.author?.display_name))}</div>
+      <div>
+        <div class="hd">
+          <span class="nm">${esc(c.author?.display_name || 'Unknown')}</span>
+          <span class="tm">${esc(fmtTime(c.created_at))}</span>
+        </div>
+        <div class="tx">${esc(c.body)}</div>
+      </div>
+    </div>`).join('');
+  thread.scrollTop = thread.scrollHeight;
+}
+
 // ════════════════════════════════════════════════════════════════════════
 // VIEW SWITCH (within project page)
 // ════════════════════════════════════════════════════════════════════════
@@ -1106,6 +1301,7 @@ function setView(v){
   document.querySelectorAll('.v-tab').forEach(b => b.classList.toggle('active', b.dataset.view===v));
   ['board','chat','ideas'].forEach(n => $('view-'+n).classList.toggle('hidden', n!==v));
   if(v==='chat'){ const m=$('messages'); m.scrollTop = m.scrollHeight; }
+  saveRoute();
 }
 
 // ════════════════════════════════════════════════════════════════════════
@@ -1132,6 +1328,7 @@ function goPage(name){
   }else if(name==='members'){
     loadMembersPage();
   }
+  saveRoute();
 }
 
 // ════════════════════════════════════════════════════════════════════════
@@ -1467,8 +1664,32 @@ async function enterApp(user){
       }
     }catch(err){ console.warn(err); }
   }
-  const wsId = pickInitialWorkspace();
-  if(wsId) await setActiveWorkspace(wsId);
+  // Decide which workspace to land in: prefer saved route, fall back to active_ws, then first.
+  const route = loadRoute();
+  let wsId = null;
+  if(route?.ws && state.memberships.some(m => m.workspaces.id === route.ws)){
+    wsId = route.ws;
+  } else {
+    wsId = pickInitialWorkspace();
+  }
+  if(!wsId){ await loadMyInvites(); return; }
+
+  // If we have a route to restore, do the workspace setup without auto-jumping to home,
+  // then replay the saved page/project/view.
+  if(route && route.ws === wsId){
+    await setActiveWorkspace(wsId, { skipLand: true });
+    if(route.page === 'project' && route.proj &&
+       state.projects.some(p => p.id === route.proj)){
+      await selectProject(route.proj);
+      if(route.view && route.view !== 'board') setView(route.view);
+    } else if(route.page === 'members'){
+      goPage('members');
+    } else {
+      goPage('home');
+    }
+  } else {
+    await setActiveWorkspace(wsId);
+  }
   await loadMyInvites();
 }
 
@@ -1476,6 +1697,7 @@ sb.auth.onAuthStateChange((event, session) => {
   if(event === 'SIGNED_IN' && session?.user && !state.user){ enterApp(session.user); }
   else if(event === 'SIGNED_OUT'){
     unsubAll();
+    try{ localStorage.removeItem('pm:route'); }catch{}
     state.user = null; state.profile = null; state.memberships = [];
     state.currentWsId = null; state.currentProjectId = null;
     state.projects = []; state.tasks = []; state.messages = []; state.ideas = [];
