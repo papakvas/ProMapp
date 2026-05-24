@@ -920,20 +920,58 @@ function openNewWorkspaceModal(){
   $('nw-save').onclick = async ()=>{
     const name = $('nw-name').value.trim();
     if(!name){ toast('Name required','err'); return; }
+
+    // ── DIAGNOSTIC: log everything to a visible div so phone users
+    // can see exactly what's happening without DevTools.
+    const dbg = document.createElement('div');
+    dbg.style.cssText = 'position:fixed;top:60px;left:10px;right:10px;background:#000;border:2px solid #e8a045;border-radius:8px;padding:10px;color:#f0e8d8;font-family:ui-monospace,monospace;font-size:11px;z-index:9999;max-height:50vh;overflow:auto;white-space:pre-wrap;word-break:break-all';
+    document.body.appendChild(dbg);
+    const log = (s)=>{ dbg.textContent += s + '\n\n'; };
+    log('=== Diagnostic: creating workspace ===');
+
     try{
-      // 1) create workspace
+      // Step A: verify session
+      const { data: sessData } = await sb.auth.getSession();
+      const sess = sessData?.session;
+      log('Session exists: ' + (!!sess));
+      log('state.user.id: ' + state.user?.id);
+      log('session.user.id: ' + sess?.user?.id);
+      log('Match: ' + (state.user?.id === sess?.user?.id));
+
+      // Step B: attempt the insert
+      const payload = { name, owner_id: state.user.id };
+      log('Insert payload: ' + JSON.stringify(payload));
       const { data: ws, error: e1 } = await sb.from('workspaces')
-        .insert({ name, owner_id: state.user.id }).select().single();
-      if(e1) throw e1;
-      // 2) add me as owner
-      const { error: e2 } = await sb.from('workspace_members')
-        .insert({ workspace_id: ws.id, user_id: state.user.id, role:'owner' });
-      if(e2) throw e2;
+        .insert(payload).select().single();
+      if(e1){
+        log('INSERT FAILED:');
+        log(JSON.stringify(e1, null, 2));
+        throw e1;
+      }
+      log('Workspace created: ' + ws.id);
+
+      // Step C: insert membership
+      const memPayload = { workspace_id: ws.id, user_id: state.user.id, role:'owner' };
+      log('Member payload: ' + JSON.stringify(memPayload));
+      const { error: e2 } = await sb.from('workspace_members').insert(memPayload);
+      if(e2){
+        log('MEMBER FAILED:');
+        log(JSON.stringify(e2, null, 2));
+        throw e2;
+      }
+      log('All good — closing in 2s');
+      setTimeout(()=>{ dbg.remove(); }, 2000);
       close();
       toast('Workspace created','ok');
       await loadWorkspaces();
       await setActiveWorkspace(ws.id);
-    }catch(err){ toast(friendlyError(err),'err'); }
+    }catch(err){
+      log('CAUGHT: ' + (err?.message || JSON.stringify(err)));
+      // Keep the diagnostic visible — tap it to dismiss
+      dbg.style.cursor = 'pointer';
+      dbg.onclick = ()=> dbg.remove();
+      toast('See diagnostic box at top','err');
+    }
   };
   setTimeout(()=>$('nw-name').focus(), 30);
 }
