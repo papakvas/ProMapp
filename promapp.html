@@ -1750,7 +1750,17 @@ async function renderHome(){
   const openTasks = allTasks.filter(t => t.status !== 'done');
   const myTasks   = openTasks.filter(t => t.assignee_id === state.user.id);
 
-  // Onboarding hint — shows only on first run when there's nothing yet
+  // Count actual members of THIS workspace (not the user's own membership count)
+  let wsMemberCount = 1;
+  try{
+    const { count } = await sb
+      .from('workspace_members')
+      .select('user_id', { count:'exact', head:true })
+      .eq('workspace_id', state.currentWsId);
+    if(typeof count === 'number') wsMemberCount = count;
+  }catch{}
+
+  // Onboarding hint
   const hintSlot = $('home-hint-slot');
   if(!state.projects.length){
     hintSlot.innerHTML = `
@@ -1761,8 +1771,8 @@ async function renderHome(){
           <div class="bd">Create your first project to start tracking tasks, chatting with your team, and capturing ideas. Use the <b>+ New project</b> button below or the <b>+</b> in the sidebar.</div>
         </div>
       </div>`;
-  } else if(state.memberships.length === 1 && state.currentRole === 'owner') {
-    // Single-user workspace owner — nudge them to invite people
+  } else if(wsMemberCount === 1 && state.currentRole === 'owner') {
+    // Truly solo workspace — invite hint
     hintSlot.innerHTML = `
       <div class="hint">
         <span class="ico">👥</span>
@@ -1780,6 +1790,7 @@ async function renderHome(){
     <div class="stat"><div class="lbl">Projects</div><div class="val">${state.projects.length}</div></div>
     <div class="stat"><div class="lbl">Open tasks</div><div class="val">${openTasks.length}</div></div>
     <div class="stat"><div class="lbl">Assigned to you</div><div class="val">${myTasks.length}</div></div>
+    <div class="stat"><div class="lbl">Members</div><div class="val">${wsMemberCount}</div></div>
   `;
 
   // Project tiles
