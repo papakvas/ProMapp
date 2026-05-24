@@ -285,7 +285,91 @@ header.top{display:flex;align-items:center;justify-content:space-between;padding
 .hint .ti{font-family:var(--cond);font-weight:700;color:var(--amber);margin-bottom:4px}
 .hint .bd{font-size:13px;color:var(--cream2)}
 
+/* ── FILTER TOGGLE in sidebar ── */
+.filter-toggle{display:flex;align-items:center;gap:6px;padding:5px 10px;margin:0 8px 6px;border-radius:999px;background:var(--panel2);color:var(--muted);border:1px solid var(--border);font-family:var(--cond);font-weight:600;font-size:11px;letter-spacing:.04em;cursor:pointer;transition:.15s}
+.filter-toggle:hover{border-color:var(--border2);color:var(--cream2)}
+.filter-toggle.on{background:var(--amber-dim);color:var(--amber);border-color:var(--amber)}
 
+/* ── ASSIGNEE AVATARS on task cards ── */
+.task .avatars{display:inline-flex;align-items:center}
+.task .av{width:20px;height:20px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-family:var(--hd);font-size:11px;border:2px solid var(--dark);margin-left:-6px}
+.task .av:first-child{margin-left:0}
+.task .av.primary{background:var(--amber);color:var(--on-amber)}
+.task .av.more{background:var(--panel2);color:var(--muted);font-family:var(--body);font-weight:700;font-size:10px}
+
+/* ── ASSIGNEE CHIPS in task modal ── */
+.chip-list{display:flex;flex-wrap:wrap;gap:6px;padding:8px;background:var(--black);border:1px solid var(--border);border-radius:var(--r);min-height:42px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:3px 4px 3px 10px;background:var(--blue-dim);border:1px solid var(--blue);border-radius:999px;font-size:12px;font-family:var(--cond);font-weight:600;color:var(--blue)}
+.chip .x{cursor:pointer;width:18px;height:18px;display:grid;place-items:center;border-radius:50%;font-size:14px;color:var(--blue)}
+.chip .x:hover{background:rgba(0,0,0,0.2)}
+.chip-list .chip-empty{color:var(--muted);font-style:italic;font-size:13px;padding:4px}
+.chip-picker{position:relative;display:inline-block}
+.chip-picker .add-chip{padding:4px 10px;background:var(--panel2);border:1px dashed var(--border2);border-radius:999px;color:var(--muted);font-family:var(--cond);font-weight:600;font-size:11px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer}
+.chip-picker .add-chip:hover{border-color:var(--amber);color:var(--amber)}
+.chip-picker .picker-menu{position:absolute;top:32px;left:0;background:var(--panel);border:1px solid var(--border);border-radius:var(--rm);max-height:220px;overflow-y:auto;min-width:220px;box-shadow:0 12px 40px var(--shadow);z-index:120;display:none}
+.chip-picker .picker-menu.show{display:block}
+.chip-picker .picker-menu .item{padding:8px 12px;cursor:pointer;font-family:var(--cond);font-weight:600;color:var(--cream2);font-size:13px;border-bottom:1px solid var(--border)}
+.chip-picker .picker-menu .item:last-child{border-bottom:none}
+.chip-picker .picker-menu .item:hover{background:var(--panel2);color:var(--cream)}
+.chip-picker .picker-menu .item.disabled{opacity:.4;cursor:not-allowed}
+.chip-picker .picker-menu .empty{padding:10px 12px;color:var(--muted);font-style:italic;font-size:12px}
+
+/* ── CALENDAR PAGE ── */
+.cal-wrap{padding:16px;display:flex;flex-direction:column;gap:12px;height:100%;min-height:0;max-width:1200px;margin:0 auto;width:100%}
+.cal-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.cal-toolbar .month-label{font-family:var(--hd);font-size:24px;color:var(--cream);letter-spacing:.06em;flex:1}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;background:var(--border);border:1px solid var(--border);border-radius:var(--rm);overflow:hidden;flex:1;min-height:380px}
+.cal-day-name{background:var(--black);padding:6px;text-align:center;font-family:var(--cond);font-weight:700;font-size:11px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+.cal-cell{background:var(--panel);padding:6px;min-height:90px;display:flex;flex-direction:column;gap:3px;cursor:pointer;transition:.1s;overflow:hidden}
+.cal-cell:hover{background:var(--panel2)}
+.cal-cell.other-month{background:var(--dark);opacity:.55}
+.cal-cell .num{font-family:var(--cond);font-weight:700;font-size:13px;color:var(--cream2);align-self:flex-start;padding:1px 6px;border-radius:50%}
+.cal-cell.other-month .num{color:var(--muted)}
+.cal-cell.today .num{background:var(--amber);color:var(--on-amber)}
+.cal-evt{font-size:11px;padding:2px 6px;border-radius:3px;background:var(--blue-dim);color:var(--blue);font-family:var(--cond);font-weight:600;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-left:2px solid var(--blue)}
+.cal-evt:hover{filter:brightness(1.2)}
+.cal-evt.done{background:var(--green-dim);color:var(--green);border-left-color:var(--green);text-decoration:line-through;opacity:.7}
+.cal-evt.high{background:var(--red-dim);color:var(--red);border-left-color:var(--red)}
+.cal-evt-more{font-size:10px;color:var(--muted);font-family:var(--cond);font-weight:600;font-style:italic}
+@media (max-width:720px){
+  .cal-cell{min-height:56px;padding:3px}
+  .cal-evt{font-size:9px;padding:1px 4px}
+  .cal-day-name{font-size:9px;padding:4px}
+}
+
+/* ── CHATS PAGE (casino-table layout) ── */
+.chats-wrap{padding:20px;display:flex;flex-direction:column;gap:14px;max-width:1100px;margin:0 auto;width:100%}
+.chats-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.chats-h h2{font-family:var(--hd);font-size:24px;letter-spacing:.06em;color:var(--cream);flex:1}
+.chat-tables{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.chat-table{background:radial-gradient(ellipse at center,var(--panel) 0%,var(--panel2) 100%);border:2px solid var(--border2);border-radius:var(--rm);padding:18px;cursor:pointer;transition:.18s;display:flex;flex-direction:column;gap:12px;min-height:170px;position:relative}
+.chat-table:hover{border-color:var(--amber);transform:translateY(-2px);box-shadow:0 8px 24px var(--shadow)}
+.chat-table .table-name{font-family:var(--hd);font-size:17px;color:var(--cream);letter-spacing:.04em;text-align:center}
+.chat-table .seat-row{display:flex;justify-content:center;align-items:center;flex:1}
+.chat-table .seat{width:42px;height:42px;border-radius:50%;background:var(--amber);color:var(--on-amber);display:grid;place-items:center;font-family:var(--hd);font-size:18px;border:3px solid var(--panel2);margin-left:-10px;box-shadow:0 2px 6px var(--shadow)}
+.chat-table .seat:first-child{margin-left:0}
+.chat-table .seat.more{background:var(--blue);color:#fff;font-family:var(--body);font-weight:700;font-size:13px}
+.chat-table .last-msg{font-size:12px;color:var(--muted);text-align:center;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-top:8px;border-top:1px solid var(--border)}
+.chat-table .last-msg.has{font-style:normal;color:var(--cream2)}
+.chat-table.new-chat{display:flex;align-items:center;justify-content:center;border-style:dashed;background:transparent;gap:6px}
+.chat-table.new-chat .plus{font-family:var(--hd);font-size:38px;color:var(--muted);letter-spacing:.04em}
+.chat-table.new-chat:hover{border-color:var(--amber)}
+.chat-table.new-chat:hover .plus{color:var(--amber)}
+.chat-table.new-chat .lbl{font-family:var(--cond);font-weight:600;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.chat-table.new-chat:hover .lbl{color:var(--amber)}
+.chat-table .badge-new{position:absolute;top:10px;right:10px;background:var(--red);color:#fff;font-size:10px;font-family:var(--body);font-weight:700;padding:2px 7px;border-radius:999px}
+
+/* Open chat (full conversation view) */
+.chat-open{display:flex;flex-direction:column;height:100%}
+.chat-open-h{padding:12px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--black)}
+.chat-open-h .back{font-size:18px;color:var(--cream2);cursor:pointer;padding:4px 8px;border-radius:var(--r);background:none;border:none}
+.chat-open-h .back:hover{background:var(--panel2);color:var(--amber)}
+.chat-open-h .nm{font-family:var(--hd);font-size:18px;color:var(--cream);letter-spacing:.04em;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chat-open-h .sub{font-size:11px;color:var(--muted);font-family:var(--cond);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.chat-open-h .leave{padding:4px 10px;border-radius:var(--r);background:var(--panel2);color:var(--muted);font-family:var(--cond);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em;cursor:pointer;border:1px solid var(--border)}
+.chat-open-h .leave:hover{color:var(--red);border-color:var(--red)}
+
+/* ── MODAL ── */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;display:grid;place-items:center;padding:20px}
 .modal{background:var(--panel);border:1px solid var(--border);border-radius:var(--rm);max-width:480px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 12px 40px var(--shadow)}
 .modal-h{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
@@ -392,11 +476,17 @@ header.top{display:flex;align-items:center;justify-content:space-between;padding
         <span>Projects</span>
         <span class="add" id="btn-new-proj" title="New project" role="button" tabindex="0">+</span>
       </div>
+      <button class="filter-toggle" id="filter-mine" title="Show only projects assigned to me">
+        <span id="filter-mine-ind">○</span>
+        <span>Only my projects</span>
+      </button>
       <div class="proj-list" id="proj-list">
         <div class="proj-empty">Loading…</div>
       </div>
       <div class="sidebar-foot">
         <button id="nav-home" class="active"><span class="ico">⌂</span><span>Overview</span></button>
+        <button id="nav-calendar"><span class="ico">📅</span><span>Calendar</span></button>
+        <button id="nav-chats"><span class="ico">💬</span><span>Chats</span></button>
         <button id="nav-members"><span class="ico">👥</span><span>Members</span></button>
       </div>
     </aside>
@@ -503,6 +593,49 @@ header.top{display:flex;align-items:center;justify-content:space-between;padding
             <h3>Leave workspace</h3>
             <div style="color:var(--muted);font-size:13px;margin-bottom:10px">You'll lose access to all projects here. The owner can re-invite you later.</div>
             <button class="btn danger sm" id="btn-leave">Leave workspace</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CALENDAR -->
+      <div id="page-calendar" class="view hidden">
+        <div class="cal-wrap">
+          <div class="cal-toolbar">
+            <button class="btn ghost sm" id="cal-prev">‹ Prev</button>
+            <button class="btn ghost sm" id="cal-today">Today</button>
+            <button class="btn ghost sm" id="cal-next">Next ›</button>
+            <span class="month-label" id="cal-label" style="text-align:right">—</span>
+          </div>
+          <div class="cal-grid" id="cal-grid"></div>
+        </div>
+      </div>
+
+      <!-- CHATS -->
+      <div id="page-chats" class="view hidden">
+        <div class="chats-wrap">
+          <div class="chats-h">
+            <h2>Chats</h2>
+            <button class="btn" id="btn-new-chat">+ New chat</button>
+          </div>
+          <div class="chat-tables" id="chat-tables"></div>
+        </div>
+      </div>
+
+      <!-- CHAT OPEN (specific conversation) -->
+      <div id="page-chat-open" class="view hidden">
+        <div class="chat-open">
+          <div class="chat-open-h">
+            <button class="back" id="chat-back" title="Back to chats">←</button>
+            <div style="flex:1;min-width:0">
+              <div class="nm" id="chat-open-name">—</div>
+              <div class="sub" id="chat-open-sub"></div>
+            </div>
+            <button class="leave" id="chat-open-leave">Leave</button>
+          </div>
+          <div class="messages" id="conv-messages"></div>
+          <div class="composer">
+            <textarea id="conv-input" placeholder="Message…" rows="1"></textarea>
+            <button class="btn" id="btn-conv-send">Send</button>
           </div>
         </div>
       </div>
@@ -662,15 +795,21 @@ const state = {
   currentWsId: null,
   currentRole: 'member',
   projects: [],
+  myProjects: new Set(),  // project ids considered "mine" for the filter
+  filterMine: false,
   currentProjectId: null,
   currentView: 'board',
-  currentPage: 'home', // 'home' | 'project' | 'members'
+  currentPage: 'home', // 'home' | 'project' | 'members' | 'calendar' | 'chats' | 'chat-open'
   tasks: [], messages: [], ideas: [],
   votes: new Set(),
   members: [],
   invites: [],
   myInvites: [],
-  channels: { messages:null, tasks:null, ideas:null, votes:null, comments:null, invites:null, members:null },
+  calMonth: null,        // Date object pointing at 1st of displayed month
+  conversations: [],
+  currentConvId: null,
+  convMessages: [],
+  channels: { messages:null, tasks:null, ideas:null, votes:null, comments:null, invites:null, members:null, conv:null, convList:null },
 };
 
 // ─── ROUTE PERSISTENCE ──────────────────────────────────────────────────
@@ -806,27 +945,80 @@ async function loadProjects(){
   if(!state.currentWsId){ state.projects = []; renderProjects(); return; }
   const { data, error } = await sb
     .from('projects')
-    .select('id, name, description, created_at')
+    .select('id, name, description, created_at, created_by')
     .eq('workspace_id', state.currentWsId)
     .order('created_at', { ascending:true });
   if(error){ toast('Projects: ' + friendlyError(error),'err'); return; }
   state.projects = data || [];
+  await computeMyProjects();
   renderProjects();
   if(state.currentPage === 'home') renderHome();
 }
 
+// Compute which projects count as "mine" for the filter.
+// A project is mine if any of:
+//   - I'm the creator
+//   - I'm the primary assignee of a task in it
+//   - I'm a collaborator on a task in it
+//   - I'm @-mentioned in a chat message in it
+async function computeMyProjects(){
+  state.myProjects = new Set();
+  if(!state.user || !state.projects.length) return;
+  const me = state.user.id;
+  const projIds = state.projects.map(p => p.id);
+
+  // 1) Projects I created
+  state.projects.forEach(p => { if(p.created_by === me) state.myProjects.add(p.id); });
+
+  // Build queries in parallel
+  const queries = await Promise.all([
+    // 2) Primary assignee
+    sb.from('tasks').select('project_id').eq('assignee_id', me).in('project_id', projIds),
+    // 3) Collaborator
+    sb.from('task_collaborators').select('tasks(project_id)').eq('user_id', me),
+    // 4) Mentions
+    sb.from('chat_mentions').select('project_id').eq('user_id', me).in('project_id', projIds),
+  ]);
+  (queries[0].data || []).forEach(r => state.myProjects.add(r.project_id));
+  (queries[1].data || []).forEach(r => { if(r.tasks?.project_id) state.myProjects.add(r.tasks.project_id); });
+  (queries[2].data || []).forEach(r => state.myProjects.add(r.project_id));
+}
+
 function renderProjects(){
   const el = $('proj-list');
+  // Update toggle UI
+  const tg = $('filter-mine');
+  if(tg){
+    tg.classList.toggle('on', state.filterMine);
+    $('filter-mine-ind').textContent = state.filterMine ? '●' : '○';
+  }
+  // Empty workspace
   if(!state.projects.length){
     el.innerHTML = `<div class="proj-empty">No projects yet. Click + to create one.</div>`;
     return;
   }
-  el.innerHTML = state.projects.map(p => `
+  // Apply filter
+  const visible = state.filterMine
+    ? state.projects.filter(p => state.myProjects.has(p.id))
+    : state.projects;
+  if(!visible.length){
+    el.innerHTML = `<div class="proj-empty">No projects involve you yet. Toggle "Only my projects" off to see all ${state.projects.length}.</div>`;
+    return;
+  }
+  el.innerHTML = visible.map(p => `
     <div class="proj-item ${p.id===state.currentProjectId?'active':''}" data-id="${esc(p.id)}">
       <span class="hash">#</span><span>${esc(p.name)}</span>
     </div>`).join('');
   el.querySelectorAll('.proj-item').forEach(n => n.onclick = ()=> selectProject(n.dataset.id));
 }
+
+// Filter toggle (load + persist)
+try{ state.filterMine = localStorage.getItem('pm:filter-mine') === '1'; }catch{}
+$('filter-mine').onclick = ()=>{
+  state.filterMine = !state.filterMine;
+  try{ localStorage.setItem('pm:filter-mine', state.filterMine ? '1' : '0'); }catch{}
+  renderProjects();
+};
 
 async function selectProject(id){
   state.currentProjectId = id;
@@ -889,12 +1081,50 @@ async function loadTasks(){
   if(!state.currentProjectId){ state.tasks = []; renderTasks(); return; }
   const { data, error } = await sb
     .from('tasks')
-    .select('id, title, description, status, priority, assignee_id, created_at, assignee:assignee_id(display_name)')
+    .select('id, title, description, status, priority, assignee_id, due_date, created_at, assignee:assignee_id(id, display_name), task_collaborators(user_id, profiles:user_id(id, display_name))')
     .eq('project_id', state.currentProjectId)
     .order('created_at', { ascending:true });
   if(error){ toast('Tasks: ' + friendlyError(error),'err'); return; }
   state.tasks = data || [];
   renderTasks();
+}
+
+function taskAssigneeAvatars(t){
+  // Combine primary assignee + collaborators, dedupe
+  const all = [];
+  if(t.assignee){ all.push({ id: t.assignee.id, name: t.assignee.display_name, primary: true }); }
+  (t.task_collaborators || []).forEach(c => {
+    if(c.profiles && !all.find(x => x.id === c.profiles.id)){
+      all.push({ id: c.profiles.id, name: c.profiles.display_name, primary: false });
+    }
+  });
+  return all;
+}
+
+function renderAvatarStack(people, max=3){
+  if(!people.length) return '';
+  const visible = people.slice(0, max);
+  const overflow = people.length - max;
+  const stack = visible.map(p =>
+    `<span class="av ${p.primary?'primary':''}" title="${esc(p.name)}${p.primary?' (primary)':''}">${esc(initial(p.name))}</span>`
+  ).join('');
+  const more = overflow > 0
+    ? `<span class="av more" title="${overflow} more">+${overflow}</span>` : '';
+  return `<span class="avatars">${stack}${more}</span>`;
+}
+
+function fmtDueDate(iso){
+  if(!iso) return '';
+  const d = new Date(iso);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const day = new Date(d); day.setHours(0,0,0,0);
+  const diffDays = Math.round((day - today) / 86400000);
+  if(diffDays === 0) return 'today';
+  if(diffDays === 1) return 'tomorrow';
+  if(diffDays === -1) return 'yesterday';
+  if(diffDays < 0) return `${-diffDays}d overdue`;
+  if(diffDays < 7) return `in ${diffDays}d`;
+  return d.toLocaleDateString([], { month:'short', day:'numeric' });
 }
 
 function renderTasks(){
@@ -904,13 +1134,16 @@ function renderTasks(){
     $('count-'+status).textContent = groups[status].length;
     $('col-'+status).innerHTML = groups[status].map(t=>{
       const prio = t.priority || 'med';
-      const assignee = t.assignee?.display_name || '';
+      const people = taskAssigneeAvatars(t);
+      const dueClass = t.due_date && new Date(t.due_date) < new Date() && t.status !== 'done' ? 'p-high' : 'p-low';
+      const due = t.due_date ? `<span class="pill ${dueClass}">${esc(fmtDueDate(t.due_date))}</span>` : '';
       return `
         <div class="task" data-id="${esc(t.id)}">
           <div class="title">${esc(t.title)}</div>
           <div class="meta">
             <span class="pill p-${prio==='high'?'high':prio==='low'?'low':'med'}">${prio}</span>
-            ${assignee ? `<span class="pill assignee">@${esc(assignee)}</span>` : ''}
+            ${due}
+            ${people.length ? renderAvatarStack(people) : ''}
           </div>
         </div>`;
     }).join('');
@@ -926,17 +1159,34 @@ document.querySelectorAll('.add-task').forEach(node => {
   });
 });
 
-async function openTaskModal(taskId, initialStatus='todo'){
+async function openTaskModal(taskId, initialStatus='todo', presetDate=null){
   const editing = !!taskId;
-  const t = editing ? state.tasks.find(x=>x.id===taskId) : { title:'', description:'', status:initialStatus, priority:'med', assignee_id:null };
-  if(editing && !t) return;
+  let t;
+  if(editing){
+    t = state.tasks.find(x => x.id === taskId);
+    if(!t) return;
+  } else {
+    t = { title:'', description:'', status:initialStatus, priority:'med',
+          assignee_id:null, due_date:presetDate, task_collaborators:[] };
+  }
 
-  // Members of this workspace = assignee options
+  // Workspace members for the assignee picker
   const { data: peopleRows } = await sb
     .from('workspace_members')
     .select('user_id, profiles:user_id(id, display_name)')
     .eq('workspace_id', state.currentWsId);
   const people = (peopleRows||[]).map(r => r.profiles).filter(Boolean);
+  const peopleById = Object.fromEntries(people.map(p => [p.id, p]));
+
+  // Local working state for collaborators (start with current set, minus the primary)
+  let primaryId = t.assignee_id || null;
+  let collabIds = new Set();
+  (t.task_collaborators || []).forEach(c => { if(c.user_id) collabIds.add(c.user_id); });
+  // Don't allow the primary to also be a collaborator
+  if(primaryId) collabIds.delete(primaryId);
+
+  // Convert due_date ISO to YYYY-MM-DD for the date input
+  const dueValue = t.due_date ? new Date(t.due_date).toISOString().slice(0,10) : '';
 
   const root = $('modal-root');
   root.innerHTML = `
@@ -946,25 +1196,31 @@ async function openTaskModal(taskId, initialStatus='todo'){
         <div class="modal-b">
           <div class="field"><label>Title</label><input id="t-title" maxlength="160" value="${esc(t.title)}"></div>
           <div class="field"><label>Description</label><textarea id="t-desc" maxlength="2000">${esc(t.description||'')}</textarea></div>
-          <div class="field"><label>Status</label>
-            <select id="t-status">
-              <option value="todo"${t.status==='todo'?' selected':''}>To do</option>
-              <option value="doing"${t.status==='doing'?' selected':''}>In progress</option>
-              <option value="done"${t.status==='done'?' selected':''}>Done</option>
-            </select>
+          <div class="field"><label>Due date</label><input type="date" id="t-due" value="${esc(dueValue)}"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="field"><label>Status</label>
+              <select id="t-status">
+                <option value="todo"${t.status==='todo'?' selected':''}>To do</option>
+                <option value="doing"${t.status==='doing'?' selected':''}>In progress</option>
+                <option value="done"${t.status==='done'?' selected':''}>Done</option>
+              </select>
+            </div>
+            <div class="field"><label>Priority</label>
+              <select id="t-prio">
+                <option value="low"${t.priority==='low'?' selected':''}>Low</option>
+                <option value="med"${(!t.priority||t.priority==='med')?' selected':''}>Medium</option>
+                <option value="high"${t.priority==='high'?' selected':''}>High</option>
+              </select>
+            </div>
           </div>
-          <div class="field"><label>Priority</label>
-            <select id="t-prio">
-              <option value="low"${t.priority==='low'?' selected':''}>Low</option>
-              <option value="med"${(!t.priority||t.priority==='med')?' selected':''}>Medium</option>
-              <option value="high"${t.priority==='high'?' selected':''}>High</option>
-            </select>
-          </div>
-          <div class="field"><label>Assignee</label>
+          <div class="field"><label>Primary assignee</label>
             <select id="t-assignee">
               <option value="">— Unassigned —</option>
-              ${people.map(p=>`<option value="${esc(p.id)}"${t.assignee_id===p.id?' selected':''}>${esc(p.display_name)}</option>`).join('')}
+              ${people.map(p=>`<option value="${esc(p.id)}"${primaryId===p.id?' selected':''}>${esc(p.display_name)}</option>`).join('')}
             </select>
+          </div>
+          <div class="field"><label>Collaborators</label>
+            <div class="chip-list" id="t-chip-list"></div>
           </div>
         </div>
         <div class="modal-f">
@@ -977,27 +1233,95 @@ async function openTaskModal(taskId, initialStatus='todo'){
   const close = ()=> root.innerHTML='';
   $('mx').onclick = close; $('t-cancel').onclick = close;
 
+  // Render chip list — re-runs whenever collabIds changes
+  function renderChips(){
+    const wrap = $('t-chip-list');
+    const chips = [...collabIds].map(id => {
+      const p = peopleById[id];
+      if(!p) return '';
+      return `<span class="chip" data-uid="${esc(id)}">${esc(p.display_name)} <span class="x" data-rm="${esc(id)}">×</span></span>`;
+    }).join('');
+    const available = people.filter(p => !collabIds.has(p.id) && p.id !== primaryId);
+    const picker = `
+      <span class="chip-picker">
+        <button type="button" class="add-chip" id="t-add-collab">+ Add</button>
+        <div class="picker-menu" id="t-collab-menu">
+          ${available.length
+            ? available.map(p => `<div class="item" data-add="${esc(p.id)}">${esc(p.display_name)}</div>`).join('')
+            : '<div class="empty">No more teammates to add.</div>'}
+        </div>
+      </span>`;
+    wrap.innerHTML = (chips || '<span class="chip-empty">No collaborators yet.</span>') + picker;
+    // wire chip remove
+    wrap.querySelectorAll('[data-rm]').forEach(x => x.onclick = (e)=>{
+      e.stopPropagation();
+      collabIds.delete(x.dataset.rm); renderChips();
+    });
+    // wire add button
+    const addBtn = $('t-add-collab');
+    const menu = $('t-collab-menu');
+    if(addBtn && menu){
+      addBtn.onclick = (e)=>{ e.stopPropagation(); menu.classList.toggle('show'); };
+      menu.querySelectorAll('[data-add]').forEach(it => it.onclick = (e)=>{
+        e.stopPropagation();
+        collabIds.add(it.dataset.add);
+        menu.classList.remove('show');
+        renderChips();
+      });
+    }
+  }
+  renderChips();
+
+  // If primary changes, remove from collabIds (can't be both)
+  $('t-assignee').addEventListener('change', ()=>{
+    primaryId = $('t-assignee').value || null;
+    if(primaryId) collabIds.delete(primaryId);
+    renderChips();
+  });
+
+  // Click anywhere closes the open chip menu
+  document.addEventListener('click', _closeChipMenu);
+  function _closeChipMenu(){
+    const m = $('t-collab-menu'); if(m) m.classList.remove('show');
+  }
+
   $('t-save').onclick = async ()=>{
+    const dueIn = $('t-due').value;
     const payload = {
       title: $('t-title').value.trim(),
       description: $('t-desc').value.trim(),
       status: $('t-status').value,
       priority: $('t-prio').value,
-      assignee_id: $('t-assignee').value || null,
+      assignee_id: primaryId,
+      due_date: dueIn ? dueIn : null,  // 'YYYY-MM-DD' interpreted as start-of-day
     };
     if(!payload.title){ toast('Title required','err'); return; }
     try{
+      let id = taskId;
       if(editing){
         const { error } = await sb.from('tasks').update(payload).eq('id', taskId);
         if(error) throw error;
-      }else{
+      } else {
         payload.project_id = state.currentProjectId;
         payload.created_by = state.user.id;
-        const { error } = await sb.from('tasks').insert(payload);
+        const { data, error } = await sb.from('tasks').insert(payload).select().single();
+        if(error) throw error;
+        id = data.id;
+      }
+      // Sync task_collaborators: simplest correct approach — delete all then re-insert.
+      if(editing){
+        await sb.from('task_collaborators').delete().eq('task_id', id);
+      }
+      if(collabIds.size){
+        const rows = [...collabIds].map(uid => ({ task_id: id, user_id: uid }));
+        const { error } = await sb.from('task_collaborators').insert(rows);
         if(error) throw error;
       }
+      document.removeEventListener('click', _closeChipMenu);
       close();
       loadTasks();
+      // If calendar is open, refresh it too
+      if(state.currentPage === 'calendar') loadCalendarTasks();
     }catch(err){ toast(friendlyError(err),'err'); }
   };
   if(editing){
@@ -1006,8 +1330,10 @@ async function openTaskModal(taskId, initialStatus='todo'){
       try{
         const { error } = await sb.from('tasks').delete().eq('id', taskId);
         if(error) throw error;
+        document.removeEventListener('click', _closeChipMenu);
         close();
         loadTasks();
+        if(state.currentPage === 'calendar') loadCalendarTasks();
       }catch(err){ toast(friendlyError(err),'err'); }
     };
   }
@@ -1056,13 +1382,55 @@ async function sendMessage(){
   if(!body) return;
   if(!state.currentProjectId){ toast('Pick a project first','err'); return; }
   ta.value = '';
-  const { error } = await sb.from('messages').insert({
+  const { data: msg, error } = await sb.from('messages').insert({
     project_id: state.currentProjectId, user_id: state.user.id, body,
-  });
+  }).select().single();
   if(error){ toast(friendlyError(error),'err'); ta.value = body; return; }
+
+  // Parse @mentions and record them so the "only my projects" filter works.
+  // Match against workspace members' display_name (case-insensitive, supports spaces via @"Display Name" too).
+  try{
+    const mentioned = await detectMentions(body);
+    if(mentioned.length && msg){
+      await sb.from('chat_mentions').insert(
+        mentioned.map(uid => ({
+          message_id: msg.id,
+          project_id: state.currentProjectId,
+          user_id: uid,
+        }))
+      );
+    }
+  }catch(e){ /* mentions are best-effort */ }
+
   // Reload right away — Realtime would push it eventually, but we want
   // instant feedback in case Realtime isn't enabled on this table.
   loadMessages();
+}
+
+// Parse @-mentions from message body. Matches @"Display Name" or @Name (one word).
+async function detectMentions(body){
+  if(!body.includes('@')) return [];
+  const { data: peopleRows } = await sb
+    .from('workspace_members')
+    .select('user_id, profiles:user_id(id, display_name)')
+    .eq('workspace_id', state.currentWsId);
+  const people = (peopleRows||[]).map(r => r.profiles).filter(Boolean);
+  const hits = new Set();
+  // Quoted: @"First Last"
+  for(const m of body.matchAll(/@"([^"]+)"/g)){
+    const name = m[1].trim().toLowerCase();
+    const p = people.find(x => x.display_name.toLowerCase() === name);
+    if(p) hits.add(p.id);
+  }
+  // Single word: @name (matches longest first to handle "@john" vs "@johnny")
+  const sortedByLen = [...people].sort((a,b) => b.display_name.length - a.display_name.length);
+  for(const p of sortedByLen){
+    const tok = p.display_name.split(/\s+/)[0]; // first word of display name
+    if(!tok) continue;
+    const re = new RegExp(`@${tok.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+    if(re.test(body)) hits.add(p.id);
+  }
+  return [...hits];
 }
 
 // ════════════════════════════════════════════════════════════════════════
@@ -1305,10 +1673,13 @@ function setView(v){
 }
 
 // ════════════════════════════════════════════════════════════════════════
-// PAGE SWITCH (home / project / members)
 // ════════════════════════════════════════════════════════════════════════
-$('nav-home').onclick    = ()=> goPage('home');
-$('nav-members').onclick = ()=> goPage('members');
+// PAGE SWITCH
+// ════════════════════════════════════════════════════════════════════════
+$('nav-home').onclick     = ()=> goPage('home');
+$('nav-members').onclick  = ()=> goPage('members');
+$('nav-calendar').onclick = ()=> goPage('calendar');
+$('nav-chats').onclick    = ()=> goPage('chats');
 $('home-new-proj').onclick = ()=> openProjectModal();
 
 function goPage(name){
@@ -1316,17 +1687,36 @@ function goPage(name){
   $('page-home').classList.toggle('hidden', name!=='home');
   $('page-project').style.display = (name==='project' ? 'flex' : 'none');
   $('page-members').classList.toggle('hidden', name!=='members');
+  $('page-calendar').classList.toggle('hidden', name!=='calendar');
+  $('page-chats').classList.toggle('hidden', name!=='chats');
+  $('page-chat-open').classList.toggle('hidden', name!=='chat-open');
 
   $('nav-home').classList.toggle('active', name==='home');
   $('nav-members').classList.toggle('active', name==='members');
+  $('nav-calendar').classList.toggle('active', name==='calendar');
+  $('nav-chats').classList.toggle('active', name==='chats' || name==='chat-open');
 
   $('sidebar').classList.remove('show');
+
+  // Tear down chat realtime when leaving chat-open
+  if(name !== 'chat-open' && state.channels.conv){
+    sb.removeChannel(state.channels.conv); state.channels.conv = null;
+    state.currentConvId = null;
+  }
 
   if(name==='home'){
     renderHome();
     loadMyInvites();
   }else if(name==='members'){
     loadMembersPage();
+  }else if(name==='calendar'){
+    if(!state.calMonth){
+      const now = new Date();
+      state.calMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    }
+    loadCalendarTasks();
+  }else if(name==='chats'){
+    loadConversations();
   }
   saveRoute();
 }
@@ -1634,6 +2024,454 @@ function subscribeRealtime(){
 }
 
 // ════════════════════════════════════════════════════════════════════════
+// CALENDAR (workspace-level — all tasks with due dates across all projects)
+// ════════════════════════════════════════════════════════════════════════
+$('cal-prev').onclick = ()=>{
+  state.calMonth = new Date(state.calMonth.getFullYear(), state.calMonth.getMonth()-1, 1);
+  loadCalendarTasks();
+};
+$('cal-next').onclick = ()=>{
+  state.calMonth = new Date(state.calMonth.getFullYear(), state.calMonth.getMonth()+1, 1);
+  loadCalendarTasks();
+};
+$('cal-today').onclick = ()=>{
+  const now = new Date();
+  state.calMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  loadCalendarTasks();
+};
+
+async function loadCalendarTasks(){
+  if(!state.currentWsId || !state.calMonth) return;
+  // Range: from 1st of month minus up to 6 days (start of week), to last day plus padding
+  const monthStart = state.calMonth;
+  const monthEnd   = new Date(monthStart.getFullYear(), monthStart.getMonth()+1, 0, 23,59,59);
+  // pad start to start of grid (Monday)
+  const gridStart = new Date(monthStart);
+  const dow = (gridStart.getDay() + 6) % 7;  // Mon=0..Sun=6
+  gridStart.setDate(gridStart.getDate() - dow);
+  const gridEnd = new Date(gridStart); gridEnd.setDate(gridEnd.getDate() + 42);
+
+  const projIds = state.projects.map(p => p.id);
+  if(!projIds.length){ state.calTasks = []; renderCalendar(); return; }
+
+  const { data, error } = await sb
+    .from('tasks')
+    .select('id, title, status, priority, due_date, project_id, assignee_id')
+    .in('project_id', projIds)
+    .not('due_date','is', null)
+    .gte('due_date', gridStart.toISOString())
+    .lt('due_date',  gridEnd.toISOString());
+  if(error){ toast('Calendar: ' + friendlyError(error),'err'); return; }
+  state.calTasks = data || [];
+  renderCalendar();
+}
+
+function renderCalendar(){
+  const monthStart = state.calMonth;
+  const monthEnd   = new Date(monthStart.getFullYear(), monthStart.getMonth()+1, 0);
+  $('cal-label').textContent = monthStart.toLocaleString([], { month:'long', year:'numeric' });
+
+  const gridStart = new Date(monthStart);
+  const dow = (gridStart.getDay() + 6) % 7;
+  gridStart.setDate(gridStart.getDate() - dow);
+
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  // Bucket tasks by YYYY-MM-DD
+  const buckets = {};
+  for(const t of state.calTasks){
+    const key = new Date(t.due_date).toISOString().slice(0,10);
+    (buckets[key] ||= []).push(t);
+  }
+
+  const projById = Object.fromEntries(state.projects.map(p => [p.id, p]));
+  const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const grid = $('cal-grid');
+  let html = dayNames.map(n => `<div class="cal-day-name">${n}</div>`).join('');
+
+  for(let i = 0; i < 42; i++){
+    const d = new Date(gridStart); d.setDate(gridStart.getDate() + i);
+    d.setHours(0,0,0,0);
+    const inMonth = d.getMonth() === monthStart.getMonth();
+    const isToday = d.getTime() === today.getTime();
+    const key = d.toISOString().slice(0,10);
+    const evts = buckets[key] || [];
+    const evtHtml = evts.slice(0,3).map(t => {
+      const cls = t.status === 'done' ? 'done' : (t.priority === 'high' ? 'high' : '');
+      const proj = projById[t.project_id];
+      const label = (proj ? '#'+proj.name+' · ' : '') + t.title;
+      return `<div class="cal-evt ${cls}" data-tid="${esc(t.id)}" data-pid="${esc(t.project_id)}" title="${esc(label)}">${esc(t.title)}</div>`;
+    }).join('');
+    const more = evts.length > 3 ? `<div class="cal-evt-more">+${evts.length-3} more</div>` : '';
+    html += `<div class="cal-cell ${inMonth?'':'other-month'} ${isToday?'today':''}" data-date="${key}">
+      <div class="num">${d.getDate()}</div>
+      ${evtHtml}${more}
+    </div>`;
+    // After last row, stop if remaining cells are entirely next month
+    if(i >= 27 && (i+1) % 7 === 0){
+      const nextStart = new Date(d); nextStart.setDate(d.getDate()+1);
+      if(nextStart.getMonth() !== monthStart.getMonth()) break;
+    }
+  }
+  grid.innerHTML = html;
+
+  // Wire events
+  grid.querySelectorAll('.cal-evt').forEach(el => {
+    el.onclick = (e)=>{
+      e.stopPropagation();
+      const pid = el.dataset.pid;
+      const tid = el.dataset.tid;
+      // Make sure we're on the right project before opening the task modal
+      state.currentProjectId = pid;
+      openTaskModal(tid);
+    };
+  });
+  grid.querySelectorAll('.cal-cell').forEach(el => {
+    el.onclick = ()=>{
+      const dateStr = el.dataset.date;  // 'YYYY-MM-DD'
+      if(!state.projects.length){ toast('Create a project first','err'); return; }
+      // Default to first project; user can change in modal if needed
+      state.currentProjectId = state.projects[0].id;
+      openTaskModal(null, 'todo', dateStr);
+    };
+  });
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// CHATS (DMs and group chats)
+// ════════════════════════════════════════════════════════════════════════
+async function loadConversations(){
+  if(!state.currentWsId) return;
+  // 1) get conversation ids I'm in
+  const { data: memRows, error: e1 } = await sb
+    .from('conversation_members')
+    .select('conversation_id, last_read_at')
+    .eq('user_id', state.user.id);
+  if(e1){ toast('Chats: ' + friendlyError(e1),'err'); return; }
+  const convIds = (memRows||[]).map(r => r.conversation_id);
+  if(!convIds.length){ state.conversations = []; renderChatTables(); subscribeChatList(); return; }
+
+  // 2) get conversations + their members
+  const { data: convs, error: e2 } = await sb
+    .from('conversations')
+    .select('id, name, is_group, created_by, created_at, workspace_id, conversation_members(user_id, profiles:user_id(id, display_name))')
+    .in('id', convIds)
+    .eq('workspace_id', state.currentWsId)
+    .order('created_at', { ascending:false });
+  if(e2){ toast('Chats: ' + friendlyError(e2),'err'); return; }
+
+  // 3) get last message of each
+  const { data: lastMsgs } = await sb
+    .from('conversation_messages')
+    .select('conversation_id, body, created_at, user_id')
+    .in('conversation_id', convIds)
+    .order('created_at', { ascending:false });
+  const lastByConv = {};
+  for(const m of (lastMsgs||[])){ if(!lastByConv[m.conversation_id]) lastByConv[m.conversation_id] = m; }
+
+  state.conversations = (convs||[]).map(c => ({
+    ...c,
+    members: (c.conversation_members||[]).map(m => m.profiles).filter(Boolean),
+    last_msg: lastByConv[c.id] || null,
+  }));
+  renderChatTables();
+  subscribeChatList();
+}
+
+function conversationDisplayName(c){
+  if(c.name) return c.name;
+  if(!c.is_group){
+    // DM: name is the other person
+    const others = c.members.filter(m => m.id !== state.user.id);
+    return others[0]?.display_name || '(empty chat)';
+  }
+  // Group with no name: list members
+  const names = c.members.filter(m => m.id !== state.user.id).map(m => m.display_name);
+  if(!names.length) return '(empty chat)';
+  if(names.length <= 3) return names.join(', ');
+  return names.slice(0,2).join(', ') + ` +${names.length-2}`;
+}
+
+function renderChatTables(){
+  const wrap = $('chat-tables');
+  // Always include "new chat" tile at the front
+  const newTile = `<div class="chat-table new-chat" id="ct-new">
+    <div class="plus">+</div>
+    <div class="lbl">New chat</div>
+  </div>`;
+
+  if(!state.conversations.length){
+    wrap.innerHTML = newTile;
+    $('ct-new').onclick = openNewChatModal;
+    return;
+  }
+
+  const cards = state.conversations.map(c => {
+    const others = c.members.filter(m => m.id !== state.user.id);
+    const seatsToShow = others.slice(0, 4);
+    const overflow = others.length - seatsToShow.length;
+    const seats = seatsToShow.map(p =>
+      `<div class="seat" title="${esc(p.display_name)}">${esc(initial(p.display_name))}</div>`
+    ).join('');
+    const moreSeat = overflow > 0
+      ? `<div class="seat more" title="${overflow} more">+${overflow}</div>` : '';
+    const last = c.last_msg;
+    const lastTxt = last
+      ? `${last.user_id === state.user.id ? 'You: ' : ''}${last.body}`
+      : 'No messages yet';
+    return `<div class="chat-table" data-cid="${esc(c.id)}">
+      <div class="table-name">${esc(conversationDisplayName(c))}</div>
+      <div class="seat-row">${seats}${moreSeat || (seats?'':'<div class="seat" title="just you">'+esc(initial(state.profile.display_name))+'</div>')}</div>
+      <div class="last-msg ${last?'has':''}">${esc(lastTxt.slice(0,80))}</div>
+    </div>`;
+  }).join('');
+
+  wrap.innerHTML = newTile + cards;
+  $('ct-new').onclick = openNewChatModal;
+  wrap.querySelectorAll('[data-cid]').forEach(card => {
+    card.onclick = ()=> openConversation(card.dataset.cid);
+  });
+}
+
+function subscribeChatList(){
+  if(state.channels.convList){ sb.removeChannel(state.channels.convList); state.channels.convList = null; }
+  state.channels.convList = sb.channel('conv-list-'+state.user.id)
+    .on('postgres_changes', { event:'*', schema:'public', table:'conversation_messages' }, ()=>{
+      if(state.currentPage === 'chats') loadConversations();
+    })
+    .on('postgres_changes', { event:'*', schema:'public', table:'conversation_members', filter:`user_id=eq.${state.user.id}` }, ()=>{
+      if(state.currentPage === 'chats') loadConversations();
+    })
+    .subscribe();
+}
+
+// ─── New chat modal ─────────────────────────────────────────────────────
+async function openNewChatModal(){
+  const { data: peopleRows } = await sb
+    .from('workspace_members')
+    .select('user_id, profiles:user_id(id, display_name)')
+    .eq('workspace_id', state.currentWsId);
+  const people = (peopleRows||[])
+    .map(r => r.profiles).filter(Boolean)
+    .filter(p => p.id !== state.user.id);
+
+  if(!people.length){
+    toast('No one else is in this workspace yet. Invite teammates from Members.','err');
+    return;
+  }
+
+  const root = $('modal-root');
+  const selected = new Set();
+
+  root.innerHTML = `
+    <div class="modal-bg">
+      <div class="modal">
+        <div class="modal-h"><h3>New chat</h3><button class="x" id="mx">×</button></div>
+        <div class="modal-b">
+          <div class="field"><label>Pick teammates</label>
+            <div class="chip-list" id="nc-chips"></div>
+          </div>
+          <div class="field" id="nc-name-field" style="display:none">
+            <label>Group name (optional)</label>
+            <input id="nc-name" placeholder="e.g. Design crit" maxlength="60">
+          </div>
+        </div>
+        <div class="modal-f">
+          <button class="btn ghost" id="nc-cancel">Cancel</button>
+          <button class="btn" id="nc-create">Start chat</button>
+        </div>
+      </div>
+    </div>`;
+  const close = ()=> root.innerHTML='';
+  $('mx').onclick = close; $('nc-cancel').onclick = close;
+
+  const renderNcChips = ()=>{
+    const wrap = $('nc-chips');
+    const chips = [...selected].map(uid => {
+      const p = people.find(x => x.id === uid);
+      return `<span class="chip" data-uid="${esc(uid)}">${esc(p.display_name)} <span class="x" data-rm="${esc(uid)}">×</span></span>`;
+    }).join('');
+    const remaining = people.filter(p => !selected.has(p.id));
+    const picker = `
+      <span class="chip-picker">
+        <button type="button" class="add-chip" id="nc-add">+ Add</button>
+        <div class="picker-menu" id="nc-menu">
+          ${remaining.length
+            ? remaining.map(p => `<div class="item" data-add="${esc(p.id)}">${esc(p.display_name)}</div>`).join('')
+            : '<div class="empty">All teammates selected.</div>'}
+        </div>
+      </span>`;
+    wrap.innerHTML = (chips || '<span class="chip-empty">Pick at least one teammate.</span>') + picker;
+    wrap.querySelectorAll('[data-rm]').forEach(x => x.onclick = (e)=>{
+      e.stopPropagation(); selected.delete(x.dataset.rm); renderNcChips(); toggleNameField();
+    });
+    const addBtn = $('nc-add'); const menu = $('nc-menu');
+    if(addBtn){
+      addBtn.onclick = (e)=>{ e.stopPropagation(); menu.classList.toggle('show'); };
+      menu.querySelectorAll('[data-add]').forEach(it => it.onclick = (e)=>{
+        e.stopPropagation();
+        selected.add(it.dataset.add); menu.classList.remove('show'); renderNcChips(); toggleNameField();
+      });
+    }
+  };
+  const toggleNameField = ()=>{
+    $('nc-name-field').style.display = selected.size > 1 ? '' : 'none';
+  };
+  renderNcChips();
+
+  document.addEventListener('click', _closeNcMenu);
+  function _closeNcMenu(){ const m=$('nc-menu'); if(m) m.classList.remove('show'); }
+
+  $('nc-create').onclick = async ()=>{
+    if(selected.size === 0){ toast('Pick at least one person','err'); return; }
+    const isGroup = selected.size > 1;
+    const name = isGroup ? ($('nc-name').value.trim() || null) : null;
+
+    // For a 1:1 DM, check if a conversation already exists between just us two
+    if(!isGroup){
+      const otherId = [...selected][0];
+      // Find conversations I'm in that are NOT group, then check member list
+      const existing = state.conversations.find(c =>
+        !c.is_group
+        && c.members.length === 2
+        && c.members.some(m => m.id === otherId)
+        && c.members.some(m => m.id === state.user.id)
+      );
+      if(existing){
+        document.removeEventListener('click', _closeNcMenu);
+        close();
+        openConversation(existing.id);
+        return;
+      }
+    }
+
+    try{
+      // 1) create conversation
+      const { data: c, error: e1 } = await sb.from('conversations').insert({
+        workspace_id: state.currentWsId,
+        name,
+        is_group: isGroup,
+        created_by: state.user.id,
+      }).select().single();
+      if(e1) throw e1;
+
+      // 2) add me + selected as members
+      const rows = [{ conversation_id: c.id, user_id: state.user.id }];
+      for(const uid of selected){ rows.push({ conversation_id: c.id, user_id: uid }); }
+      const { error: e2 } = await sb.from('conversation_members').insert(rows);
+      if(e2) throw e2;
+
+      document.removeEventListener('click', _closeNcMenu);
+      close();
+      await loadConversations();
+      openConversation(c.id);
+    }catch(err){ toast(friendlyError(err),'err'); }
+  };
+}
+
+// ─── Open a conversation (full chat view) ──────────────────────────────
+async function openConversation(convId){
+  state.currentConvId = convId;
+  goPage('chat-open');
+
+  const c = state.conversations.find(x => x.id === convId);
+  if(!c){
+    await loadConversations();
+    const c2 = state.conversations.find(x => x.id === convId);
+    if(c2){
+      $('chat-open-name').textContent = conversationDisplayName(c2);
+      $('chat-open-sub').textContent = (c2.is_group ? 'group' : 'direct message') + ' · ' + c2.members.length + ' people';
+    }
+  } else {
+    $('chat-open-name').textContent = conversationDisplayName(c);
+    $('chat-open-sub').textContent = (c.is_group ? 'group' : 'direct message') + ' · ' + c.members.length + ' people';
+  }
+
+  await loadConvMessages();
+  subscribeConversation();
+
+  // Mark as read
+  try{
+    await sb.from('conversation_members').update({ last_read_at: new Date().toISOString() })
+      .eq('conversation_id', convId).eq('user_id', state.user.id);
+  }catch{}
+}
+
+$('chat-back').onclick = ()=> goPage('chats');
+$('chat-open-leave').onclick = async ()=>{
+  if(!state.currentConvId) return;
+  if(!confirm('Leave this chat? You will not see new messages.')) return;
+  try{
+    const { error } = await sb.from('conversation_members').delete()
+      .eq('conversation_id', state.currentConvId)
+      .eq('user_id', state.user.id);
+    if(error) throw error;
+    toast('Left chat','ok');
+    state.currentConvId = null;
+    goPage('chats');
+  }catch(err){ toast(friendlyError(err),'err'); }
+};
+
+async function loadConvMessages(){
+  if(!state.currentConvId){ state.convMessages = []; renderConvMessages(); return; }
+  const { data, error } = await sb
+    .from('conversation_messages')
+    .select('id, body, created_at, user_id, author:user_id(display_name)')
+    .eq('conversation_id', state.currentConvId)
+    .order('created_at', { ascending:true })
+    .limit(300);
+  if(error){ toast('Messages: '+friendlyError(error),'err'); return; }
+  state.convMessages = data || [];
+  renderConvMessages();
+}
+
+function renderConvMessages(){
+  const el = $('conv-messages');
+  if(!state.convMessages.length){
+    el.innerHTML = `<div class="empty-pane">Say hi — be the first message.</div>`;
+    return;
+  }
+  el.innerHTML = state.convMessages.map(m => `
+    <div class="message">
+      <div class="avatar">${esc(initial(m.author?.display_name))}</div>
+      <div class="body">
+        <div class="head">
+          <span class="name">${esc(m.author?.display_name || 'Unknown')}</span>
+          <span class="time">${esc(fmtTime(m.created_at))}</span>
+        </div>
+        <div class="text">${esc(m.body)}</div>
+      </div>
+    </div>`).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+$('btn-conv-send').onclick = sendConvMessage;
+$('conv-input').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendConvMessage(); }
+});
+async function sendConvMessage(){
+  const ta = $('conv-input');
+  const body = ta.value.trim();
+  if(!body || !state.currentConvId) return;
+  ta.value = '';
+  const { error } = await sb.from('conversation_messages').insert({
+    conversation_id: state.currentConvId, user_id: state.user.id, body,
+  });
+  if(error){ toast(friendlyError(error),'err'); ta.value = body; return; }
+  loadConvMessages();
+}
+
+function subscribeConversation(){
+  if(state.channels.conv){ sb.removeChannel(state.channels.conv); state.channels.conv = null; }
+  if(!state.currentConvId) return;
+  state.channels.conv = sb.channel('conv-'+state.currentConvId)
+    .on('postgres_changes',
+      { event:'*', schema:'public', table:'conversation_messages', filter:`conversation_id=eq.${state.currentConvId}` },
+      ()=> loadConvMessages())
+    .subscribe();
+}
+
+// ════════════════════════════════════════════════════════════════════════
 // BOOT
 // ════════════════════════════════════════════════════════════════════════
 async function boot(){
@@ -1684,6 +2522,12 @@ async function enterApp(user){
       if(route.view && route.view !== 'board') setView(route.view);
     } else if(route.page === 'members'){
       goPage('members');
+    } else if(route.page === 'calendar'){
+      goPage('calendar');
+    } else if(route.page === 'chats' || route.page === 'chat-open'){
+      // Always go to chats list on refresh — opening a specific chat by id
+      // after a refresh is too easy to break if the user left it.
+      goPage('chats');
     } else {
       goPage('home');
     }
