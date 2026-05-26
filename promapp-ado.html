@@ -165,8 +165,7 @@ a:hover{text-decoration:underline}
 .col-h .ti{font-weight:600;font-size:14px;flex:1}
 .col-h .cnt{color:var(--muted);font-size:12px;font-family:var(--mono)}
 .col-h .cnt.over{color:var(--red);font-weight:600}
-.col-body{padding:10px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;flex:1}
-.col-body.empty{display:grid;place-items:center;color:var(--muted);font-size:12px;font-style:italic}
+.col-body{padding:10px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;flex:1;min-height:60px}
 .card{background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:var(--r);padding:8px 10px;cursor:pointer;display:flex;flex-direction:column;gap:6px;transition:.12s}
 .card:hover{box-shadow:var(--shadow);border-color:var(--border2)}
 .card.t-epic   {border-left-color:var(--purple)}
@@ -175,6 +174,12 @@ a:hover{text-decoration:underline}
 .card.t-task   {border-left-color:var(--yellow)}
 .card.t-bug    {border-left-color:var(--red)}
 .card .row1{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}
+
+/* Drag-and-drop visual feedback */
+.drag-ghost{opacity:.4;background:var(--blue-dim) !important;border:1px dashed var(--blue) !important}
+.drag-chosen{box-shadow:var(--shadow-lg)}
+.drag-active{cursor:grabbing}
+.col-body.drag-over-empty{background:var(--blue-dim) !important}
 .card .row1 .type-ico{font-size:13px}
 .card .row1 .id{font-family:var(--mono);font-weight:600}
 .card .row1 .pts{margin-left:auto;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:1px 7px;font-family:var(--mono);font-weight:600;color:var(--text2)}
@@ -199,10 +204,13 @@ a:hover{text-decoration:underline}
 .backlog-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
 .backlog-toolbar select{padding:4px 8px;font-size:13px}
 .bl-table{background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);overflow:hidden}
-.bl-h{display:grid;grid-template-columns:40px 80px 1fr 140px 120px 80px;gap:8px;padding:8px 12px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
-.bl-row{display:grid;grid-template-columns:40px 80px 1fr 140px 120px 80px;gap:8px;padding:8px 12px;border-bottom:1px solid var(--border);font-size:13px;cursor:pointer;align-items:center;position:relative}
+.bl-h{display:grid;grid-template-columns:24px 40px 80px 1fr 140px 120px 80px;gap:8px;padding:8px 12px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.bl-row{display:grid;grid-template-columns:24px 40px 80px 1fr 140px 120px 80px;gap:8px;padding:8px 12px;border-bottom:1px solid var(--border);font-size:13px;cursor:pointer;align-items:center;position:relative;background:var(--surface)}
 .bl-row:hover{background:var(--hover)}
 .bl-row:last-child{border-bottom:none}
+.bl-row .drag-handle{cursor:grab;color:var(--muted);font-size:11px;letter-spacing:-2px;opacity:0;display:grid;place-items:center;user-select:none;touch-action:none}
+.bl-row:hover .drag-handle{opacity:1}
+.bl-row .drag-handle:active{cursor:grabbing}
 .bl-row .expand{width:20px;height:20px;display:grid;place-items:center;color:var(--muted);cursor:pointer;border-radius:var(--r);font-size:10px}
 .bl-row .expand:hover{background:var(--hover)}
 .bl-row .expand.open{transform:rotate(90deg)}
@@ -324,8 +332,8 @@ a:hover{text-decoration:underline}
   .sidebar{position:fixed;left:0;top:44px;bottom:0;z-index:100;transform:translateX(-100%);transition:transform .2s}
   .sidebar.show{transform:translateX(0)}
   .topbar .menu-btn{display:grid !important}
-  .bl-h, .bl-row{grid-template-columns:30px 60px 1fr 80px}
-  .bl-h > :nth-child(n+5), .bl-row > :nth-child(n+5){display:none}
+  .bl-h, .bl-row{grid-template-columns:24px 24px 60px 1fr 80px}
+  .bl-h > :nth-child(n+6), .bl-row > :nth-child(n+6){display:none}
   .det-body{grid-template-columns:1fr}
   .det-right{border-top:1px solid var(--border)}
 }
@@ -464,6 +472,7 @@ a:hover{text-decoration:underline}
 <div id="toast-root"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <script>
 'use strict';
 
@@ -826,9 +835,9 @@ async function loadWorkItems(){
   if(!state.currentProjectId){ state.workItems = []; return; }
   const { data, error } = await sb
     .from('work_items')
-    .select('id, project_id, workspace_id, parent_id, type, title, description, state, priority, story_points, initial_estimate, remaining_work, assignee_id, area, iteration, tags, display_id, created_by, created_at, updated_at, assignee:assignee_id(id, display_name)')
+    .select('id, project_id, workspace_id, parent_id, type, title, description, state, priority, story_points, initial_estimate, remaining_work, assignee_id, area, iteration, tags, display_id, created_by, created_at, updated_at, position, assignee:assignee_id(id, display_name)')
     .eq('project_id', state.currentProjectId)
-    .order('created_at', { ascending: true });
+    .order('position', { ascending: true, nullsFirst: false });
   if(error){ toast('Items: '+friendlyError(error),'err'); return; }
   state.workItems = data || [];
 }
@@ -845,6 +854,15 @@ async function createWorkItem(payload){
   payload.workspace_id = state.currentWsId;
   payload.project_id = state.currentProjectId;
   payload.created_by = state.user.id;
+  // Default position: append to end of same-state/same-parent group
+  if(payload.position == null){
+    const siblings = state.workItems.filter(w =>
+      w.parent_id === (payload.parent_id || null) &&
+      (payload.state ? w.state === payload.state : true)
+    );
+    const maxPos = siblings.reduce((m, w) => Math.max(m, w.position || 0), 0);
+    payload.position = maxPos + 1000;
+  }
   const { error } = await sb.from('work_items').insert(payload);
   if(error){ toast(friendlyError(error),'err'); return null; }
   await loadWorkItems();
@@ -1036,8 +1054,8 @@ function renderBoard(){
         <div class="ti">${meta.label}</div>
         <div class="cnt">${list.length}</div>
       </div>
-      <div class="col-body ${list.length===0?'empty':''}">
-        ${list.length === 0 ? 'No items' : list.map(w => renderCard(w)).join('')}
+      <div class="col-body">
+        ${list.map(w => renderCard(w)).join('')}
       </div>
       <div class="add-card" data-state="${s}">+ Add work item</div>
     </div>`;
@@ -1045,6 +1063,63 @@ function renderBoard(){
   $('board-cols').innerHTML = html;
   $('board-cols').querySelectorAll('.card').forEach(c => c.onclick = ()=> openDetail(c.dataset.id));
   $('board-cols').querySelectorAll('.add-card').forEach(b => b.onclick = ()=> openNewItemModal({ type: typeFilter, state: b.dataset.state }));
+
+  // Enable drag-and-drop on each column body
+  if(window.Sortable){
+    $('board-cols').querySelectorAll('.col-body').forEach(body => {
+      // Skip if already initialized
+      if(body._sortable){ body._sortable.destroy(); }
+      body._sortable = new Sortable(body, {
+        group: 'board-' + (state.currentProjectId || 'x'),
+        animation: 150,
+        ghostClass: 'drag-ghost',
+        chosenClass: 'drag-chosen',
+        dragClass: 'drag-active',
+        forceFallback: true,           // better touch behavior on phones
+        fallbackTolerance: 4,
+        delay: 150,                    // tap delay so click vs. drag isn't ambiguous on touch
+        delayOnTouchOnly: true,
+        onEnd: async (evt)=>{
+          const card = evt.item;
+          const itemId = card.dataset.id;
+          const targetCol = evt.to.closest('.col');
+          const newState = targetCol?.dataset.state;
+          if(!itemId || !newState) return;
+          // Compute new position from neighbours in target column
+          const cards = [...evt.to.querySelectorAll('.card')];
+          const idx = cards.indexOf(card);
+          const prev = cards[idx-1];
+          const next = cards[idx+1];
+          const prevPos = prev ? (itemById(prev.dataset.id)?.position ?? 0) : null;
+          const nextPos = next ? (itemById(next.dataset.id)?.position ?? null) : null;
+          let newPos;
+          if(prevPos == null && nextPos == null)        newPos = 1000;
+          else if(prevPos == null)                       newPos = nextPos - 1000;
+          else if(nextPos == null)                       newPos = prevPos + 1000;
+          else                                           newPos = (prevPos + nextPos) / 2;
+
+          const item = itemById(itemId);
+          const stateChanged = item && item.state !== newState;
+          const patch = { state: newState, position: newPos };
+          // Optimistic local update
+          if(item){ item.state = newState; item.position = newPos; }
+          const ok = await updateWorkItem(itemId, patch);
+          if(!ok){
+            // Reload to undo any local optimism that's now wrong
+            await loadWorkItems();
+            renderBoard();
+            return;
+          }
+          if(stateChanged){
+            const sm = STATE_META[newState];
+            toast(`Moved to ${sm.label}`, 'ok');
+          }
+          // Re-render counts/columns
+          renderBoard();
+        },
+      });
+    });
+  }
 }
 
 function renderCard(w){
@@ -1128,6 +1203,7 @@ function renderBacklog(){
   $('bl-tree').innerHTML = `
     <div class="bl-h">
       <div></div>
+      <div></div>
       <div>ID</div>
       <div>Title</div>
       <div>Assigned to</div>
@@ -1139,7 +1215,7 @@ function renderBacklog(){
   // Wire
   $('bl-tree').querySelectorAll('.bl-row').forEach(row => {
     row.onclick = (e) => {
-      if(e.target.closest('.add-child') || e.target.closest('.expand')) return;
+      if(e.target.closest('.add-child') || e.target.closest('.expand') || e.target.closest('.drag-handle')) return;
       openDetail(row.dataset.id);
     };
     const exp = row.querySelector('.expand');
@@ -1157,6 +1233,83 @@ function renderBacklog(){
       openAddChildMenu(add, row.dataset.id);
     };
   });
+
+  // Enable drag-to-reorder. Items can only be reordered among siblings
+  // (same parent_id). Drops that would change parent are rejected and
+  // we fall back to the original position.
+  if(window.Sortable){
+    const tree = $('bl-tree');
+    if(tree._sortable){ tree._sortable.destroy(); }
+    tree._sortable = new Sortable(tree, {
+      handle: '.drag-handle',
+      animation: 150,
+      ghostClass: 'drag-ghost',
+      chosenClass: 'drag-chosen',
+      dragClass: 'drag-active',
+      filter: '.bl-h',                  // header row not draggable
+      preventOnFilter: false,
+      forceFallback: true,
+      fallbackTolerance: 4,
+      onEnd: async (evt)=>{
+        const row = evt.item;
+        const itemId = row.dataset.id;
+        const item = itemById(itemId);
+        if(!item) return;
+        // Determine new parent: look at the row above; if it is a valid
+        // parent for this type, attach as its child; otherwise, attach
+        // as sibling of whatever's above (i.e. same parent).
+        const allRows = [...tree.querySelectorAll('.bl-row')];
+        const idx = allRows.indexOf(row);
+        const above = idx > 0 ? allRows[idx-1] : null;
+        const below = idx < allRows.length - 1 ? allRows[idx+1] : null;
+        let newParentId = null;
+        if(above){
+          const aboveItem = itemById(above.dataset.id);
+          const aboveDepth = parseInt((above.className.match(/depth-(\d+)/)||[0,'0'])[1]);
+          const myDepth   = parseInt((row.className.match(/depth-(\d+)/)||[0,'0'])[1]);
+          if(aboveItem && myDepth > aboveDepth){
+            // Visually placed under: check if valid child type
+            if(TYPE_META[aboveItem.type]?.children?.includes(item.type)){
+              newParentId = aboveItem.id;
+            } else {
+              // Invalid drop — revert
+              toast(`Cannot place ${TYPE_META[item.type].label} under ${TYPE_META[aboveItem.type].label}`, 'err');
+              renderBacklog();
+              return;
+            }
+          } else if(aboveItem){
+            newParentId = aboveItem.parent_id;
+          }
+        }
+        // Compute new position among siblings
+        const newSiblings = allRows.filter(r => {
+          const it = itemById(r.dataset.id);
+          return it && it.parent_id === newParentId;
+        });
+        const myNewIdx = newSiblings.indexOf(row);
+        const prevSib = myNewIdx > 0 ? itemById(newSiblings[myNewIdx-1].dataset.id) : null;
+        const nextSib = myNewIdx < newSiblings.length - 1 ? itemById(newSiblings[myNewIdx+1].dataset.id) : null;
+        const prevPos = prevSib?.position ?? null;
+        const nextPos = nextSib?.position ?? null;
+        let newPos;
+        if(prevPos == null && nextPos == null) newPos = 1000;
+        else if(prevPos == null)                newPos = nextPos - 1000;
+        else if(nextPos == null)                newPos = prevPos + 1000;
+        else                                    newPos = (prevPos + nextPos) / 2;
+
+        const patch = { position: newPos };
+        if(item.parent_id !== newParentId) patch.parent_id = newParentId;
+
+        // Optimistic
+        Object.assign(item, patch);
+        const ok = await updateWorkItem(itemId, patch);
+        if(!ok){
+          await loadWorkItems();
+        }
+        renderBacklog();
+      },
+    });
+  }
 }
 
 function renderBacklogRow(w, depth, hasKids, isExp){
@@ -1166,6 +1319,7 @@ function renderBacklogRow(w, depth, hasKids, isExp){
   const childTypes = TYPE_META[w.type].children;
   const canAdd = childTypes.length > 0;
   return `<div class="bl-row depth-${Math.min(depth,4)}" data-id="${esc(w.id)}">
+    <div class="drag-handle" title="Drag to reorder">⋮⋮</div>
     <div class="expand ${hasKids?'':'none'} ${isExp?'open':''}">▶</div>
     <div class="id-cell">
       <span class="type-ico" title="${esc(tm.label)}">${tm.ico}</span>
