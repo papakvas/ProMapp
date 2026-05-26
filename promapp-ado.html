@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProMapp · Work Items</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ════════════════════════════════════════════════════════════════════
+   ProMapp ADO — visual language inspired by Azure DevOps:
+   light + neutral by default with dark mode option. Tight, dense, work-
+   first. Blue accents, type icons, monospace IDs.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root{
+  /* light theme defaults */
+  --bg: #f5f5f5;
+  --surface: #ffffff;
+  --surface2: #fafafa;
+  --hover: #f2f2f2;
+  --border: #e1e1e1;
+  --border2: #d0d0d0;
+  --text: #1f1f1f;
+  --text2: #4a4a4a;
+  --muted: #767676;
+  --blue: #0078d4;
+  --blue-h: #106ebe;
+  --blue-dim: #deecf9;
+  --red: #d13438;
+  --red-dim: #fde7e9;
+  --orange: #d83b01;
+  --orange-dim: #fed9cc;
+  --green: #107c10;
+  --green-dim: #dff6dd;
+  --purple: #5c2d91;
+  --purple-dim: #e8e0f0;
+  --yellow: #ffaa44;
+  --yellow-dim: #fff4ce;
+  --shadow: 0 1.6px 3.6px rgba(0,0,0,.13), 0 .3px .9px rgba(0,0,0,.10);
+  --shadow-lg: 0 6.4px 14.4px rgba(0,0,0,.13), 0 1.2px 3.6px rgba(0,0,0,.10);
+  --r: 4px;
+  --rm: 6px;
+  --hd: 'Inter', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+[data-theme=dark]{
+  --bg: #1b1b1b;
+  --surface: #252525;
+  --surface2: #2d2d2d;
+  --hover: #333;
+  --border: #3a3a3a;
+  --border2: #4a4a4a;
+  --text: #f3f3f3;
+  --text2: #cccccc;
+  --muted: #999;
+  --blue: #58a6ff;
+  --blue-h: #79b8ff;
+  --blue-dim: #1a3a5c;
+  --red: #f87171;
+  --red-dim: #4a1f1f;
+  --orange: #ff8c5a;
+  --orange-dim: #4a2a1a;
+  --green: #4ade80;
+  --green-dim: #1a3a1f;
+  --purple: #a78bfa;
+  --purple-dim: #2a1a4a;
+  --yellow: #fbbf24;
+  --yellow-dim: #3a2a0a;
+  --shadow: 0 1.6px 3.6px rgba(0,0,0,.45), 0 .3px .9px rgba(0,0,0,.3);
+  --shadow-lg: 0 6.4px 14.4px rgba(0,0,0,.45), 0 1.2px 3.6px rgba(0,0,0,.3);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:var(--hd);font-size:14px;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+button{cursor:pointer;font-family:inherit;font-size:inherit;border:none;background:transparent;color:inherit}
+button:disabled{cursor:not-allowed;opacity:.5}
+input,select,textarea{font-family:inherit;font-size:inherit;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:6px 10px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue)}
+textarea{resize:vertical;min-height:60px;font-family:var(--hd)}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* ─── BOOT/AUTH ─── */
+.center{display:grid;place-items:center;min-height:100vh;padding:20px}
+.auth{background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);padding:28px;max-width:380px;width:100%;box-shadow:var(--shadow)}
+.auth h1{font-size:22px;font-weight:600;margin-bottom:4px;letter-spacing:-.01em}
+.auth .sub{color:var(--muted);font-size:13px;margin-bottom:20px}
+.auth .field{margin-bottom:12px}
+.auth label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px}
+.auth input{width:100%}
+.auth button.primary{width:100%;background:var(--blue);color:#fff;padding:8px;border-radius:var(--r);font-weight:600;margin-top:8px}
+.auth button.primary:hover{background:var(--blue-h)}
+.auth .switch{margin-top:14px;text-align:center;font-size:13px;color:var(--muted)}
+.auth .switch a{cursor:pointer}
+
+/* ─── APP SHELL ─── */
+.app{display:none;height:100vh;flex-direction:column}
+.app.show{display:flex}
+.topbar{display:flex;align-items:center;gap:10px;padding:6px 12px;background:var(--surface);border-bottom:1px solid var(--border);min-height:44px;flex-shrink:0}
+.topbar .logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;color:var(--text)}
+.topbar .logo .mark{width:24px;height:24px;background:var(--blue);color:#fff;border-radius:var(--r);display:grid;place-items:center;font-weight:700;font-size:13px}
+.topbar .crumb{color:var(--muted);font-size:13px}
+.topbar .crumb span{color:var(--text2);font-weight:500}
+.topbar .crumb .sep{margin:0 6px;color:var(--border2)}
+.topbar .spacer{flex:1}
+.topbar .ws-pick{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:4px 10px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:6px}
+.topbar .ws-pick:hover{background:var(--hover)}
+.topbar .iconbtn{width:32px;height:32px;border-radius:var(--r);display:grid;place-items:center;color:var(--text2)}
+.topbar .iconbtn:hover{background:var(--hover);color:var(--text)}
+.topbar .user{display:flex;align-items:center;gap:6px;padding:2px 8px 2px 4px;border-radius:999px;background:var(--surface2);border:1px solid var(--border)}
+.topbar .user .av{width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:600}
+.topbar .user .nm{font-size:12px;font-weight:500}
+
+/* ─── MAIN LAYOUT ─── */
+.main{flex:1;display:flex;min-height:0;overflow:hidden}
+.sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.sb-project{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.sb-project .icon{width:28px;height:28px;border-radius:var(--r);background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:700;font-size:14px}
+.sb-project .nm{font-weight:600;font-size:14px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-project .add{width:24px;height:24px;border-radius:var(--r);display:grid;place-items:center;color:var(--muted)}
+.sb-project .add:hover{background:var(--hover);color:var(--text)}
+
+.sb-nav{padding:6px 0;flex:1}
+.sb-nav button{display:flex;align-items:center;gap:10px;width:100%;padding:7px 14px;text-align:left;color:var(--text2);font-size:13px;font-weight:500;border-left:2px solid transparent}
+.sb-nav button:hover{background:var(--hover);color:var(--text)}
+.sb-nav button.active{background:var(--blue-dim);color:var(--blue);border-left-color:var(--blue);font-weight:600}
+.sb-nav button .ico{font-size:14px;width:18px;display:inline-block;text-align:center}
+.sb-nav .group{padding:10px 14px 4px;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+
+.sb-projects-list{padding:0 0 6px;border-top:1px solid var(--border);max-height:40vh;overflow-y:auto}
+.sb-projects-list .pi{display:flex;align-items:center;gap:8px;padding:6px 14px;cursor:pointer;font-size:13px;color:var(--text2)}
+.sb-projects-list .pi:hover{background:var(--hover);color:var(--text)}
+.sb-projects-list .pi.active{background:var(--blue-dim);color:var(--blue);font-weight:600}
+.sb-projects-list .pi .hash{color:var(--muted);font-family:var(--mono);font-size:11px}
+.sb-projects-list .empty{padding:12px 14px;color:var(--muted);font-style:italic;font-size:12px}
+
+.workarea{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.subtopbar{display:flex;align-items:center;gap:10px;padding:8px 16px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.subtopbar h1{font-size:18px;font-weight:600;color:var(--text)}
+.subtopbar .tabs{display:flex;gap:0;margin-left:14px}
+.subtopbar .tab{padding:6px 14px;border-bottom:2px solid transparent;color:var(--text2);font-weight:500;font-size:13px;cursor:pointer}
+.subtopbar .tab:hover{color:var(--text)}
+.subtopbar .tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+.subtopbar .spacer{flex:1}
+.subtopbar .actions{display:flex;gap:6px;align-items:center}
+
+.btn{padding:5px 12px;border-radius:var(--r);background:var(--blue);color:#fff;font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{background:var(--blue-h)}
+.btn.ghost{background:transparent;color:var(--text2);border:1px solid var(--border)}
+.btn.ghost:hover{background:var(--hover);color:var(--text)}
+.btn.danger{background:var(--red);color:#fff}
+.btn.sm{padding:3px 8px;font-size:12px}
+
+.page{flex:1;overflow:auto;background:var(--bg)}
+.hidden{display:none !important}
+
+/* ═══════════════════════════════════════════════════════════════════
+   BOARD (KANBAN)
+   ══════════════════════════════════════════════════════════════════ */
+.board{padding:14px;display:flex;gap:12px;height:100%;overflow-x:auto;overflow-y:hidden}
+.col{flex:0 0 280px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);display:flex;flex-direction:column;max-height:100%;min-height:200px}
+.col-h{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--surface2);border-radius:var(--rm) var(--rm) 0 0}
+.col-h .ti{font-weight:600;font-size:14px;flex:1}
+.col-h .cnt{color:var(--muted);font-size:12px;font-family:var(--mono)}
+.col-h .cnt.over{color:var(--red);font-weight:600}
+.col-body{padding:10px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;flex:1}
+.col-body.empty{display:grid;place-items:center;color:var(--muted);font-size:12px;font-style:italic}
+.card{background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:var(--r);padding:8px 10px;cursor:pointer;display:flex;flex-direction:column;gap:6px;transition:.12s}
+.card:hover{box-shadow:var(--shadow);border-color:var(--border2)}
+.card.t-epic   {border-left-color:var(--purple)}
+.card.t-feature{border-left-color:var(--orange)}
+.card.t-story  {border-left-color:var(--blue)}
+.card.t-task   {border-left-color:var(--yellow)}
+.card.t-bug    {border-left-color:var(--red)}
+.card .row1{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}
+.card .row1 .type-ico{font-size:13px}
+.card .row1 .id{font-family:var(--mono);font-weight:600}
+.card .row1 .pts{margin-left:auto;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:1px 7px;font-family:var(--mono);font-weight:600;color:var(--text2)}
+.card .ti{font-size:13px;font-weight:500;color:var(--text);line-height:1.35}
+.card .row3{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);flex-wrap:wrap}
+.card .row3 .av{width:18px;height:18px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-size:10px;font-weight:600}
+.card .row3 .children{display:inline-flex;align-items:center;gap:2px;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:1px 6px;font-family:var(--mono)}
+.card .row3 .tag{background:var(--blue-dim);color:var(--blue);padding:0 6px;border-radius:2px;font-size:10px;font-weight:600}
+.card .row3 .pri{font-weight:600;padding:0 6px;border-radius:2px}
+.card .row3 .pri.p1{background:var(--red-dim);color:var(--red)}
+.card .row3 .pri.p2{background:var(--orange-dim);color:var(--orange)}
+.card .row3 .pri.p3{background:var(--blue-dim);color:var(--blue)}
+.card .row3 .pri.p4{background:var(--surface);color:var(--muted)}
+
+.add-card{margin-top:auto;padding:8px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);text-align:center;cursor:pointer;border-radius:0 0 var(--rm) var(--rm)}
+.add-card:hover{background:var(--hover);color:var(--text)}
+
+/* ═══════════════════════════════════════════════════════════════════
+   BACKLOG (LIST)
+   ══════════════════════════════════════════════════════════════════ */
+.backlog{padding:14px 16px}
+.backlog-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.backlog-toolbar select{padding:4px 8px;font-size:13px}
+.bl-table{background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);overflow:hidden}
+.bl-h{display:grid;grid-template-columns:40px 80px 1fr 140px 120px 80px;gap:8px;padding:8px 12px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.bl-row{display:grid;grid-template-columns:40px 80px 1fr 140px 120px 80px;gap:8px;padding:8px 12px;border-bottom:1px solid var(--border);font-size:13px;cursor:pointer;align-items:center;position:relative}
+.bl-row:hover{background:var(--hover)}
+.bl-row:last-child{border-bottom:none}
+.bl-row .expand{width:20px;height:20px;display:grid;place-items:center;color:var(--muted);cursor:pointer;border-radius:var(--r);font-size:10px}
+.bl-row .expand:hover{background:var(--hover)}
+.bl-row .expand.open{transform:rotate(90deg)}
+.bl-row .expand.none{visibility:hidden}
+.bl-row .id-cell{display:flex;align-items:center;gap:6px}
+.bl-row .id-cell .type-ico{font-size:14px}
+.bl-row .id-cell .id{font-family:var(--mono);font-size:12px;color:var(--muted);font-weight:600}
+.bl-row .title-cell{display:flex;align-items:center;gap:6px;min-width:0}
+.bl-row .title-cell .ti{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bl-row .add-child{visibility:hidden;width:22px;height:22px;border-radius:var(--r);display:grid;place-items:center;color:var(--blue);background:var(--blue-dim);font-weight:700;font-size:14px;cursor:pointer}
+.bl-row:hover .add-child{visibility:visible}
+.bl-row .add-child:hover{background:var(--blue);color:#fff}
+.bl-row .av-name{display:flex;align-items:center;gap:6px;font-size:12px}
+.bl-row .av-name .av{width:20px;height:20px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-size:10px;font-weight:600}
+.bl-row .state{font-size:11px;padding:2px 8px;border-radius:2px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;display:inline-block}
+.bl-row .state.s-new{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
+.bl-row .state.s-active{background:var(--blue-dim);color:var(--blue)}
+.bl-row .state.s-resolved{background:var(--yellow-dim);color:#a67000}
+.bl-row .state.s-closed{background:var(--green-dim);color:var(--green)}
+.bl-row .rem-work{font-family:var(--mono);font-size:12px;color:var(--text2);text-align:right;padding-right:8px}
+.bl-row.depth-1{padding-left:40px}
+.bl-row.depth-2{padding-left:64px}
+.bl-row.depth-3{padding-left:88px}
+.bl-row.depth-4{padding-left:112px}
+.bl-empty{padding:40px;text-align:center;color:var(--muted);font-style:italic}
+
+.add-row{display:grid;grid-template-columns:40px 80px 1fr auto;gap:8px;padding:8px 12px;border-bottom:1px solid var(--border);align-items:center;background:var(--blue-dim)}
+.add-row select,.add-row input{font-size:13px}
+.add-row input{width:100%}
+
+/* Inline-add picker menu (the "+ Add child" on backlog rows) */
+.add-menu{position:absolute;background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);box-shadow:var(--shadow-lg);padding:4px;min-width:180px;z-index:100}
+.add-menu .item{padding:8px 12px;cursor:pointer;font-size:13px;border-radius:var(--r);display:flex;align-items:center;gap:8px}
+.add-menu .item:hover{background:var(--hover)}
+.add-menu .item .type-ico{font-size:14px}
+
+/* ═══════════════════════════════════════════════════════════════════
+   WORK ITEM DETAIL (full-screen)
+   ══════════════════════════════════════════════════════════════════ */
+.detail{height:100%;display:flex;flex-direction:column;background:var(--surface)}
+.det-top{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--surface2)}
+.det-top .back{padding:4px 8px;color:var(--text2);border-radius:var(--r);font-weight:500}
+.det-top .back:hover{background:var(--hover);color:var(--text)}
+.det-top .badge{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);font-family:var(--mono);font-size:12px;font-weight:600}
+.det-top .badge .type-ico{font-size:14px}
+.det-top h2{font-size:18px;font-weight:600;flex:1;min-width:200px}
+.det-top h2 .id{font-family:var(--mono);color:var(--muted);font-weight:500;margin-right:8px}
+.det-top .spacer{flex:1}
+
+.det-body{flex:1;display:grid;grid-template-columns:1fr 320px;gap:0;overflow:hidden;min-height:0}
+@media (max-width:900px){.det-body{grid-template-columns:1fr}}
+.det-left{padding:18px 22px;overflow-y:auto;border-right:1px solid var(--border)}
+.det-right{padding:18px 22px;overflow-y:auto;background:var(--surface2);font-size:13px}
+
+.det-section{margin-bottom:22px}
+.det-section h3{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.det-field{margin-bottom:14px}
+.det-field label{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.det-field input,.det-field select,.det-field textarea{width:100%}
+.det-field .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.det-title-input{font-size:18px !important;font-weight:600 !important;padding:8px 10px !important}
+
+.det-desc{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:12px;min-height:80px;white-space:pre-wrap;cursor:text;font-size:13px;line-height:1.5}
+.det-desc:hover{border-color:var(--border2)}
+.det-desc.empty{color:var(--muted);font-style:italic}
+.det-desc-edit{width:100%;min-height:120px;font-size:13px;line-height:1.5}
+
+.related{display:flex;flex-direction:column;gap:8px}
+.related .ri{display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);font-size:12px;cursor:pointer}
+.related .ri:hover{background:var(--hover);border-color:var(--border2)}
+.related .ri .type-ico{font-size:13px}
+.related .ri .id{font-family:var(--mono);font-weight:600;color:var(--muted)}
+.related .ri .ti{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.related .ri .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600}
+.related .add-related{display:flex;align-items:center;gap:6px;padding:6px 8px;border:1px dashed var(--border2);border-radius:var(--r);color:var(--muted);font-size:12px;cursor:pointer;justify-content:center}
+.related .add-related:hover{border-color:var(--blue);color:var(--blue)}
+
+/* Discussion (comments) */
+.comments{display:flex;flex-direction:column;gap:12px}
+.comment{display:flex;gap:10px}
+.comment .av{width:30px;height:30px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:600;flex-shrink:0}
+.comment .body{flex:1;min-width:0}
+.comment .head{display:flex;align-items:center;gap:8px;margin-bottom:2px}
+.comment .head .nm{font-weight:600;font-size:13px}
+.comment .head .ts{font-size:11px;color:var(--muted)}
+.comment .text{font-size:13px;line-height:1.5;white-space:pre-wrap}
+.comment-input{display:flex;gap:10px;margin-top:14px}
+.comment-input textarea{flex:1;min-height:60px}
+
+/* ─── MODAL / DROPDOWN ─── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;display:grid;place-items:center;padding:20px}
+.modal{background:var(--surface);border-radius:var(--rm);max-width:480px;width:100%;max-height:90vh;overflow:auto;box-shadow:var(--shadow-lg)}
+.modal-h{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.modal-h h3{font-size:16px;font-weight:600;flex:1}
+.modal-h .x{width:28px;height:28px;border-radius:var(--r);display:grid;place-items:center;color:var(--muted);font-size:18px}
+.modal-h .x:hover{background:var(--hover);color:var(--text)}
+.modal-b{padding:16px 18px}
+.modal-b .field{margin-bottom:12px}
+.modal-b label{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.modal-b input,.modal-b select,.modal-b textarea{width:100%}
+.modal-f{padding:12px 18px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+
+.dropdown{position:absolute;background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);box-shadow:var(--shadow-lg);padding:4px;z-index:150;min-width:200px;max-height:280px;overflow-y:auto}
+.dropdown .item{padding:6px 12px;cursor:pointer;font-size:13px;border-radius:var(--r);display:flex;align-items:center;gap:8px}
+.dropdown .item:hover{background:var(--hover)}
+.dropdown .item.active{background:var(--blue-dim);color:var(--blue)}
+
+/* Toast */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:8px 16px;border-radius:var(--r);font-size:13px;z-index:300;box-shadow:var(--shadow-lg);max-width:400px}
+.toast.err{background:var(--red);color:#fff}
+.toast.ok{background:var(--green);color:#fff}
+
+.empty-state{display:grid;place-items:center;padding:60px 20px;color:var(--muted);text-align:center}
+.empty-state .ico{font-size:40px;margin-bottom:10px;opacity:.5}
+.empty-state .ti{font-size:15px;font-weight:600;color:var(--text2);margin-bottom:4px}
+.empty-state .bd{font-size:13px;max-width:400px}
+
+@media (max-width:720px){
+  .sidebar{position:fixed;left:0;top:44px;bottom:0;z-index:100;transform:translateX(-100%);transition:transform .2s}
+  .sidebar.show{transform:translateX(0)}
+  .topbar .menu-btn{display:grid !important}
+  .bl-h, .bl-row{grid-template-columns:30px 60px 1fr 80px}
+  .bl-h > :nth-child(n+5), .bl-row > :nth-child(n+5){display:none}
+  .det-body{grid-template-columns:1fr}
+  .det-right{border-top:1px solid var(--border)}
+}
+.menu-btn{display:none;width:32px;height:32px;border-radius:var(--r)}
+.menu-btn:hover{background:var(--hover)}
+
+</style>
+</head>
+<body>
+
+<div id="boot" class="center"><div style="color:var(--muted)">Loading…</div></div>
+
+<div id="auth" class="center hidden">
+  <div class="auth">
+    <h1>ProMapp · ADO</h1>
+    <div class="sub">Sign in to continue</div>
+    <div id="auth-form">
+      <div class="field"><label>Email</label><input type="email" id="email" autocomplete="email"></div>
+      <div class="field"><label>Password</label><input type="password" id="password" autocomplete="current-password"></div>
+      <button class="primary" id="btn-signin">Sign in</button>
+      <div class="switch"><a id="link-signup">Create an account</a> · <a id="link-magic">Send magic link</a></div>
+    </div>
+  </div>
+</div>
+
+<div class="app" id="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <button class="iconbtn menu-btn" id="menu-btn">≡</button>
+    <div class="logo"><div class="mark">P</div><span>ProMapp</span></div>
+    <span class="crumb"><span id="crumb-ws">—</span><span class="sep">/</span><span id="crumb-page">Boards</span></span>
+    <div class="spacer"></div>
+    <button class="ws-pick" id="ws-pick">
+      <span id="ws-pick-name">workspace</span>
+      <span style="font-size:10px">▾</span>
+    </button>
+    <button class="iconbtn" id="theme-toggle" title="Toggle theme">◐</button>
+    <div class="user">
+      <div class="av" id="user-av">?</div>
+      <span class="nm" id="user-nm">—</span>
+      <button class="iconbtn" id="signout" title="Sign out" style="width:24px;height:24px;font-size:14px">⎋</button>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sb-project">
+        <div class="icon" id="cur-proj-icon">·</div>
+        <div class="nm" id="cur-proj-nm">No project</div>
+        <button class="add" id="btn-new-proj" title="New project">+</button>
+      </div>
+      <div class="sb-nav">
+        <div class="group">Plan</div>
+        <button id="nav-board"   ><span class="ico">▤</span>Boards</button>
+        <button id="nav-backlog" ><span class="ico">≣</span>Backlogs</button>
+        <div class="group">Project</div>
+        <button id="nav-overview" class="active"><span class="ico">⌂</span>Overview</button>
+        <button id="nav-members" ><span class="ico">👥</span>Members</button>
+      </div>
+      <div class="sb-projects-list" id="proj-list">
+        <div class="empty">Loading projects…</div>
+      </div>
+    </aside>
+
+    <!-- WORK AREA -->
+    <div class="workarea">
+
+      <!-- SUBTOPBAR (varies by page) -->
+      <div class="subtopbar">
+        <h1 id="sub-title">Overview</h1>
+        <div class="tabs" id="sub-tabs"></div>
+        <div class="spacer"></div>
+        <div class="actions" id="sub-actions"></div>
+      </div>
+
+      <!-- OVERVIEW PAGE -->
+      <div class="page" id="page-overview">
+        <div style="padding:24px;max-width:900px;margin:0 auto">
+          <div id="overview-content"></div>
+        </div>
+      </div>
+
+      <!-- BOARD PAGE -->
+      <div class="page hidden" id="page-board">
+        <div class="board" id="board-cols"></div>
+      </div>
+
+      <!-- BACKLOG PAGE -->
+      <div class="page hidden" id="page-backlog">
+        <div class="backlog">
+          <div class="backlog-toolbar">
+            <label style="font-size:12px;color:var(--muted);font-weight:600">Show:</label>
+            <select id="bl-type-filter">
+              <option value="all">All types</option>
+              <option value="epic">Epics</option>
+              <option value="feature">Features</option>
+              <option value="story">Stories</option>
+              <option value="task">Tasks</option>
+              <option value="bug">Bugs</option>
+            </select>
+            <select id="bl-state-filter">
+              <option value="open">Open (not closed)</option>
+              <option value="all">All states</option>
+              <option value="new">New</option>
+              <option value="active">Active</option>
+              <option value="resolved">Resolved</option>
+              <option value="closed">Closed</option>
+            </select>
+            <div class="spacer" style="flex:1"></div>
+            <button class="btn" id="bl-new-top">+ New work item</button>
+          </div>
+          <div class="bl-table" id="bl-tree"></div>
+        </div>
+      </div>
+
+      <!-- WORK ITEM DETAIL -->
+      <div class="page hidden" id="page-detail">
+        <div class="detail" id="detail-content"></div>
+      </div>
+
+      <!-- MEMBERS PAGE -->
+      <div class="page hidden" id="page-members">
+        <div style="padding:24px;max-width:760px;margin:0 auto">
+          <div id="members-content"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="modal-root"></div>
+<div id="toast-root"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+'use strict';
+
+// ════════════════════════════════════════════════════════════════════
+// CONFIG — same Supabase project as the main app
+// ════════════════════════════════════════════════════════════════════
+const SUPABASE_URL      = 'https://gjrxlmltnegwfdfhrdss.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_y0OoOhKEzj0eD8jU4lcjLg_HM21j3aP';
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true, storageKey: 'pm-ado-auth' }
+});
+
+// ════════════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════════════
+const state = {
+  user: null,
+  profile: null,
+  memberships: [],
+  currentWsId: null,
+  currentRole: 'member',
+  projects: [],
+  currentProjectId: null,
+  currentPage: 'overview',     // 'overview' | 'board' | 'backlog' | 'detail' | 'members'
+  currentItemId: null,
+  workItems: [],               // all work items for current project
+  members: [],                 // workspace_members + profiles for assignee pickers
+  filters: { type:'all', state:'open' },
+  channels: { wi:null, wic:null, wicol:null },
+};
+
+// ════════════════════════════════════════════════════════════════════
+// CONSTANTS — type hierarchy & visuals
+// ════════════════════════════════════════════════════════════════════
+const TYPE_META = {
+  epic:    { ico: '👑', label: 'Epic',    color: 'purple', children: ['feature'] },
+  feature: { ico: '✦',  label: 'Feature', color: 'orange', children: ['story'] },
+  story:   { ico: '📖', label: 'Story',   color: 'blue',   children: ['task','bug'] },
+  task:    { ico: '✓',  label: 'Task',    color: 'yellow', children: [] },
+  bug:     { ico: '🐞', label: 'Bug',     color: 'red',    children: [] },
+};
+const TYPE_ORDER = ['epic','feature','story','task','bug'];
+
+const STATE_META = {
+  new:      { label: 'New',      class:'s-new' },
+  active:   { label: 'Active',   class:'s-active' },
+  resolved: { label: 'Resolved', class:'s-resolved' },
+  closed:   { label: 'Closed',   class:'s-closed' },
+};
+const STATE_ORDER = ['new','active','resolved','closed'];
+
+// ════════════════════════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════════════════════════
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const initial = s => (s||'?').trim().charAt(0).toUpperCase();
+const show = id => $(id).classList.remove('hidden');
+const hide = id => $(id).classList.add('hidden');
+
+function toast(msg, kind=''){
+  const el = document.createElement('div');
+  el.className = 'toast ' + kind;
+  el.textContent = msg;
+  $('toast-root').appendChild(el);
+  setTimeout(()=> el.remove(), 3200);
+}
+
+function friendlyError(e){
+  if(!e) return 'Unknown error';
+  const m = e.message || e.error_description || JSON.stringify(e);
+  if(e.code === '42501') return 'Permission denied (RLS)';
+  if(e.code === '23505') return 'Already exists';
+  if(e.code === '23503') return 'Linked record not found';
+  return m;
+}
+
+function fmtTime(iso){
+  if(!iso) return '';
+  const d = new Date(iso);
+  const now = new Date();
+  const diff = (now - d) / 1000;
+  if(diff < 60) return 'just now';
+  if(diff < 3600) return Math.floor(diff/60) + 'm ago';
+  if(diff < 86400) return Math.floor(diff/3600) + 'h ago';
+  if(diff < 604800) return Math.floor(diff/86400) + 'd ago';
+  return d.toLocaleDateString();
+}
+
+// ════════════════════════════════════════════════════════════════════
+// AUTH
+// ════════════════════════════════════════════════════════════════════
+let authMode = 'signin';
+$('btn-signin').onclick = async ()=>{
+  const email = $('email').value.trim();
+  const password = $('password').value;
+  if(!email){ toast('Email required','err'); return; }
+  if(authMode === 'magic'){
+    const { error } = await sb.auth.signInWithOtp({ email });
+    if(error){ toast(friendlyError(error),'err'); return; }
+    toast('Magic link sent — check email','ok');
+    return;
+  }
+  if(!password){ toast('Password required','err'); return; }
+  if(authMode === 'signup'){
+    const { error } = await sb.auth.signUp({ email, password });
+    if(error){ toast(friendlyError(error),'err'); return; }
+    toast('Check email to confirm, then sign in','ok');
+    setAuthMode('signin');
+    return;
+  }
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if(error){ toast(friendlyError(error),'err'); return; }
+};
+
+function setAuthMode(m){
+  authMode = m;
+  $('btn-signin').textContent = m === 'signup' ? 'Sign up' : (m === 'magic' ? 'Send link' : 'Sign in');
+  $('password').style.display = m === 'magic' ? 'none' : '';
+  $('password').previousElementSibling.style.display = m === 'magic' ? 'none' : '';
+}
+$('link-signup').onclick = ()=> setAuthMode(authMode === 'signup' ? 'signin' : 'signup');
+$('link-magic').onclick  = ()=> setAuthMode(authMode === 'magic'  ? 'signin' : 'magic');
+
+$('signout').onclick = async ()=>{
+  await sb.auth.signOut();
+  location.reload();
+};
+
+sb.auth.onAuthStateChange((event)=>{
+  if(event === 'SIGNED_IN'){ location.reload(); }
+});
+
+// ════════════════════════════════════════════════════════════════════
+// PROFILE & WORKSPACES
+// ════════════════════════════════════════════════════════════════════
+async function ensureProfile(user){
+  const { data: existing } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
+  if(existing) return existing;
+  const display_name = user.user_metadata?.display_name || (user.email||'').split('@')[0] || 'User';
+  const { data: ins } = await sb.from('profiles').insert({ id: user.id, display_name, email: user.email }).select().single();
+  return ins;
+}
+
+async function loadWorkspaces(){
+  const { data, error } = await sb
+    .from('workspace_members')
+    .select('workspace_id, role, workspaces:workspace_id(id, name, owner_id)')
+    .eq('user_id', state.user.id);
+  if(error){ toast('Workspaces: '+friendlyError(error),'err'); return; }
+  state.memberships = (data||[]).filter(m => m.workspaces);
+  if(state.memberships.length){
+    // Pick saved or first
+    const saved = localStorage.getItem('pm-ado:ws');
+    const initial = state.memberships.find(m => m.workspaces.id === saved)?.workspaces.id
+                 || state.memberships[0].workspaces.id;
+    await setActiveWorkspace(initial);
+  }
+}
+
+async function setActiveWorkspace(wsId){
+  const m = state.memberships.find(x => x.workspaces.id === wsId);
+  if(!m) return;
+  state.currentWsId = wsId;
+  state.currentRole = m.role;
+  try{ localStorage.setItem('pm-ado:ws', wsId); }catch{}
+  $('ws-pick-name').textContent = m.workspaces.name;
+  $('crumb-ws').textContent = m.workspaces.name;
+  state.currentProjectId = null;
+  state.projects = [];
+  state.workItems = [];
+  unsubAll();
+  await Promise.all([ loadProjects(), loadMembers() ]);
+  goPage('overview');
+}
+
+$('ws-pick').onclick = ()=> openWsPicker();
+function openWsPicker(){
+  const root = $('modal-root');
+  root.innerHTML = `
+    <div class="modal-bg">
+      <div class="modal" style="max-width:380px">
+        <div class="modal-h"><h3>Switch workspace</h3><button class="x" id="mx">×</button></div>
+        <div class="modal-b">
+          ${state.memberships.map(m => `
+            <div class="dropdown-item" data-ws="${esc(m.workspaces.id)}" style="padding:10px 12px;border-radius:var(--r);cursor:pointer;display:flex;align-items:center;gap:8px;${m.workspaces.id===state.currentWsId?'background:var(--blue-dim);color:var(--blue);font-weight:600':''}">
+              <span style="flex:1">${esc(m.workspaces.name)}</span>
+              <span style="font-size:11px;color:var(--muted);text-transform:uppercase">${esc(m.role)}</span>
+              ${m.workspaces.id===state.currentWsId?'<span>✓</span>':''}
+            </div>`).join('')}
+          <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+            <button class="btn" id="ws-new" style="width:100%">+ New workspace</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  const close = ()=> root.innerHTML='';
+  $('mx').onclick = close;
+  root.onclick = (e)=>{ if(e.target === root.firstElementChild) close(); };
+  root.querySelectorAll('[data-ws]').forEach(el => el.onclick = ()=>{
+    close();
+    setActiveWorkspace(el.dataset.ws);
+  });
+  $('ws-new').onclick = ()=>{ close(); openNewWorkspaceModal(); };
+}
+
+function openNewWorkspaceModal(){
+  const root = $('modal-root');
+  root.innerHTML = `
+    <div class="modal-bg">
+      <div class="modal" style="max-width:380px">
+        <div class="modal-h"><h3>New workspace</h3><button class="x" id="mx">×</button></div>
+        <div class="modal-b">
+          <div class="field"><label>Name</label><input id="nw-name" placeholder="My team" maxlength="60"></div>
+        </div>
+        <div class="modal-f">
+          <button class="btn ghost" id="cancel">Cancel</button>
+          <button class="btn" id="ok">Create</button>
+        </div>
+      </div>
+    </div>`;
+  const close = ()=> root.innerHTML='';
+  $('mx').onclick = close; $('cancel').onclick = close;
+  $('nw-name').focus();
+  $('ok').onclick = async ()=>{
+    const name = $('nw-name').value.trim();
+    if(!name) return;
+    try{
+      const wsId = crypto.randomUUID();
+      const { error: e1 } = await sb.from('workspaces').insert({ id: wsId, name, owner_id: state.user.id });
+      if(e1) throw e1;
+      const { error: e2 } = await sb.from('workspace_members')
+        .insert({ workspace_id: wsId, user_id: state.user.id, role:'owner' });
+      if(e2) throw e2;
+      close();
+      toast('Workspace created','ok');
+      await loadWorkspaces();
+    }catch(err){ toast(friendlyError(err),'err'); }
+  };
+}
+
+// ════════════════════════════════════════════════════════════════════
+// PROJECTS
+// ════════════════════════════════════════════════════════════════════
+async function loadProjects(){
+  if(!state.currentWsId) return;
+  const { data, error } = await sb
+    .from('projects')
+    .select('id, name, description, created_at')
+    .eq('workspace_id', state.currentWsId)
+    .order('created_at', { ascending: true });
+  if(error){ toast('Projects: '+friendlyError(error),'err'); return; }
+  state.projects = data || [];
+  renderProjectsSidebar();
+  // Auto-pick first project if none selected
+  if(!state.currentProjectId && state.projects.length){
+    await selectProject(state.projects[0].id);
+  }
+}
+
+function renderProjectsSidebar(){
+  const el = $('proj-list');
+  if(!state.projects.length){
+    el.innerHTML = '<div class="empty">No projects yet</div>';
+    return;
+  }
+  el.innerHTML = '<div style="padding:8px 14px 4px;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">Projects</div>' +
+    state.projects.map(p => `
+      <div class="pi ${p.id===state.currentProjectId?'active':''}" data-id="${esc(p.id)}">
+        <span class="hash">#</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}</span>
+      </div>`).join('');
+  el.querySelectorAll('[data-id]').forEach(n => n.onclick = ()=> selectProject(n.dataset.id));
+}
+
+async function selectProject(id){
+  state.currentProjectId = id;
+  const p = state.projects.find(x => x.id === id);
+  if(!p) return;
+  $('cur-proj-nm').textContent = p.name;
+  $('cur-proj-icon').textContent = (p.name||'?').charAt(0).toUpperCase();
+  renderProjectsSidebar();
+  await loadWorkItems();
+  subscribeRealtime();
+  if(state.currentPage === 'overview') renderOverview();
+  if(state.currentPage === 'board') renderBoard();
+  if(state.currentPage === 'backlog') renderBacklog();
+}
+
+$('btn-new-proj').onclick = ()=> openNewProjectModal();
+function openNewProjectModal(){
+  if(!state.currentWsId){ toast('Pick a workspace first','err'); return; }
+  const root = $('modal-root');
+  root.innerHTML = `
+    <div class="modal-bg">
+      <div class="modal">
+        <div class="modal-h"><h3>New project</h3><button class="x" id="mx">×</button></div>
+        <div class="modal-b">
+          <div class="field"><label>Name</label><input id="np-name" placeholder="e.g. market-q3" maxlength="60"></div>
+          <div class="field"><label>Description (optional)</label><textarea id="np-desc" maxlength="500"></textarea></div>
+        </div>
+        <div class="modal-f">
+          <button class="btn ghost" id="cancel">Cancel</button>
+          <button class="btn" id="ok">Create</button>
+        </div>
+      </div>
+    </div>`;
+  const close = ()=> root.innerHTML='';
+  $('mx').onclick = close; $('cancel').onclick = close;
+  $('np-name').focus();
+  $('ok').onclick = async ()=>{
+    const name = $('np-name').value.trim();
+    if(!name){ return; }
+    try{
+      const pid = crypto.randomUUID();
+      const { error } = await sb.from('projects').insert({
+        id: pid, workspace_id: state.currentWsId, name,
+        description: $('np-desc').value.trim(), created_by: state.user.id
+      });
+      if(error) throw error;
+      close();
+      toast('Project created','ok');
+      await loadProjects();
+      await selectProject(pid);
+    }catch(err){ toast(friendlyError(err),'err'); }
+  };
+}
+
+// ════════════════════════════════════════════════════════════════════
+// MEMBERS (workspace member list for assignee pickers)
+// ════════════════════════════════════════════════════════════════════
+async function loadMembers(){
+  if(!state.currentWsId) return;
+  const { data } = await sb
+    .from('workspace_members')
+    .select('user_id, role, profiles:user_id(id, display_name, email)')
+    .eq('workspace_id', state.currentWsId);
+  state.members = (data||[]).map(r => ({ ...r.profiles, role: r.role })).filter(p => p.id);
+}
+
+// ════════════════════════════════════════════════════════════════════
+// WORK ITEMS
+// ════════════════════════════════════════════════════════════════════
+async function loadWorkItems(){
+  if(!state.currentProjectId){ state.workItems = []; return; }
+  const { data, error } = await sb
+    .from('work_items')
+    .select('id, project_id, workspace_id, parent_id, type, title, description, state, priority, story_points, initial_estimate, remaining_work, assignee_id, area, iteration, tags, display_id, created_by, created_at, updated_at, assignee:assignee_id(id, display_name)')
+    .eq('project_id', state.currentProjectId)
+    .order('created_at', { ascending: true });
+  if(error){ toast('Items: '+friendlyError(error),'err'); return; }
+  state.workItems = data || [];
+}
+
+function childrenOf(parentId){
+  return state.workItems.filter(w => w.parent_id === parentId);
+}
+function itemById(id){
+  return state.workItems.find(w => w.id === id);
+}
+
+async function createWorkItem(payload){
+  payload.id = crypto.randomUUID();
+  payload.workspace_id = state.currentWsId;
+  payload.project_id = state.currentProjectId;
+  payload.created_by = state.user.id;
+  const { error } = await sb.from('work_items').insert(payload);
+  if(error){ toast(friendlyError(error),'err'); return null; }
+  await loadWorkItems();
+  return payload.id;
+}
+
+async function updateWorkItem(id, patch){
+  const { error } = await sb.from('work_items').update(patch).eq('id', id);
+  if(error){ toast(friendlyError(error),'err'); return false; }
+  // Optimistic local update
+  const it = itemById(id);
+  if(it) Object.assign(it, patch);
+  return true;
+}
+
+async function deleteWorkItem(id){
+  if(!confirm('Delete this work item? Its children will lose their parent link but remain.')) return;
+  const { error } = await sb.from('work_items').delete().eq('id', id);
+  if(error){ toast(friendlyError(error),'err'); return; }
+  toast('Deleted','ok');
+  await loadWorkItems();
+  if(state.currentPage === 'detail' && state.currentItemId === id){
+    goPage('backlog');
+  } else {
+    rerenderCurrent();
+  }
+}
+
+function rerenderCurrent(){
+  if(state.currentPage === 'board') renderBoard();
+  else if(state.currentPage === 'backlog') renderBacklog();
+  else if(state.currentPage === 'detail') renderDetail();
+  else if(state.currentPage === 'overview') renderOverview();
+}
+
+// ════════════════════════════════════════════════════════════════════
+// REALTIME
+// ════════════════════════════════════════════════════════════════════
+function unsubAll(){
+  for(const k of Object.keys(state.channels)){
+    if(state.channels[k]){ sb.removeChannel(state.channels[k]); state.channels[k] = null; }
+  }
+}
+
+function subscribeRealtime(){
+  if(!state.currentProjectId) return;
+  unsubAll();
+  const pid = state.currentProjectId;
+  state.channels.wi = sb.channel('wi-'+pid)
+    .on('postgres_changes', { event:'*', schema:'public', table:'work_items', filter:`project_id=eq.${pid}` },
+      async ()=>{ await loadWorkItems(); rerenderCurrent(); })
+    .subscribe();
+  state.channels.wic = sb.channel('wic-'+pid)
+    .on('postgres_changes', { event:'*', schema:'public', table:'work_item_comments' },
+      ()=>{ if(state.currentPage === 'detail') loadDetailComments(); })
+    .subscribe();
+}
+
+// ════════════════════════════════════════════════════════════════════
+// PAGE ROUTING
+// ════════════════════════════════════════════════════════════════════
+$('nav-overview').onclick = ()=> goPage('overview');
+$('nav-board').onclick    = ()=> goPage('board');
+$('nav-backlog').onclick  = ()=> goPage('backlog');
+$('nav-members').onclick  = ()=> goPage('members');
+$('menu-btn').onclick     = ()=> $('sidebar').classList.toggle('show');
+
+function goPage(name){
+  state.currentPage = name;
+  ['overview','board','backlog','detail','members'].forEach(p =>
+    $('page-'+p).classList.toggle('hidden', p !== name)
+  );
+  ['overview','board','backlog','members'].forEach(p => {
+    const btn = $('nav-'+p);
+    if(btn) btn.classList.toggle('active', p === name);
+  });
+  $('sidebar').classList.remove('show');
+  // Subtopbar setup
+  const ti = $('sub-title'), tabs = $('sub-tabs'), acts = $('sub-actions');
+  tabs.innerHTML = ''; acts.innerHTML = '';
+  if(name === 'overview'){ ti.textContent = 'Overview'; $('crumb-page').textContent = 'Overview'; renderOverview(); }
+  else if(name === 'board'){ ti.textContent = state.currentProjectId ? (state.projects.find(p=>p.id===state.currentProjectId)?.name || '') : 'Boards'; $('crumb-page').textContent = 'Boards'; renderBoardHeader(); renderBoard(); }
+  else if(name === 'backlog'){ ti.textContent = state.currentProjectId ? (state.projects.find(p=>p.id===state.currentProjectId)?.name || '') : 'Backlog'; $('crumb-page').textContent = 'Backlog'; renderBacklog(); }
+  else if(name === 'detail'){ ti.textContent = ''; $('crumb-page').textContent = 'Work item'; renderDetail(); }
+  else if(name === 'members'){ ti.textContent = 'Members'; $('crumb-page').textContent = 'Members'; renderMembers(); }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// OVERVIEW PAGE
+// ════════════════════════════════════════════════════════════════════
+async function renderOverview(){
+  const el = $('overview-content');
+  if(!state.projects.length){
+    el.innerHTML = `
+      <div class="empty-state">
+        <div class="ico">📋</div>
+        <div class="ti">No projects yet</div>
+        <div class="bd">Create your first project to start tracking epics, features, and tasks.</div>
+        <button class="btn" id="ov-new-proj" style="margin-top:16px">+ New project</button>
+      </div>`;
+    $('ov-new-proj').onclick = openNewProjectModal;
+    return;
+  }
+  // Per-project stats
+  const wsItems = []; // pull all workspace work items for stats
+  const { data: all } = await sb.from('work_items').select('id,project_id,type,state,assignee_id').eq('workspace_id', state.currentWsId);
+  const byProj = {};
+  for(const w of (all||[])){
+    (byProj[w.project_id] ||= []).push(w);
+  }
+  const myOpen = (all||[]).filter(w => w.assignee_id === state.user.id && w.state !== 'closed').length;
+  const totalOpen = (all||[]).filter(w => w.state !== 'closed').length;
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:24px">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);padding:14px">
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:600">Projects</div>
+        <div style="font-size:28px;font-weight:600;color:var(--blue)">${state.projects.length}</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);padding:14px">
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:600">Open items</div>
+        <div style="font-size:28px;font-weight:600;color:var(--blue)">${totalOpen}</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);padding:14px">
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:600">Assigned to you</div>
+        <div style="font-size:28px;font-weight:600;color:var(--blue)">${myOpen}</div>
+      </div>
+    </div>
+    <h2 style="font-size:16px;font-weight:600;margin-bottom:10px">Projects</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">
+      ${state.projects.map(p => {
+        const items = byProj[p.id] || [];
+        const open = items.filter(i => i.state !== 'closed').length;
+        const closed = items.length - open;
+        return `<div class="proj-card" data-pid="${esc(p.id)}" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);padding:14px;cursor:pointer">
+          <div style="font-weight:600;font-size:14px;margin-bottom:4px">#${esc(p.name)}</div>
+          <div style="color:var(--muted);font-size:12px;margin-bottom:10px;min-height:32px">${esc(p.description||'No description')}</div>
+          <div style="display:flex;gap:14px;font-size:12px">
+            <span><strong>${open}</strong> <span style="color:var(--muted)">open</span></span>
+            <span><strong>${closed}</strong> <span style="color:var(--muted)">closed</span></span>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  el.querySelectorAll('[data-pid]').forEach(n => n.onclick = async ()=>{
+    await selectProject(n.dataset.pid);
+    goPage('board');
+  });
+}
+
+// ════════════════════════════════════════════════════════════════════
+// BOARD (KANBAN)
+// ════════════════════════════════════════════════════════════════════
+function renderBoardHeader(){
+  if(!state.currentProjectId) return;
+  const tabs = $('sub-tabs');
+  tabs.innerHTML = `<div class="tab active">Board</div>`;
+  const acts = $('sub-actions');
+  acts.innerHTML = `
+    <select id="board-type-filter" style="font-size:12px;padding:4px 8px">
+      <option value="story">Stories</option>
+      <option value="epic">Epics</option>
+      <option value="feature">Features</option>
+      <option value="task">Tasks</option>
+      <option value="bug">Bugs</option>
+    </select>
+    <button class="btn sm" id="board-new">+ Add</button>`;
+  $('board-type-filter').onchange = renderBoard;
+  $('board-new').onclick = ()=>{
+    const type = $('board-type-filter').value;
+    openNewItemModal({ type });
+  };
+}
+
+function renderBoard(){
+  if(!state.currentProjectId){
+    $('board-cols').innerHTML = '<div class="empty-state"><div class="ti">No project selected</div><div class="bd">Pick a project from the sidebar.</div></div>';
+    return;
+  }
+  const typeFilter = $('board-type-filter')?.value || 'story';
+  const items = state.workItems.filter(w => w.type === typeFilter);
+  const byState = { new:[], active:[], resolved:[], closed:[] };
+  for(const w of items){ (byState[w.state] || byState.new).push(w); }
+
+  const html = STATE_ORDER.map(s => {
+    const meta = STATE_META[s];
+    const list = byState[s] || [];
+    return `<div class="col" data-state="${s}">
+      <div class="col-h">
+        <div class="ti">${meta.label}</div>
+        <div class="cnt">${list.length}</div>
+      </div>
+      <div class="col-body ${list.length===0?'empty':''}">
+        ${list.length === 0 ? 'No items' : list.map(w => renderCard(w)).join('')}
+      </div>
+      <div class="add-card" data-state="${s}">+ Add work item</div>
+    </div>`;
+  }).join('');
+  $('board-cols').innerHTML = html;
+  $('board-cols').querySelectorAll('.card').forEach(c => c.onclick = ()=> openDetail(c.dataset.id));
+  $('board-cols').querySelectorAll('.add-card').forEach(b => b.onclick = ()=> openNewItemModal({ type: typeFilter, state: b.dataset.state }));
+}
+
+function renderCard(w){
+  const tm = TYPE_META[w.type] || TYPE_META.task;
+  const av = w.assignee ? `<span class="av" title="${esc(w.assignee.display_name)}">${esc(initial(w.assignee.display_name))}</span>` : '';
+  const kids = childrenOf(w.id);
+  const kidsDone = kids.filter(k => k.state === 'closed').length;
+  const kidsHtml = kids.length ? `<span class="children" title="${kidsDone}/${kids.length} children done">${kidsDone}/${kids.length}</span>` : '';
+  const pts = w.story_points != null ? `<span class="pts">${w.story_points}</span>` : '';
+  const pri = w.priority ? `<span class="pri p${w.priority}" title="Priority ${w.priority}">P${w.priority}</span>` : '';
+  return `<div class="card t-${w.type}" data-id="${esc(w.id)}">
+    <div class="row1">
+      <span class="type-ico">${tm.ico}</span>
+      <span class="id">#${w.display_id || '—'}</span>
+      ${pts}
+    </div>
+    <div class="ti">${esc(w.title)}</div>
+    <div class="row3">
+      ${pri}
+      ${kidsHtml}
+      ${av ? '<span style="margin-left:auto">'+av+'</span>' : ''}
+    </div>
+  </div>`;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// BACKLOG (LIST WITH HIERARCHY)
+// ════════════════════════════════════════════════════════════════════
+$('bl-type-filter')  && ($('bl-type-filter').onchange = renderBacklog);
+$('bl-state-filter') && ($('bl-state-filter').onchange = renderBacklog);
+$('bl-new-top')      && ($('bl-new-top').onclick = ()=> openNewItemModal({}));
+
+// Track expanded state per item id (persist in localStorage so it survives reload)
+const expandedKey = ()=> 'pm-ado:exp:'+state.currentProjectId;
+function getExpanded(){
+  try{ return new Set(JSON.parse(localStorage.getItem(expandedKey()) || '[]')); }catch{ return new Set(); }
+}
+function setExpanded(set){
+  try{ localStorage.setItem(expandedKey(), JSON.stringify([...set])); }catch{}
+}
+
+function renderBacklog(){
+  if(!state.currentProjectId){
+    $('bl-tree').innerHTML = '<div class="bl-empty">No project selected</div>';
+    return;
+  }
+  const typeF = $('bl-type-filter')?.value || 'all';
+  const stateF = $('bl-state-filter')?.value || 'open';
+  // Build filtered set
+  const matches = (w) => {
+    if(typeF !== 'all' && w.type !== typeF) return false;
+    if(stateF === 'open') return w.state !== 'closed';
+    if(stateF !== 'all') return w.state === stateF;
+    return true;
+  };
+  // If filtering by type, show flat (no hierarchy nesting because parents may not match).
+  // If not filtering by type, show hierarchical tree starting from roots (items with no parent
+  // or parent not in matches set).
+  const matching = state.workItems.filter(matches);
+  let rowsHtml = '';
+  const expanded = getExpanded();
+
+  if(typeF !== 'all'){
+    // Flat
+    rowsHtml = matching.map(w => renderBacklogRow(w, 0, false, false)).join('');
+  } else {
+    // Tree
+    const matchingIds = new Set(matching.map(w => w.id));
+    const roots = matching.filter(w => !w.parent_id || !matchingIds.has(w.parent_id));
+    function walk(w, depth){
+      const kids = childrenOf(w.id).filter(matches);
+      const isExp = expanded.has(w.id);
+      rowsHtml += renderBacklogRow(w, depth, kids.length > 0, isExp);
+      if(isExp){
+        for(const k of kids) walk(k, depth+1);
+      }
+    }
+    for(const r of roots) walk(r, 0);
+  }
+
+  $('bl-tree').innerHTML = `
+    <div class="bl-h">
+      <div></div>
+      <div>ID</div>
+      <div>Title</div>
+      <div>Assigned to</div>
+      <div>State</div>
+      <div style="text-align:right">Remain</div>
+    </div>
+    ${rowsHtml || '<div class="bl-empty">No work items match these filters. Try "+ New work item" or change the filter.</div>'}`;
+
+  // Wire
+  $('bl-tree').querySelectorAll('.bl-row').forEach(row => {
+    row.onclick = (e) => {
+      if(e.target.closest('.add-child') || e.target.closest('.expand')) return;
+      openDetail(row.dataset.id);
+    };
+    const exp = row.querySelector('.expand');
+    if(exp) exp.onclick = (e)=>{
+      e.stopPropagation();
+      const set = getExpanded();
+      if(set.has(row.dataset.id)) set.delete(row.dataset.id);
+      else set.add(row.dataset.id);
+      setExpanded(set);
+      renderBacklog();
+    };
+    const add = row.querySelector('.add-child');
+    if(add) add.onclick = (e)=>{
+      e.stopPropagation();
+      openAddChildMenu(add, row.dataset.id);
+    };
+  });
+}
+
+function renderBacklogRow(w, depth, hasKids, isExp){
+  const tm = TYPE_META[w.type] || TYPE_META.task;
+  const sm = STATE_META[w.state] || STATE_META.new;
+  const av = w.assignee ? `<span class="av" title="${esc(w.assignee.display_name)}">${esc(initial(w.assignee.display_name))}</span><span>${esc(w.assignee.display_name)}</span>` : '<span style="color:var(--muted)">—</span>';
+  const childTypes = TYPE_META[w.type].children;
+  const canAdd = childTypes.length > 0;
+  return `<div class="bl-row depth-${Math.min(depth,4)}" data-id="${esc(w.id)}">
+    <div class="expand ${hasKids?'':'none'} ${isExp?'open':''}">▶</div>
+    <div class="id-cell">
+      <span class="type-ico" title="${esc(tm.label)}">${tm.ico}</span>
+      <span class="id">#${w.display_id || '—'}</span>
+    </div>
+    <div class="title-cell">
+      <span class="ti">${esc(w.title)}</span>
+      ${canAdd ? '<button class="add-child" title="Add child">+</button>' : ''}
+    </div>
+    <div class="av-name">${av}</div>
+    <div><span class="state ${sm.class}">${esc(sm.label)}</span></div>
+    <div class="rem-work">${w.remaining_work != null ? w.remaining_work : ''}</div>
+  </div>`;
+}
+
+function openAddChildMenu(anchor, parentId){
+  const parent = itemById(parentId);
+  if(!parent) return;
+  const childTypes = TYPE_META[parent.type].children;
+  if(!childTypes.length) return;
+  // Close any existing menu
+  document.querySelectorAll('.add-menu').forEach(m => m.remove());
+  const r = anchor.getBoundingClientRect();
+  const menu = document.createElement('div');
+  menu.className = 'add-menu';
+  menu.style.top = (r.bottom + 4) + 'px';
+  menu.style.left = r.left + 'px';
+  menu.innerHTML = childTypes.map(t => {
+    const m = TYPE_META[t];
+    return `<div class="item" data-t="${t}"><span class="type-ico">${m.ico}</span>Add ${esc(m.label)}</div>`;
+  }).join('');
+  document.body.appendChild(menu);
+  menu.querySelectorAll('[data-t]').forEach(it => it.onclick = ()=>{
+    menu.remove();
+    openNewItemModal({ type: it.dataset.t, parent_id: parentId });
+  });
+  // Click-outside dismiss
+  setTimeout(()=>{
+    const off = (e)=>{
+      if(!menu.contains(e.target)){ menu.remove(); document.removeEventListener('click', off); }
+    };
+    document.addEventListener('click', off);
+  }, 0);
+}
+
+// ════════════════════════════════════════════════════════════════════
+// NEW ITEM MODAL
+// ════════════════════════════════════════════════════════════════════
+function openNewItemModal({ type, parent_id, state: itemState }){
+  if(!state.currentProjectId){ toast('Pick a project first','err'); return; }
+  type = type || 'story';
+  const parent = parent_id ? itemById(parent_id) : null;
+  const root = $('modal-root');
+  root.innerHTML = `
+    <div class="modal-bg">
+      <div class="modal">
+        <div class="modal-h"><h3>New ${TYPE_META[type].label}</h3><button class="x" id="mx">×</button></div>
+        <div class="modal-b">
+          ${parent ? `<div class="field"><label>Parent</label><div style="padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);font-size:13px"><span style="font-family:var(--mono);color:var(--muted);font-size:11px">#${parent.display_id||'—'}</span> ${TYPE_META[parent.type].ico} ${esc(parent.title)}</div></div>` : ''}
+          <div class="field"><label>Type</label>
+            <select id="ni-type">
+              ${TYPE_ORDER.map(t => `<option value="${t}" ${t===type?'selected':''}>${TYPE_META[t].ico} ${TYPE_META[t].label}</option>`).join('')}
+            </select>
+          </div>
+          <div class="field"><label>Title</label><input id="ni-title" maxlength="200" autofocus></div>
+          <div class="field"><label>Description (optional)</label><textarea id="ni-desc"></textarea></div>
+          <div class="field" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div><label>State</label>
+              <select id="ni-state">${STATE_ORDER.map(s => `<option value="${s}" ${s===(itemState||'new')?'selected':''}>${STATE_META[s].label}</option>`).join('')}</select>
+            </div>
+            <div><label>Priority</label>
+              <select id="ni-priority">
+                <option value="1">P1 — Critical</option>
+                <option value="2" selected>P2 — High</option>
+                <option value="3">P3 — Medium</option>
+                <option value="4">P4 — Low</option>
+              </select>
+            </div>
+          </div>
+          <div class="field"><label>Assignee</label>
+            <select id="ni-assignee">
+              <option value="">— Unassigned —</option>
+              ${state.members.map(m => `<option value="${esc(m.id)}">${esc(m.display_name)}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="modal-f">
+          <button class="btn ghost" id="cancel">Cancel</button>
+          <button class="btn" id="ok">Create</button>
+        </div>
+      </div>
+    </div>`;
+  const close = ()=> root.innerHTML='';
+  $('mx').onclick = close; $('cancel').onclick = close;
+  setTimeout(()=> $('ni-title').focus(), 30);
+  $('ok').onclick = async ()=>{
+    const title = $('ni-title').value.trim();
+    if(!title){ toast('Title required','err'); return; }
+    const payload = {
+      type: $('ni-type').value,
+      title,
+      description: $('ni-desc').value.trim(),
+      state: $('ni-state').value,
+      priority: parseInt($('ni-priority').value),
+      assignee_id: $('ni-assignee').value || null,
+      parent_id: parent_id || null,
+    };
+    const id = await createWorkItem(payload);
+    if(id){
+      close();
+      toast('Created','ok');
+      // If created from backlog with a parent, auto-expand the parent
+      if(parent_id){
+        const set = getExpanded(); set.add(parent_id); setExpanded(set);
+      }
+      rerenderCurrent();
+    }
+  };
+}
+
+// ════════════════════════════════════════════════════════════════════
+// DETAIL PAGE
+// ════════════════════════════════════════════════════════════════════
+function openDetail(id){
+  state.backFrom = state.currentPage === 'detail' ? state.backFrom : state.currentPage;
+  state.currentItemId = id;
+  goPage('detail');
+}
+
+let detailComments = [];
+async function loadDetailComments(){
+  if(!state.currentItemId){ detailComments = []; renderDetail(); return; }
+  const { data } = await sb
+    .from('work_item_comments')
+    .select('id, body, created_at, user_id, author:user_id(display_name)')
+    .eq('work_item_id', state.currentItemId)
+    .order('created_at', { ascending: true });
+  detailComments = data || [];
+  // Re-render only the comments section if detail is open
+  const cm = document.getElementById('det-comments');
+  if(cm) cm.innerHTML = renderCommentsHtml();
+}
+
+function renderCommentsHtml(){
+  if(!detailComments.length) return '<div style="color:var(--muted);font-style:italic;font-size:13px;padding:8px 0">No comments yet. Start the discussion.</div>';
+  return detailComments.map(c => `
+    <div class="comment">
+      <div class="av">${esc(initial(c.author?.display_name))}</div>
+      <div class="body">
+        <div class="head"><span class="nm">${esc(c.author?.display_name || 'Unknown')}</span><span class="ts">${esc(fmtTime(c.created_at))}</span></div>
+        <div class="text">${esc(c.body)}</div>
+      </div>
+    </div>`).join('');
+}
+
+async function renderDetail(){
+  const id = state.currentItemId;
+  if(!id){
+    $('detail-content').innerHTML = '<div class="empty-state"><div class="ti">No item selected</div></div>';
+    return;
+  }
+  const w = itemById(id);
+  if(!w){
+    // Maybe it was a navigation from somewhere stale
+    $('detail-content').innerHTML = '<div class="empty-state"><div class="ti">Item not found</div></div>';
+    return;
+  }
+  const tm = TYPE_META[w.type] || TYPE_META.task;
+  const parent = w.parent_id ? itemById(w.parent_id) : null;
+  const kids = childrenOf(id);
+
+  // Load comments
+  loadDetailComments();
+
+  $('detail-content').innerHTML = `
+    <div class="det-top">
+      <button class="back" id="back-btn">← Back</button>
+      <div class="badge"><span class="type-ico">${tm.ico}</span>${esc(tm.label)}</div>
+      <h2><span class="id">#${w.display_id || '—'}</span><span id="det-title-text">${esc(w.title)}</span></h2>
+      <button class="btn ghost sm" id="del-btn">Delete</button>
+    </div>
+    <div class="det-body">
+      <div class="det-left">
+        <div class="det-section">
+          <div class="det-field">
+            <label>Title</label>
+            <input class="det-title-input" id="det-title" value="${esc(w.title)}" maxlength="200">
+          </div>
+        </div>
+        <div class="det-section">
+          <h3>Description</h3>
+          <div class="det-desc ${w.description?'':'empty'}" id="det-desc">${w.description ? esc(w.description) : 'Click to add a description…'}</div>
+        </div>
+        <div class="det-section">
+          <h3>Discussion</h3>
+          <div class="comments" id="det-comments"></div>
+          <div class="comment-input">
+            <textarea id="det-comment-input" placeholder="Add a comment…"></textarea>
+            <button class="btn" id="det-comment-send">Comment</button>
+          </div>
+        </div>
+      </div>
+      <div class="det-right">
+        <div class="det-section">
+          <h3>Status</h3>
+          <div class="det-field">
+            <label>State</label>
+            <select id="det-state">${STATE_ORDER.map(s => `<option value="${s}" ${s===w.state?'selected':''}>${STATE_META[s].label}</option>`).join('')}</select>
+          </div>
+          <div class="det-field">
+            <label>Assigned to</label>
+            <select id="det-assignee">
+              <option value="">— Unassigned —</option>
+              ${state.members.map(m => `<option value="${esc(m.id)}" ${m.id===w.assignee_id?'selected':''}>${esc(m.display_name)}</option>`).join('')}
+            </select>
+          </div>
+          <div class="det-field row">
+            <div><label>Area</label><input id="det-area" value="${esc(w.area||'')}"></div>
+            <div><label>Iteration</label><input id="det-iteration" value="${esc(w.iteration||'')}"></div>
+          </div>
+        </div>
+
+        <div class="det-section">
+          <h3>Details</h3>
+          <div class="det-field">
+            <label>Priority</label>
+            <select id="det-priority">
+              <option value="1" ${w.priority===1?'selected':''}>P1 — Critical</option>
+              <option value="2" ${w.priority===2?'selected':''}>P2 — High</option>
+              <option value="3" ${w.priority===3?'selected':''}>P3 — Medium</option>
+              <option value="4" ${w.priority===4?'selected':''}>P4 — Low</option>
+            </select>
+          </div>
+          <div class="det-field row">
+            <div><label>Story points</label><input type="number" step="0.5" id="det-pts" value="${w.story_points ?? ''}"></div>
+            <div><label>Priority</label><input type="text" disabled value="P${w.priority||2}"></div>
+          </div>
+          <div class="det-field row">
+            <div><label>Initial est.</label><input type="number" step="0.5" id="det-init" value="${w.initial_estimate ?? ''}"></div>
+            <div><label>Remaining</label><input type="number" step="0.5" id="det-rem" value="${w.remaining_work ?? ''}"></div>
+          </div>
+        </div>
+
+        <div class="det-section">
+          <h3>Related work</h3>
+          <div class="related">
+            ${parent ? `<div class="ri" data-go="${esc(parent.id)}"><span class="lbl">Parent</span><span class="type-ico">${TYPE_META[parent.type].ico}</span><span class="id">#${parent.display_id||'—'}</span><span class="ti">${esc(parent.title)}</span></div>` : ''}
+            ${kids.map(k => `<div class="ri" data-go="${esc(k.id)}"><span class="lbl">Child</span><span class="type-ico">${TYPE_META[k.type].ico}</span><span class="id">#${k.display_id||'—'}</span><span class="ti">${esc(k.title)}</span></div>`).join('')}
+            ${TYPE_META[w.type].children.length ? `<div class="add-related" id="add-child-btn">+ Add child</div>` : ''}
+            ${!parent && w.type !== 'epic' ? `<div class="add-related" id="set-parent-btn">+ Set parent</div>` : ''}
+          </div>
+        </div>
+
+        <div class="det-section">
+          <h3>Created</h3>
+          <div style="font-size:12px;color:var(--muted)">${esc(fmtTime(w.created_at))} · Updated ${esc(fmtTime(w.updated_at))}</div>
+        </div>
+      </div>
+    </div>`;
+
+  // Wire
+  $('back-btn').onclick = ()=> goPage(state.backFrom || 'backlog');
+  $('del-btn').onclick  = ()=> deleteWorkItem(id);
+
+  // Title save on blur
+  $('det-title').onblur = async (e)=>{
+    const v = e.target.value.trim();
+    if(v && v !== w.title){ await updateWorkItem(id, { title: v }); $('det-title-text').textContent = v; }
+  };
+  $('det-title').onkeydown = (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); e.target.blur(); } };
+
+  // Description: click to edit
+  $('det-desc').onclick = ()=>{
+    const orig = w.description || '';
+    const ta = document.createElement('textarea');
+    ta.className = 'det-desc-edit';
+    ta.value = orig;
+    $('det-desc').replaceWith(ta);
+    ta.focus();
+    let saving = false;
+    ta.onblur = async ()=>{
+      if(saving) return;
+      saving = true;
+      const v = ta.value.trim();
+      if(v !== orig){ await updateWorkItem(id, { description: v }); w.description = v; }
+      renderDetail();
+    };
+  };
+
+  // Status fields autosave on change
+  $('det-state').onchange     = ()=> updateWorkItem(id, { state: $('det-state').value });
+  $('det-assignee').onchange  = ()=>{
+    const v = $('det-assignee').value || null;
+    updateWorkItem(id, { assignee_id: v }).then(()=>{
+      // Refresh assignee object locally
+      const it = itemById(id);
+      if(it) it.assignee = v ? state.members.find(m => m.id === v) : null;
+    });
+  };
+  $('det-priority').onchange  = ()=> updateWorkItem(id, { priority: parseInt($('det-priority').value) });
+  $('det-area').onblur        = ()=> updateWorkItem(id, { area: $('det-area').value.trim() || null });
+  $('det-iteration').onblur   = ()=> updateWorkItem(id, { iteration: $('det-iteration').value.trim() || null });
+  const numOrNull = v => v === '' ? null : parseFloat(v);
+  $('det-pts').onblur         = ()=> updateWorkItem(id, { story_points: numOrNull($('det-pts').value) });
+  $('det-init').onblur        = ()=> updateWorkItem(id, { initial_estimate: numOrNull($('det-init').value) });
+  $('det-rem').onblur         = ()=> updateWorkItem(id, { remaining_work: numOrNull($('det-rem').value) });
+
+  $('det-comment-send').onclick = async ()=>{
+    const body = $('det-comment-input').value.trim();
+    if(!body) return;
+    $('det-comment-input').value = '';
+    const { error } = await sb.from('work_item_comments').insert({
+      work_item_id: id, user_id: state.user.id, body
+    });
+    if(error){ toast(friendlyError(error),'err'); return; }
+    loadDetailComments();
+  };
+
+  document.querySelectorAll('[data-go]').forEach(el => el.onclick = ()=> openDetail(el.dataset.go));
+
+  const addChildBtn = $('add-child-btn');
+  if(addChildBtn) addChildBtn.onclick = ()=>{
+    const t = TYPE_META[w.type].children[0];
+    openNewItemModal({ type: t, parent_id: id });
+  };
+  const setParentBtn = $('set-parent-btn');
+  if(setParentBtn) setParentBtn.onclick = ()=> openSetParentModal(id);
+}
+
+function openSetParentModal(id){
+  const w = itemById(id);
+  if(!w) return;
+  // Valid parents: items whose type allows this item's type as a child
+  const validParents = state.workItems.filter(p =>
+    p.id !== id &&
+    TYPE_META[p.type]?.children?.includes(w.type)
+  );
+  const root = $('modal-root');
+  root.innerHTML = `
+    <div class="modal-bg">
+      <div class="modal">
+        <div class="modal-h"><h3>Set parent</h3><button class="x" id="mx">×</button></div>
+        <div class="modal-b">
+          ${validParents.length === 0 ? `<div style="color:var(--muted);font-style:italic">No valid parents exist. Create a ${TYPE_META[w.type === 'task' || w.type === 'bug' ? 'story' : (w.type === 'story' ? 'feature' : 'epic')].label} first.</div>` : `
+          <div class="field"><label>Choose a parent</label>
+            <select id="sp-pid">
+              <option value="">— None —</option>
+              ${validParents.map(p => `<option value="${esc(p.id)}">${TYPE_META[p.type].ico} #${p.display_id||'—'} ${esc(p.title)}</option>`).join('')}
+            </select>
+          </div>`}
+        </div>
+        <div class="modal-f">
+          <button class="btn ghost" id="cancel">Cancel</button>
+          <button class="btn" id="ok" ${validParents.length === 0 ? 'disabled' : ''}>Save</button>
+        </div>
+      </div>
+    </div>`;
+  const close = ()=> root.innerHTML='';
+  $('mx').onclick = close; $('cancel').onclick = close;
+  if(validParents.length){
+    $('ok').onclick = async ()=>{
+      const pid = $('sp-pid').value || null;
+      const ok = await updateWorkItem(id, { parent_id: pid });
+      if(ok){ close(); renderDetail(); }
+    };
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// MEMBERS PAGE (minimal — list + invite)
+// ════════════════════════════════════════════════════════════════════
+async function renderMembers(){
+  const el = $('members-content');
+  el.innerHTML = '<div style="padding:20px;color:var(--muted)">Loading…</div>';
+  const { data } = await sb
+    .from('workspace_members')
+    .select('user_id, role, profiles:user_id(id, display_name, email)')
+    .eq('workspace_id', state.currentWsId);
+  const mems = (data || []).map(r => ({ ...r.profiles, role: r.role })).filter(p => p.id);
+  el.innerHTML = `
+    <h2 style="font-size:16px;font-weight:600;margin-bottom:14px">Workspace members</h2>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);overflow:hidden">
+      ${mems.map(m => `
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border)">
+          <div style="width:32px;height:32px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:600">${esc(initial(m.display_name))}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;font-size:13px">${esc(m.display_name)}${m.id===state.user.id?' (you)':''}</div>
+            <div style="font-size:11px;color:var(--muted)">${esc(m.email||'')}</div>
+          </div>
+          <span style="font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600">${esc(m.role)}</span>
+        </div>`).join('')}
+    </div>
+    <div style="margin-top:24px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rm)">
+      <h3 style="font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:8px">Note</h3>
+      <div style="font-size:13px;color:var(--text2)">Member invitations live in the original ProMapp app — this ADO-style view shares the same workspace, so invites accepted there appear here automatically.</div>
+    </div>`;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// THEME
+// ════════════════════════════════════════════════════════════════════
+function applyTheme(){
+  const t = localStorage.getItem('pm-ado:theme') || 'light';
+  document.documentElement.setAttribute('data-theme', t);
+}
+$('theme-toggle').onclick = ()=>{
+  const cur = document.documentElement.getAttribute('data-theme') || 'light';
+  const next = cur === 'light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', next);
+  try{ localStorage.setItem('pm-ado:theme', next); }catch{}
+};
+applyTheme();
+
+// ════════════════════════════════════════════════════════════════════
+// BOOT
+// ════════════════════════════════════════════════════════════════════
+async function boot(){
+  const { data: { session } } = await sb.auth.getSession();
+  hide('boot');
+  if(session?.user){ await enterApp(session.user); }
+  else{ show('auth'); }
+}
+
+async function enterApp(user){
+  state.user = user;
+  state.profile = await ensureProfile(user);
+  $('user-nm').textContent = state.profile.display_name;
+  $('user-av').textContent = initial(state.profile.display_name);
+  hide('auth');
+  $('app').classList.add('show');
+  await loadWorkspaces();
+}
+
+boot();
+</script>
+</body>
+</html>
