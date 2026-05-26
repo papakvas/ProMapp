@@ -218,8 +218,9 @@ a:hover{text-decoration:underline}
 .tag-chip .x{cursor:pointer;margin-left:2px;opacity:.6;font-size:11px}
 .tag-chip .x:hover{opacity:1}
 .tag-input-wrap{display:flex;flex-wrap:wrap;gap:4px;padding:6px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);min-height:32px;align-items:center}
-.tag-input-wrap input{border:none;flex:1;min-width:80px;padding:2px 4px;background:transparent}
+.tag-input-wrap input{border:none;flex:1;min-width:120px;padding:2px 4px;background:transparent}
 .tag-input-wrap input:focus{box-shadow:none}
+.tag-input-wrap .btn.sm{padding:3px 10px;font-size:11px;flex-shrink:0}
 
 /* ═══════════════════════════════════════════════════════════════════
    MARKDOWN RENDERED CONTENT
@@ -1347,15 +1348,18 @@ function setExpanded(set){
   try{ localStorage.setItem(expandedKey(), JSON.stringify([...set])); }catch{}
 }
 
-function renderBacklog(){
-  // Refresh tag-filter options (preserve current selection)
+function refreshBacklogTagFilter(){
   const tagSel = $('bl-tag-filter');
-  if(tagSel){
-    const cur = tagSel.value;
-    const tags = allTags();
-    tagSel.innerHTML = '<option value="">All tags</option>' +
-      tags.map(t => `<option value="${esc(t)}" ${t===cur?'selected':''}>${esc(t)}</option>`).join('');
-  }
+  if(!tagSel) return;
+  const cur = tagSel.value;
+  const tags = allTags();
+  tagSel.innerHTML = '<option value="">All tags</option>' +
+    tags.map(t => `<option value="${esc(t)}" ${t===cur?'selected':''}>${esc(t)}</option>`).join('');
+}
+
+function renderBacklog(){
+  // Always refresh tag-filter options (new tags from anywhere appear here)
+  refreshBacklogTagFilter();
 
   if(!state.currentProjectId){
     $('bl-tree').innerHTML = '<div class="bl-empty">No project selected</div>';
@@ -1750,8 +1754,10 @@ async function renderDetail(){
           <h3>Tags</h3>
           <div class="tag-input-wrap" id="det-tag-wrap">
             ${(w.tags || []).map(t => renderTagChip(t, true)).join(' ')}
-            <input id="det-tag-input" placeholder="${(w.tags||[]).length ? 'Add tag…' : 'Type a tag and press Enter'}">
+            <input id="det-tag-input" placeholder="Type tag name…" autocomplete="off">
+            <button class="btn sm" id="det-tag-add" type="button">+ Add</button>
           </div>
+          <div class="md-hint">Press Enter or click Add. Tags are saved instantly.</div>
         </div>
 
         <div class="det-section">
@@ -1845,60 +1851,68 @@ async function renderDetail(){
   $('det-init').onblur        = ()=> updateWorkItem(id, { initial_estimate: numOrNull($('det-init').value) });
   $('det-rem').onblur         = ()=> updateWorkItem(id, { remaining_work: numOrNull($('det-rem').value) });
 
-  // Tag input — Enter adds, X removes
-  const tagInput = $('det-tag-input');
-  const tagWrap  = $('det-tag-wrap');
+  // Tag input — Enter or click "+ Add" to save; X to remove
   async function addTag(name){
-    name = name.trim().toLowerCase();
+    name = (name || '').trim().toLowerCase();
     if(!name) return;
     if(name.length > 30) name = name.slice(0, 30);
     const existing = w.tags || [];
-    if(existing.includes(name)) return;
+    if(existing.includes(name)){ toast('Tag already added','err'); return; }
     const newTags = [...existing, name];
     const ok = await updateWorkItem(id, { tags: newTags });
-    if(ok){ w.tags = newTags; renderDetailTagsOnly(); }
+    if(ok){
+      w.tags = newTags;
+      renderDetailTagsOnly();
+      // If the backlog page is "behind" this detail page, its tag-filter
+      // dropdown needs refreshing too — repopulate it now so the new tag
+      // is selectable next time the user opens the backlog.
+      refreshBacklogTagFilter();
+      toast(`Tag "${name}" added`, 'ok');
+    }
   }
   async function removeTag(name){
     const newTags = (w.tags || []).filter(t => t !== name);
     const ok = await updateWorkItem(id, { tags: newTags });
-    if(ok){ w.tags = newTags; renderDetailTagsOnly(); }
+    if(ok){
+      w.tags = newTags;
+      renderDetailTagsOnly();
+      refreshBacklogTagFilter();
+    }
   }
   function renderDetailTagsOnly(){
-    tagWrap.innerHTML = (w.tags || []).map(t => renderTagChip(t, true)).join(' ') +
-      `<input id="det-tag-input" placeholder="${(w.tags||[]).length ? 'Add tag…' : 'Type a tag and press Enter'}">`;
-    // Rewire input
-    const newInput = $('det-tag-input');
-    newInput.onkeydown = (e)=>{
+    const wrap = $('det-tag-wrap');
+    if(!wrap) return;
+    wrap.innerHTML = (w.tags || []).map(t => renderTagChip(t, true)).join(' ') +
+      `<input id="det-tag-input" placeholder="Type tag name…" autocomplete="off">` +
+      `<button class="btn sm" id="det-tag-add" type="button">+ Add</button>`;
+    wireTagInputs();
+  }
+  function wireTagInputs(){
+    const input = $('det-tag-input');
+    const addBtn = $('det-tag-add');
+    if(!input || !addBtn) return;
+    input.onkeydown = (e)=>{
       if(e.key === 'Enter' || e.key === ','){
         e.preventDefault();
-        const v = newInput.value;
-        newInput.value = '';
+        const v = input.value;
+        input.value = '';
         addTag(v);
-      } else if(e.key === 'Backspace' && newInput.value === '' && (w.tags||[]).length){
-        // Backspace on empty input removes last tag
+      } else if(e.key === 'Backspace' && input.value === '' && (w.tags||[]).length){
         removeTag(w.tags[w.tags.length-1]);
       }
     };
-    tagWrap.querySelectorAll('[data-rm-tag]').forEach(x => x.onclick = (e)=>{
+    addBtn.onclick = ()=>{
+      const v = input.value;
+      input.value = '';
+      addTag(v);
+      input.focus();
+    };
+    $('det-tag-wrap').querySelectorAll('[data-rm-tag]').forEach(x => x.onclick = (e)=>{
       e.stopPropagation();
       removeTag(x.dataset.rmTag);
     });
-    newInput.focus();
   }
-  tagInput.onkeydown = (e)=>{
-    if(e.key === 'Enter' || e.key === ','){
-      e.preventDefault();
-      const v = tagInput.value;
-      tagInput.value = '';
-      addTag(v);
-    } else if(e.key === 'Backspace' && tagInput.value === '' && (w.tags||[]).length){
-      removeTag(w.tags[w.tags.length-1]);
-    }
-  };
-  tagWrap.querySelectorAll('[data-rm-tag]').forEach(x => x.onclick = (e)=>{
-    e.stopPropagation();
-    removeTag(x.dataset.rmTag);
-  });
+  wireTagInputs();
 
   $('det-comment-send').onclick = async ()=>{
     const body = $('det-comment-input').value.trim();
