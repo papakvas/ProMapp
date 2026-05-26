@@ -576,8 +576,9 @@ $('btn-signin').onclick = async ()=>{
     setAuthMode('signin');
     return;
   }
-  const { error } = await sb.auth.signInWithPassword({ email, password });
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
   if(error){ toast(friendlyError(error),'err'); return; }
+  if(data?.user){ await enterApp(data.user); }
 };
 
 function setAuthMode(m){
@@ -594,8 +595,22 @@ $('signout').onclick = async ()=>{
   location.reload();
 };
 
-sb.auth.onAuthStateChange((event)=>{
-  if(event === 'SIGNED_IN'){ location.reload(); }
+// supabase-js fires SIGNED_IN whenever it restores a session (every page
+// load) as well as on actual login. We track whether boot has finished
+// and only act on events from THAT point on. Even then, we don't reload
+// the page — we just re-enter the app with the new user if relevant.
+let bootDone = false;
+sb.auth.onAuthStateChange((event, session)=>{
+  if(!bootDone) return;
+  if(event === 'SIGNED_OUT'){
+    location.reload();
+    return;
+  }
+  // SIGNED_IN / TOKEN_REFRESHED / USER_UPDATED — if we're not already
+  // showing the app for this user, enter it.
+  if(session?.user && (!state.user || state.user.id !== session.user.id)){
+    enterApp(session.user);
+  }
 });
 
 // ════════════════════════════════════════════════════════════════════
@@ -1568,13 +1583,25 @@ applyTheme();
 // BOOT
 // ════════════════════════════════════════════════════════════════════
 async function boot(){
-  const { data: { session } } = await sb.auth.getSession();
-  hide('boot');
-  if(session?.user){ await enterApp(session.user); }
-  else{ show('auth'); }
+  try{
+    const { data: { session } } = await sb.auth.getSession();
+    hide('boot');
+    if(session?.user){ await enterApp(session.user); }
+    else{ show('auth'); }
+  }catch(e){
+    hide('boot');
+    show('auth');
+    toast('Boot error: ' + (e?.message || e), 'err');
+  }finally{
+    bootDone = true;
+  }
 }
 
 async function enterApp(user){
+  // Guard: if we're already showing the app for this user, do nothing.
+  if(state.user && state.user.id === user.id && $('app').classList.contains('show')){
+    return;
+  }
   state.user = user;
   state.profile = await ensureProfile(user);
   $('user-nm').textContent = state.profile.display_name;
