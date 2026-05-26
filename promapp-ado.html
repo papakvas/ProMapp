@@ -180,6 +180,66 @@ a:hover{text-decoration:underline}
 .drag-chosen{box-shadow:var(--shadow-lg)}
 .drag-active{cursor:grabbing}
 .col-body.drag-over-empty{background:var(--blue-dim) !important}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SPRINTS PAGE
+   ══════════════════════════════════════════════════════════════════ */
+.sprints-wrap{padding:14px 16px;height:100%;display:flex;flex-direction:column}
+.sprints-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.sprints-toolbar select{font-size:13px;padding:4px 8px;min-width:200px}
+.sp-empty{padding:60px 20px;text-align:center;color:var(--muted)}
+.sp-empty .ti{font-size:15px;font-weight:600;color:var(--text2);margin-bottom:6px}
+.sp-stats{display:flex;gap:14px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);margin-bottom:10px;flex-wrap:wrap}
+.sp-stats .stat{font-size:12px;color:var(--muted)}
+.sp-stats .stat strong{font-size:18px;color:var(--text);display:block;font-weight:600}
+.sp-board{flex:1;display:flex;gap:12px;overflow-x:auto;min-height:0}
+.sp-board .col{flex:0 0 280px}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TAGS
+   ══════════════════════════════════════════════════════════════════ */
+.tag-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:2px;font-size:11px;font-weight:600;line-height:1.5;background:var(--blue-dim);color:var(--blue);cursor:default;white-space:nowrap}
+.tag-chip.t-0{background:#deecf9;color:#0078d4}
+.tag-chip.t-1{background:#e8e0f0;color:#5c2d91}
+.tag-chip.t-2{background:#fed9cc;color:#d83b01}
+.tag-chip.t-3{background:#fff4ce;color:#a67000}
+.tag-chip.t-4{background:#dff6dd;color:#107c10}
+.tag-chip.t-5{background:#fde7e9;color:#d13438}
+.tag-chip.t-6{background:#cce4f0;color:#005a9e}
+.tag-chip.t-7{background:#fdf2cc;color:#8a6a00}
+[data-theme=dark] .tag-chip.t-0{background:#1a3a5c;color:#79b8ff}
+[data-theme=dark] .tag-chip.t-1{background:#2a1a4a;color:#c4a8f5}
+[data-theme=dark] .tag-chip.t-2{background:#4a2a1a;color:#ff8c5a}
+[data-theme=dark] .tag-chip.t-3{background:#3a2a0a;color:#fbbf24}
+[data-theme=dark] .tag-chip.t-4{background:#1a3a1f;color:#4ade80}
+[data-theme=dark] .tag-chip.t-5{background:#4a1f1f;color:#f87171}
+[data-theme=dark] .tag-chip.t-6{background:#1a2a3f;color:#7cb3ed}
+[data-theme=dark] .tag-chip.t-7{background:#3a2f0a;color:#e8c060}
+.tag-chip .x{cursor:pointer;margin-left:2px;opacity:.6;font-size:11px}
+.tag-chip .x:hover{opacity:1}
+.tag-input-wrap{display:flex;flex-wrap:wrap;gap:4px;padding:6px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);min-height:32px;align-items:center}
+.tag-input-wrap input{border:none;flex:1;min-width:80px;padding:2px 4px;background:transparent}
+.tag-input-wrap input:focus{box-shadow:none}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MARKDOWN RENDERED CONTENT
+   ══════════════════════════════════════════════════════════════════ */
+.md-body{font-size:13px;line-height:1.55;color:var(--text)}
+.md-body p{margin:0 0 8px}
+.md-body p:last-child{margin-bottom:0}
+.md-body strong{font-weight:600}
+.md-body em{font-style:italic}
+.md-body code{font-family:var(--mono);font-size:12px;background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:1px 5px}
+.md-body pre{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px;overflow-x:auto;font-family:var(--mono);font-size:12px;margin:6px 0}
+.md-body pre code{background:none;border:none;padding:0}
+.md-body ul, .md-body ol{margin:0 0 8px 22px}
+.md-body li{margin-bottom:3px}
+.md-body h1{font-size:18px;font-weight:600;margin:10px 0 6px}
+.md-body h2{font-size:15px;font-weight:600;margin:8px 0 4px}
+.md-body h3{font-size:14px;font-weight:600;margin:6px 0 4px}
+.md-body a{color:var(--blue);text-decoration:underline}
+.md-body blockquote{border-left:3px solid var(--border2);padding-left:10px;color:var(--text2);margin:6px 0}
+.md-hint{font-size:11px;color:var(--muted);margin-top:4px;font-style:italic}
 .card .row1 .type-ico{font-size:13px}
 .card .row1 .id{font-family:var(--mono);font-weight:600}
 .card .row1 .pts{margin-left:auto;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:1px 7px;font-family:var(--mono);font-weight:600;color:var(--text2)}
@@ -273,10 +333,10 @@ a:hover{text-decoration:underline}
 .det-field .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .det-title-input{font-size:18px !important;font-weight:600 !important;padding:8px 10px !important}
 
-.det-desc{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:12px;min-height:80px;white-space:pre-wrap;cursor:text;font-size:13px;line-height:1.5}
+.det-desc{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:12px;min-height:80px;cursor:text;font-size:13px;line-height:1.5}
 .det-desc:hover{border-color:var(--border2)}
 .det-desc.empty{color:var(--muted);font-style:italic}
-.det-desc-edit{width:100%;min-height:120px;font-size:13px;line-height:1.5}
+.det-desc-edit{width:100%;min-height:140px;font-size:13px;line-height:1.5;font-family:var(--mono)}
 
 .related{display:flex;flex-direction:column;gap:8px}
 .related .ri{display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);font-size:12px;cursor:pointer}
@@ -296,7 +356,7 @@ a:hover{text-decoration:underline}
 .comment .head{display:flex;align-items:center;gap:8px;margin-bottom:2px}
 .comment .head .nm{font-weight:600;font-size:13px}
 .comment .head .ts{font-size:11px;color:var(--muted)}
-.comment .text{font-size:13px;line-height:1.5;white-space:pre-wrap}
+.comment .text{font-size:13px;line-height:1.5}
 .comment-input{display:flex;gap:10px;margin-top:14px}
 .comment-input textarea{flex:1;min-height:60px}
 
@@ -392,6 +452,7 @@ a:hover{text-decoration:underline}
         <div class="group">Plan</div>
         <button id="nav-board"   ><span class="ico">▤</span>Boards</button>
         <button id="nav-backlog" ><span class="ico">≣</span>Backlogs</button>
+        <button id="nav-sprints" ><span class="ico">🏃</span>Sprints</button>
         <div class="group">Project</div>
         <button id="nav-overview" class="active"><span class="ico">⌂</span>Overview</button>
         <button id="nav-members" ><span class="ico">👥</span>Members</button>
@@ -445,10 +506,28 @@ a:hover{text-decoration:underline}
               <option value="resolved">Resolved</option>
               <option value="closed">Closed</option>
             </select>
+            <select id="bl-tag-filter">
+              <option value="">All tags</option>
+            </select>
             <div class="spacer" style="flex:1"></div>
             <button class="btn" id="bl-new-top">+ New work item</button>
           </div>
           <div class="bl-table" id="bl-tree"></div>
+        </div>
+      </div>
+
+      <!-- SPRINTS PAGE -->
+      <div class="page hidden" id="page-sprints">
+        <div class="sprints-wrap">
+          <div class="sprints-toolbar">
+            <select id="sp-iteration">
+              <option value="">— No iteration —</option>
+            </select>
+            <button class="btn ghost sm" id="sp-manage">⚙ Manage iterations</button>
+            <div class="spacer" style="flex:1"></div>
+            <span id="sp-meta" style="font-size:12px;color:var(--muted)"></span>
+          </div>
+          <div id="sp-board"></div>
         </div>
       </div>
 
@@ -497,12 +576,14 @@ const state = {
   currentRole: 'member',
   projects: [],
   currentProjectId: null,
-  currentPage: 'overview',     // 'overview' | 'board' | 'backlog' | 'detail' | 'members'
+  currentPage: 'overview',     // 'overview' | 'board' | 'backlog' | 'sprints' | 'detail' | 'members'
   currentItemId: null,
-  workItems: [],               // all work items for current project
-  members: [],                 // workspace_members + profiles for assignee pickers
-  filters: { type:'all', state:'open' },
-  channels: { wi:null, wic:null, wicol:null },
+  workItems: [],
+  iterations: [],              // workspace-scoped sprint list
+  currentIterationId: null,    // which sprint is the Sprints page showing
+  members: [],
+  filters: { type:'all', state:'open', tag:null },
+  channels: { wi:null, wic:null, wicol:null, it:null },
 };
 
 // ════════════════════════════════════════════════════════════════════
@@ -531,6 +612,78 @@ const STATE_ORDER = ['new','active','resolved','closed'];
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const initial = s => (s||'?').trim().charAt(0).toUpperCase();
+
+// ── Tag color hashing — stable color per tag name ────────────────────
+function tagColorClass(name){
+  let h = 0;
+  for(let i = 0; i < name.length; i++) h = ((h << 5) - h + name.charCodeAt(i)) | 0;
+  return 't-' + (Math.abs(h) % 8);
+}
+function renderTagChip(name, removable=false){
+  return `<span class="tag-chip ${tagColorClass(name)}" data-tag="${esc(name)}">${esc(name)}${removable ? '<span class="x" data-rm-tag="'+esc(name)+'">×</span>' : ''}</span>`;
+}
+function allTags(){
+  const set = new Set();
+  for(const w of state.workItems){
+    for(const t of (w.tags || [])) set.add(t);
+  }
+  return [...set].sort();
+}
+
+// ── Minimal markdown renderer + sanitizer ──────────────────────────────
+// Supports: headings (#, ##, ###), bold (**x**), italic (*x*), inline
+// code (`x`), code blocks (```), bullet/numbered lists, links [t](url),
+// blockquotes (>), and paragraph breaks. Everything is escaped first
+// then we re-introduce a fixed, safe set of tags. Links: only http(s)/
+// mailto allowed.
+function renderMarkdown(src){
+  if(!src) return '';
+  // 1) Escape HTML
+  let s = String(src).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  // 2) Code blocks (fence ```)
+  const codeBlocks = [];
+  s = s.replace(/```([\s\S]*?)```/g, (_, code)=>{
+    codeBlocks.push(code);
+    return `\x00CODEBLOCK${codeBlocks.length-1}\x00`;
+  });
+  // 3) Inline code
+  s = s.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+  // 4) Headings
+  s = s.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+  s = s.replace(/^## (.+)$/gm,  '<h2>$1</h2>');
+  s = s.replace(/^# (.+)$/gm,   '<h1>$1</h1>');
+  // 5) Bold / italic
+  s = s.replace(/\*\*([^\*\n]+)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/(?<!\*)\*([^\*\n]+)\*(?!\*)/g, '<em>$1</em>');
+  // 6) Links — http(s) and mailto only
+  s = s.replace(/\[([^\]]+)\]\(((?:https?:\/\/|mailto:)[^\s)]+)\)/g,
+    '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+  // 7) Blockquotes
+  s = s.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
+  // 8) Lists — group consecutive list items
+  // Bullet
+  s = s.replace(/(?:^- (.+)(?:\n|$))+/gm, m => {
+    const items = m.trim().split(/\n/).map(l => '<li>' + l.replace(/^- /, '') + '</li>').join('');
+    return '<ul>' + items + '</ul>';
+  });
+  // Numbered
+  s = s.replace(/(?:^\d+\. (.+)(?:\n|$))+/gm, m => {
+    const items = m.trim().split(/\n/).map(l => '<li>' + l.replace(/^\d+\. /, '') + '</li>').join('');
+    return '<ol>' + items + '</ol>';
+  });
+  // 9) Paragraphs — split on blank lines, wrap non-block lines in <p>
+  s = s.split(/\n{2,}/).map(block => {
+    block = block.trim();
+    if(!block) return '';
+    if(/^<(h[1-3]|ul|ol|blockquote|pre)/.test(block)) return block;
+    return '<p>' + block.replace(/\n/g, '<br>') + '</p>';
+  }).join('\n');
+  // 10) Restore code blocks
+  s = s.replace(/\x00CODEBLOCK(\d+)\x00/g, (_, i)=> {
+    return '<pre><code>' + codeBlocks[parseInt(i)] + '</code></pre>';
+  });
+  return s;
+}
 const show = id => $(id).classList.remove('hidden');
 const hide = id => $(id).classList.add('hidden');
 
@@ -661,7 +814,7 @@ async function setActiveWorkspace(wsId){
   state.projects = [];
   state.workItems = [];
   unsubAll();
-  await Promise.all([ loadProjects(), loadMembers() ]);
+  await Promise.all([ loadProjects(), loadMembers(), loadIterations() ]);
   goPage('overview');
 }
 
@@ -828,6 +981,31 @@ async function loadMembers(){
   state.members = (data||[]).map(r => ({ ...r.profiles, role: r.role })).filter(p => p.id);
 }
 
+async function loadIterations(){
+  if(!state.currentWsId){ state.iterations = []; return; }
+  const { data, error } = await sb
+    .from('iterations')
+    .select('id, name, start_date, end_date, created_at')
+    .eq('workspace_id', state.currentWsId)
+    .order('start_date', { ascending: true, nullsFirst: true });
+  if(error){ toast('Iterations: '+friendlyError(error),'err'); return; }
+  state.iterations = data || [];
+}
+
+// Pick the "current" iteration: one where today is between start/end,
+// or the most recent if none active, or the first one otherwise.
+function currentIteration(){
+  if(!state.iterations.length) return null;
+  const today = new Date().toISOString().slice(0,10);
+  const active = state.iterations.find(i =>
+    i.start_date && i.end_date && i.start_date <= today && today <= i.end_date
+  );
+  if(active) return active;
+  // Future or null-dated: pick first; otherwise most recent past
+  const sorted = [...state.iterations].sort((a,b) => (b.start_date||'').localeCompare(a.start_date||''));
+  return sorted[0] || null;
+}
+
 // ════════════════════════════════════════════════════════════════════
 // WORK ITEMS
 // ════════════════════════════════════════════════════════════════════
@@ -835,7 +1013,7 @@ async function loadWorkItems(){
   if(!state.currentProjectId){ state.workItems = []; return; }
   const { data, error } = await sb
     .from('work_items')
-    .select('id, project_id, workspace_id, parent_id, type, title, description, state, priority, story_points, initial_estimate, remaining_work, assignee_id, area, iteration, tags, display_id, created_by, created_at, updated_at, position, assignee:assignee_id(id, display_name)')
+    .select('id, project_id, workspace_id, parent_id, type, title, description, state, priority, story_points, initial_estimate, remaining_work, assignee_id, area, iteration, iteration_id, tags, display_id, created_by, created_at, updated_at, position, assignee:assignee_id(id, display_name)')
     .eq('project_id', state.currentProjectId)
     .order('position', { ascending: true, nullsFirst: false });
   if(error){ toast('Items: '+friendlyError(error),'err'); return; }
@@ -919,6 +1097,10 @@ function subscribeRealtime(){
     .on('postgres_changes', { event:'*', schema:'public', table:'work_item_comments' },
       ()=>{ if(state.currentPage === 'detail') loadDetailComments(); })
     .subscribe();
+  state.channels.it = sb.channel('it-'+state.currentWsId)
+    .on('postgres_changes', { event:'*', schema:'public', table:'iterations', filter:`workspace_id=eq.${state.currentWsId}` },
+      async ()=>{ await loadIterations(); if(state.currentPage==='sprints') renderSprintsPage(); })
+    .subscribe();
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -927,25 +1109,26 @@ function subscribeRealtime(){
 $('nav-overview').onclick = ()=> goPage('overview');
 $('nav-board').onclick    = ()=> goPage('board');
 $('nav-backlog').onclick  = ()=> goPage('backlog');
+$('nav-sprints').onclick  = ()=> goPage('sprints');
 $('nav-members').onclick  = ()=> goPage('members');
 $('menu-btn').onclick     = ()=> $('sidebar').classList.toggle('show');
 
 function goPage(name){
   state.currentPage = name;
-  ['overview','board','backlog','detail','members'].forEach(p =>
+  ['overview','board','backlog','sprints','detail','members'].forEach(p =>
     $('page-'+p).classList.toggle('hidden', p !== name)
   );
-  ['overview','board','backlog','members'].forEach(p => {
+  ['overview','board','backlog','sprints','members'].forEach(p => {
     const btn = $('nav-'+p);
     if(btn) btn.classList.toggle('active', p === name);
   });
   $('sidebar').classList.remove('show');
-  // Subtopbar setup
   const ti = $('sub-title'), tabs = $('sub-tabs'), acts = $('sub-actions');
   tabs.innerHTML = ''; acts.innerHTML = '';
   if(name === 'overview'){ ti.textContent = 'Overview'; $('crumb-page').textContent = 'Overview'; renderOverview(); }
   else if(name === 'board'){ ti.textContent = state.currentProjectId ? (state.projects.find(p=>p.id===state.currentProjectId)?.name || '') : 'Boards'; $('crumb-page').textContent = 'Boards'; renderBoardHeader(); renderBoard(); }
   else if(name === 'backlog'){ ti.textContent = state.currentProjectId ? (state.projects.find(p=>p.id===state.currentProjectId)?.name || '') : 'Backlog'; $('crumb-page').textContent = 'Backlog'; renderBacklog(); }
+  else if(name === 'sprints'){ ti.textContent = 'Sprints'; $('crumb-page').textContent = 'Sprints'; renderSprintsPage(); }
   else if(name === 'detail'){ ti.textContent = ''; $('crumb-page').textContent = 'Work item'; renderDetail(); }
   else if(name === 'members'){ ti.textContent = 'Members'; $('crumb-page').textContent = 'Members'; renderMembers(); }
 }
@@ -1130,6 +1313,7 @@ function renderCard(w){
   const kidsHtml = kids.length ? `<span class="children" title="${kidsDone}/${kids.length} children done">${kidsDone}/${kids.length}</span>` : '';
   const pts = w.story_points != null ? `<span class="pts">${w.story_points}</span>` : '';
   const pri = w.priority ? `<span class="pri p${w.priority}" title="Priority ${w.priority}">P${w.priority}</span>` : '';
+  const tags = (w.tags || []).slice(0, 3).map(t => renderTagChip(t)).join(' ');
   return `<div class="card t-${w.type}" data-id="${esc(w.id)}">
     <div class="row1">
       <span class="type-ico">${tm.ico}</span>
@@ -1139,6 +1323,7 @@ function renderCard(w){
     <div class="ti">${esc(w.title)}</div>
     <div class="row3">
       ${pri}
+      ${tags}
       ${kidsHtml}
       ${av ? '<span style="margin-left:auto">'+av+'</span>' : ''}
     </div>
@@ -1150,6 +1335,7 @@ function renderCard(w){
 // ════════════════════════════════════════════════════════════════════
 $('bl-type-filter')  && ($('bl-type-filter').onchange = renderBacklog);
 $('bl-state-filter') && ($('bl-state-filter').onchange = renderBacklog);
+$('bl-tag-filter')   && ($('bl-tag-filter').onchange = renderBacklog);
 $('bl-new-top')      && ($('bl-new-top').onclick = ()=> openNewItemModal({}));
 
 // Track expanded state per item id (persist in localStorage so it survives reload)
@@ -1162,15 +1348,26 @@ function setExpanded(set){
 }
 
 function renderBacklog(){
+  // Refresh tag-filter options (preserve current selection)
+  const tagSel = $('bl-tag-filter');
+  if(tagSel){
+    const cur = tagSel.value;
+    const tags = allTags();
+    tagSel.innerHTML = '<option value="">All tags</option>' +
+      tags.map(t => `<option value="${esc(t)}" ${t===cur?'selected':''}>${esc(t)}</option>`).join('');
+  }
+
   if(!state.currentProjectId){
     $('bl-tree').innerHTML = '<div class="bl-empty">No project selected</div>';
     return;
   }
-  const typeF = $('bl-type-filter')?.value || 'all';
+  const typeF  = $('bl-type-filter')?.value  || 'all';
   const stateF = $('bl-state-filter')?.value || 'open';
+  const tagF   = $('bl-tag-filter')?.value   || '';
   // Build filtered set
   const matches = (w) => {
     if(typeF !== 'all' && w.type !== typeF) return false;
+    if(tagF && !(w.tags || []).includes(tagF)) return false;
     if(stateF === 'open') return w.state !== 'closed';
     if(stateF !== 'all') return w.state === stateF;
     return true;
@@ -1182,8 +1379,8 @@ function renderBacklog(){
   let rowsHtml = '';
   const expanded = getExpanded();
 
-  if(typeF !== 'all'){
-    // Flat
+  if(typeF !== 'all' || tagF){
+    // Flat list when filtering by type or tag (parents may not match)
     rowsHtml = matching.map(w => renderBacklogRow(w, 0, false, false)).join('');
   } else {
     // Tree
@@ -1327,6 +1524,7 @@ function renderBacklogRow(w, depth, hasKids, isExp){
     </div>
     <div class="title-cell">
       <span class="ti">${esc(w.title)}</span>
+      ${(w.tags||[]).slice(0,2).map(t => renderTagChip(t)).join(' ')}
       ${canAdd ? '<button class="add-child" title="Add child">+</button>' : ''}
     </div>
     <div class="av-name">${av}</div>
@@ -1470,7 +1668,7 @@ function renderCommentsHtml(){
       <div class="av">${esc(initial(c.author?.display_name))}</div>
       <div class="body">
         <div class="head"><span class="nm">${esc(c.author?.display_name || 'Unknown')}</span><span class="ts">${esc(fmtTime(c.created_at))}</span></div>
-        <div class="text">${esc(c.body)}</div>
+        <div class="text md-body">${renderMarkdown(c.body)}</div>
       </div>
     </div>`).join('');
 }
@@ -1511,7 +1709,7 @@ async function renderDetail(){
         </div>
         <div class="det-section">
           <h3>Description</h3>
-          <div class="det-desc ${w.description?'':'empty'}" id="det-desc">${w.description ? esc(w.description) : 'Click to add a description…'}</div>
+          <div class="det-desc ${w.description?'md-body':'empty'}" id="det-desc">${w.description ? renderMarkdown(w.description) : 'Click to add a description…'}</div>
         </div>
         <div class="det-section">
           <h3>Discussion</h3>
@@ -1538,7 +1736,21 @@ async function renderDetail(){
           </div>
           <div class="det-field row">
             <div><label>Area</label><input id="det-area" value="${esc(w.area||'')}"></div>
-            <div><label>Iteration</label><input id="det-iteration" value="${esc(w.iteration||'')}"></div>
+            <div>
+              <label>Iteration</label>
+              <select id="det-iteration-id">
+                <option value="">— None —</option>
+                ${state.iterations.map(it => `<option value="${esc(it.id)}" ${it.id===w.iteration_id?'selected':''}>${esc(it.name)}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="det-section">
+          <h3>Tags</h3>
+          <div class="tag-input-wrap" id="det-tag-wrap">
+            ${(w.tags || []).map(t => renderTagChip(t, true)).join(' ')}
+            <input id="det-tag-input" placeholder="${(w.tags||[]).length ? 'Add tag…' : 'Type a tag and press Enter'}">
           </div>
         </div>
 
@@ -1553,9 +1765,9 @@ async function renderDetail(){
               <option value="4" ${w.priority===4?'selected':''}>P4 — Low</option>
             </select>
           </div>
-          <div class="det-field row">
-            <div><label>Story points</label><input type="number" step="0.5" id="det-pts" value="${w.story_points ?? ''}"></div>
-            <div><label>Priority</label><input type="text" disabled value="P${w.priority||2}"></div>
+          <div class="det-field">
+            <label>Story points</label>
+            <input type="number" step="0.5" id="det-pts" value="${w.story_points ?? ''}">
           </div>
           <div class="det-field row">
             <div><label>Initial est.</label><input type="number" step="0.5" id="det-init" value="${w.initial_estimate ?? ''}"></div>
@@ -1594,10 +1806,16 @@ async function renderDetail(){
   // Description: click to edit
   $('det-desc').onclick = ()=>{
     const orig = w.description || '';
+    const wrap = document.createElement('div');
     const ta = document.createElement('textarea');
     ta.className = 'det-desc-edit';
     ta.value = orig;
-    $('det-desc').replaceWith(ta);
+    const hint = document.createElement('div');
+    hint.className = 'md-hint';
+    hint.innerHTML = 'Markdown supported · <strong>**bold**</strong> · <em>*italic*</em> · `code` · # heading · - list · [text](url)';
+    wrap.appendChild(ta);
+    wrap.appendChild(hint);
+    $('det-desc').replaceWith(wrap);
     ta.focus();
     let saving = false;
     ta.onblur = async ()=>{
@@ -1621,11 +1839,66 @@ async function renderDetail(){
   };
   $('det-priority').onchange  = ()=> updateWorkItem(id, { priority: parseInt($('det-priority').value) });
   $('det-area').onblur        = ()=> updateWorkItem(id, { area: $('det-area').value.trim() || null });
-  $('det-iteration').onblur   = ()=> updateWorkItem(id, { iteration: $('det-iteration').value.trim() || null });
+  $('det-iteration-id').onchange = ()=> updateWorkItem(id, { iteration_id: $('det-iteration-id').value || null });
   const numOrNull = v => v === '' ? null : parseFloat(v);
   $('det-pts').onblur         = ()=> updateWorkItem(id, { story_points: numOrNull($('det-pts').value) });
   $('det-init').onblur        = ()=> updateWorkItem(id, { initial_estimate: numOrNull($('det-init').value) });
   $('det-rem').onblur         = ()=> updateWorkItem(id, { remaining_work: numOrNull($('det-rem').value) });
+
+  // Tag input — Enter adds, X removes
+  const tagInput = $('det-tag-input');
+  const tagWrap  = $('det-tag-wrap');
+  async function addTag(name){
+    name = name.trim().toLowerCase();
+    if(!name) return;
+    if(name.length > 30) name = name.slice(0, 30);
+    const existing = w.tags || [];
+    if(existing.includes(name)) return;
+    const newTags = [...existing, name];
+    const ok = await updateWorkItem(id, { tags: newTags });
+    if(ok){ w.tags = newTags; renderDetailTagsOnly(); }
+  }
+  async function removeTag(name){
+    const newTags = (w.tags || []).filter(t => t !== name);
+    const ok = await updateWorkItem(id, { tags: newTags });
+    if(ok){ w.tags = newTags; renderDetailTagsOnly(); }
+  }
+  function renderDetailTagsOnly(){
+    tagWrap.innerHTML = (w.tags || []).map(t => renderTagChip(t, true)).join(' ') +
+      `<input id="det-tag-input" placeholder="${(w.tags||[]).length ? 'Add tag…' : 'Type a tag and press Enter'}">`;
+    // Rewire input
+    const newInput = $('det-tag-input');
+    newInput.onkeydown = (e)=>{
+      if(e.key === 'Enter' || e.key === ','){
+        e.preventDefault();
+        const v = newInput.value;
+        newInput.value = '';
+        addTag(v);
+      } else if(e.key === 'Backspace' && newInput.value === '' && (w.tags||[]).length){
+        // Backspace on empty input removes last tag
+        removeTag(w.tags[w.tags.length-1]);
+      }
+    };
+    tagWrap.querySelectorAll('[data-rm-tag]').forEach(x => x.onclick = (e)=>{
+      e.stopPropagation();
+      removeTag(x.dataset.rmTag);
+    });
+    newInput.focus();
+  }
+  tagInput.onkeydown = (e)=>{
+    if(e.key === 'Enter' || e.key === ','){
+      e.preventDefault();
+      const v = tagInput.value;
+      tagInput.value = '';
+      addTag(v);
+    } else if(e.key === 'Backspace' && tagInput.value === '' && (w.tags||[]).length){
+      removeTag(w.tags[w.tags.length-1]);
+    }
+  };
+  tagWrap.querySelectorAll('[data-rm-tag]').forEach(x => x.onclick = (e)=>{
+    e.stopPropagation();
+    removeTag(x.dataset.rmTag);
+  });
 
   $('det-comment-send').onclick = async ()=>{
     const body = $('det-comment-input').value.trim();
@@ -1688,6 +1961,176 @@ function openSetParentModal(id){
   }
 }
 
+// ════════════════════════════════════════════════════════════════════
+// SPRINTS PAGE
+// ════════════════════════════════════════════════════════════════════
+async function renderSprintsPage(){
+  // Populate iteration picker
+  const sel = $('sp-iteration');
+  // Pick a default iteration if none set yet
+  if(!state.currentIterationId){
+    state.currentIterationId = currentIteration()?.id || '';
+  }
+  sel.innerHTML = '<option value="">— No iteration selected —</option>' +
+    state.iterations.map(it => {
+      const d = (it.start_date && it.end_date)
+        ? ` (${it.start_date} → ${it.end_date})`
+        : '';
+      return `<option value="${esc(it.id)}" ${it.id===state.currentIterationId?'selected':''}>${esc(it.name)}${d}</option>`;
+    }).join('');
+  sel.onchange = ()=>{ state.currentIterationId = sel.value; renderSprintsPage(); };
+  $('sp-manage').onclick = openManageIterationsModal;
+
+  const board = $('sp-board');
+
+  if(!state.iterations.length){
+    board.innerHTML = `
+      <div class="sp-empty">
+        <div class="ti">No iterations yet</div>
+        <div>Iterations group work into time-boxed sprints. Create one to get started.</div>
+        <button class="btn" style="margin-top:12px" onclick="document.getElementById('sp-manage').click()">+ New iteration</button>
+      </div>`;
+    $('sp-meta').textContent = '';
+    return;
+  }
+  if(!state.currentIterationId){
+    board.innerHTML = '<div class="sp-empty"><div class="ti">Pick an iteration above</div></div>';
+    $('sp-meta').textContent = '';
+    return;
+  }
+
+  // Pull items in this iteration across all projects in the workspace
+  const { data: items, error } = await sb
+    .from('work_items')
+    .select('id, project_id, type, title, state, priority, story_points, assignee_id, tags, display_id, position, assignee:assignee_id(id, display_name)')
+    .eq('workspace_id', state.currentWsId)
+    .eq('iteration_id', state.currentIterationId)
+    .order('position', { ascending: true, nullsFirst: false });
+  if(error){ toast('Sprint items: '+friendlyError(error),'err'); return; }
+  const list = items || [];
+
+  // Stats
+  const totalPts = list.reduce((s,i) => s + (i.story_points || 0), 0);
+  const donePts  = list.filter(i => i.state === 'closed').reduce((s,i) => s + (i.story_points || 0), 0);
+  const it = state.iterations.find(i => i.id === state.currentIterationId);
+  const dateRange = (it.start_date && it.end_date) ? `${it.start_date} → ${it.end_date}` : 'No dates';
+  $('sp-meta').textContent = `${list.length} items · ${dateRange}`;
+
+  const projById = Object.fromEntries(state.projects.map(p => [p.id, p]));
+
+  const byState = { new:[], active:[], resolved:[], closed:[] };
+  for(const w of list){ (byState[w.state] || byState.new).push(w); }
+
+  const cols = STATE_ORDER.map(s => {
+    const meta = STATE_META[s];
+    const arr = byState[s] || [];
+    return `<div class="col">
+      <div class="col-h"><div class="ti">${meta.label}</div><div class="cnt">${arr.length}</div></div>
+      <div class="col-body">
+        ${arr.map(w => {
+          const tm = TYPE_META[w.type] || TYPE_META.task;
+          const av = w.assignee ? `<span class="av" title="${esc(w.assignee.display_name)}">${esc(initial(w.assignee.display_name))}</span>` : '';
+          const pts = w.story_points != null ? `<span class="pts">${w.story_points}</span>` : '';
+          const pri = w.priority ? `<span class="pri p${w.priority}">P${w.priority}</span>` : '';
+          const proj = projById[w.project_id];
+          const tags = (w.tags || []).slice(0,2).map(t => renderTagChip(t)).join(' ');
+          return `<div class="card t-${w.type}" data-id="${esc(w.id)}">
+            <div class="row1">
+              <span class="type-ico">${tm.ico}</span>
+              <span class="id">#${w.display_id || '—'}</span>
+              ${proj ? `<span style="margin-left:6px;font-size:10px;color:var(--muted)">${esc(proj.name)}</span>` : ''}
+              ${pts}
+            </div>
+            <div class="ti">${esc(w.title)}</div>
+            <div class="row3">${pri}${tags ? ' '+tags : ''}${av ? '<span style="margin-left:auto">'+av+'</span>' : ''}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+
+  board.innerHTML = `
+    <div class="sp-stats">
+      <div class="stat"><strong>${list.length}</strong>Total items</div>
+      <div class="stat"><strong>${totalPts}</strong>Total points</div>
+      <div class="stat"><strong>${donePts}</strong>Completed points</div>
+      <div class="stat"><strong>${totalPts > 0 ? Math.round(donePts/totalPts*100) : 0}%</strong>Progress</div>
+    </div>
+    <div class="sp-board">${cols}</div>`;
+  board.querySelectorAll('.card').forEach(c => c.onclick = ()=> openDetail(c.dataset.id));
+}
+
+function openManageIterationsModal(){
+  const root = $('modal-root');
+  root.innerHTML = `
+    <div class="modal-bg">
+      <div class="modal" style="max-width:560px">
+        <div class="modal-h"><h3>Manage iterations</h3><button class="x" id="mx">×</button></div>
+        <div class="modal-b">
+          <div id="it-list" style="margin-bottom:14px"></div>
+          <div style="border-top:1px solid var(--border);padding-top:14px">
+            <div style="font-weight:600;font-size:13px;margin-bottom:8px">New iteration</div>
+            <div class="field"><label>Name</label><input id="it-name" placeholder="e.g. Sprint 7" maxlength="60"></div>
+            <div class="field row" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div><label>Start date</label><input type="date" id="it-start"></div>
+              <div><label>End date</label><input type="date" id="it-end"></div>
+            </div>
+            <button class="btn" id="it-add">+ Add iteration</button>
+          </div>
+        </div>
+        <div class="modal-f"><button class="btn ghost" id="close">Close</button></div>
+      </div>
+    </div>`;
+  const close = ()=> root.innerHTML='';
+  $('mx').onclick = close; $('close').onclick = close;
+
+  function renderList(){
+    if(!state.iterations.length){
+      $('it-list').innerHTML = '<div style="color:var(--muted);font-style:italic;font-size:13px">No iterations yet</div>';
+      return;
+    }
+    $('it-list').innerHTML = state.iterations.map(it => {
+      const d = (it.start_date && it.end_date) ? `${it.start_date} → ${it.end_date}` : '(no dates)';
+      return `<div style="display:flex;align-items:center;gap:8px;padding:8px;border:1px solid var(--border);border-radius:var(--r);margin-bottom:6px">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:13px">${esc(it.name)}</div>
+          <div style="font-size:11px;color:var(--muted)">${esc(d)}</div>
+        </div>
+        <button class="btn ghost sm" data-del="${esc(it.id)}">Delete</button>
+      </div>`;
+    }).join('');
+    $('it-list').querySelectorAll('[data-del]').forEach(b => b.onclick = async ()=>{
+      if(!confirm('Delete this iteration? Work items will lose their iteration link.')) return;
+      const { error } = await sb.from('iterations').delete().eq('id', b.dataset.del);
+      if(error){ toast(friendlyError(error),'err'); return; }
+      await loadIterations();
+      renderList();
+      if(state.currentIterationId === b.dataset.del){
+        state.currentIterationId = null;
+      }
+    });
+  }
+  renderList();
+
+  $('it-add').onclick = async ()=>{
+    const name = $('it-name').value.trim();
+    if(!name){ toast('Name required','err'); return; }
+    const payload = {
+      id: crypto.randomUUID(),
+      workspace_id: state.currentWsId,
+      name,
+      start_date: $('it-start').value || null,
+      end_date: $('it-end').value || null,
+      created_by: state.user.id,
+    };
+    const { error } = await sb.from('iterations').insert(payload);
+    if(error){ toast(friendlyError(error),'err'); return; }
+    $('it-name').value = ''; $('it-start').value = ''; $('it-end').value = '';
+    await loadIterations();
+    renderList();
+    toast('Iteration created','ok');
+  };
+}
 // ════════════════════════════════════════════════════════════════════
 // MEMBERS PAGE (minimal — list + invite)
 // ════════════════════════════════════════════════════════════════════
