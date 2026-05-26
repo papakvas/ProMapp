@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="el">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ProMapp · Work Items</title>
+<title>ProMapp · Εργασίες</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -468,17 +468,17 @@ a:hover{text-decoration:underline}
 </head>
 <body>
 
-<div id="boot" class="center"><div style="color:var(--muted)">Loading…</div></div>
+<div id="boot" class="center"><div style="color:var(--muted)">Φόρτωση…</div></div>
 
 <div id="auth" class="center hidden">
   <div class="auth">
     <h1>ProMapp · ADO</h1>
-    <div class="sub">Sign in to continue</div>
+    <div class="sub">Συνδεθείτε για να συνεχίσετε</div>
     <div id="auth-form">
       <div class="field"><label>Email</label><input type="email" id="email" autocomplete="email"></div>
-      <div class="field"><label>Password</label><input type="password" id="password" autocomplete="current-password"></div>
-      <button class="primary" id="btn-signin">Sign in</button>
-      <div class="switch"><a id="link-signup">Create an account</a> · <a id="link-magic">Send magic link</a></div>
+      <div class="field"><label>Κωδικός</label><input type="password" id="password" autocomplete="current-password"></div>
+      <button class="primary" id="btn-signin">Σύνδεση</button>
+      <div class="switch"><a id="link-signup">Δημιουργία λογαριασμού</a> · <a id="link-magic">Αποστολή magic link</a></div>
     </div>
   </div>
 </div>
@@ -489,25 +489,25 @@ a:hover{text-decoration:underline}
   <div class="topbar">
     <button class="iconbtn menu-btn" id="menu-btn">≡</button>
     <div class="logo"><div class="mark">P</div><span>ProMapp</span></div>
-    <span class="crumb"><span id="crumb-ws">—</span><span class="sep">/</span><span id="crumb-page">Boards</span></span>
+    <span class="crumb"><span id="crumb-ws">—</span><span class="sep">/</span><span id="crumb-page">Πίνακες</span></span>
     <div class="spacer"></div>
     <div class="search-wrap" id="search-wrap">
-      <input id="search-input" placeholder="Search work items… (Ctrl+/)" autocomplete="off">
+      <input id="search-input" placeholder="Αναζήτηση εργασιών… (Ctrl+/)" autocomplete="off">
       <div class="search-results hidden" id="search-results"></div>
     </div>
     <button class="ws-pick" id="ws-pick">
       <span id="ws-pick-name">workspace</span>
       <span style="font-size:10px">▾</span>
     </button>
-    <button class="iconbtn" id="theme-toggle" title="Toggle theme">◐</button>
-    <button class="bell" id="bell-btn" title="Inbox (mentions of you)">
+    <button class="iconbtn" id="theme-toggle" title="Εναλλαγή θέματος">◐</button>
+    <button class="bell" id="bell-btn" title="Εισερχόμενα (αναφορές προς εσάς)">
       <span style="font-size:15px">🔔</span>
       <span class="count hidden" id="bell-count">0</span>
     </button>
     <div class="user">
       <div class="av" id="user-av">?</div>
       <span class="nm" id="user-nm">—</span>
-      <button class="iconbtn" id="signout" title="Sign out" style="width:24px;height:24px;font-size:14px">⎋</button>
+      <button class="iconbtn" id="signout" title="Αποσύνδεση" style="width:24px;height:24px;font-size:14px">⎋</button>
     </div>
   </div>
 
@@ -517,20 +517,20 @@ a:hover{text-decoration:underline}
     <aside class="sidebar" id="sidebar">
       <div class="sb-project">
         <div class="icon" id="cur-proj-icon">·</div>
-        <div class="nm" id="cur-proj-nm">No project</div>
-        <button class="add" id="btn-new-proj" title="New project">+</button>
+        <div class="nm" id="cur-proj-nm">Χωρίς έργο</div>
+        <button class="add" id="btn-new-proj" title="Νέο έργο">+</button>
       </div>
       <div class="sb-nav">
-        <div class="group">Plan</div>
-        <button id="nav-board"   ><span class="ico">▤</span>Boards</button>
-        <button id="nav-backlog" ><span class="ico">≣</span>Backlogs</button>
-        <button id="nav-sprints" ><span class="ico">🏃</span>Sprints</button>
-        <div class="group">Project</div>
-        <button id="nav-overview" class="active"><span class="ico">⌂</span>Overview</button>
-        <button id="nav-members" ><span class="ico">👥</span>Members</button>
+        <div class="group">Σχεδιασμός</div>
+        <button id="nav-board"   ><span class="ico">▤</span>Πίνακες</button>
+        <button id="nav-backlog" ><span class="ico">≣</span>Λίστα εργασιών</button>
+        <button id="nav-sprints" ><span class="ico">🏃</span>Περίοδοι</button>
+        <div class="group">Έργο</div>
+        <button id="nav-overview" class="active"><span class="ico">⌂</span>Επισκόπηση</button>
+        <button id="nav-members" ><span class="ico">👥</span>Ομάδα</button>
       </div>
       <div class="sb-projects-list" id="proj-list">
-        <div class="empty">Loading projects…</div>
+        <div class="empty">Φόρτωση έργων…</div>
       </div>
     </aside>
 
@@ -539,7 +539,7 @@ a:hover{text-decoration:underline}
 
       <!-- SUBTOPBAR (varies by page) -->
       <div class="subtopbar">
-        <h1 id="sub-title">Overview</h1>
+        <h1 id="sub-title">Επισκόπηση</h1>
         <div class="tabs" id="sub-tabs"></div>
         <div class="spacer"></div>
         <div class="actions" id="sub-actions"></div>
@@ -561,28 +561,28 @@ a:hover{text-decoration:underline}
       <div class="page hidden" id="page-backlog">
         <div class="backlog">
           <div class="backlog-toolbar">
-            <label style="font-size:12px;color:var(--muted);font-weight:600">Show:</label>
+            <label style="font-size:12px;color:var(--muted);font-weight:600">Εμφάνιση:</label>
             <select id="bl-type-filter">
-              <option value="all">All types</option>
-              <option value="epic">Epics</option>
-              <option value="feature">Features</option>
-              <option value="story">Stories</option>
-              <option value="task">Tasks</option>
-              <option value="bug">Bugs</option>
+              <option value="all">Όλοι οι τύποι</option>
+              <option value="epic">Καμπάνιες</option>
+              <option value="feature">Δράσεις</option>
+              <option value="story">Briefs</option>
+              <option value="task">Εργασίες</option>
+              <option value="bug">Προβλήματα</option>
             </select>
             <select id="bl-state-filter">
-              <option value="open">Open (not closed)</option>
-              <option value="all">All states</option>
-              <option value="new">New</option>
-              <option value="active">Active</option>
-              <option value="resolved">Resolved</option>
-              <option value="closed">Closed</option>
+              <option value="open">Ανοιχτά (όχι κλειστά)</option>
+              <option value="all">Όλες οι καταστάσεις</option>
+              <option value="new">Νέο</option>
+              <option value="active">Σε εξέλιξη</option>
+              <option value="resolved">Έτοιμο</option>
+              <option value="closed">Κλειστό</option>
             </select>
             <select id="bl-tag-filter">
-              <option value="">All tags</option>
+              <option value="">Όλες οι ετικέτες</option>
             </select>
             <div class="spacer" style="flex:1"></div>
-            <button class="btn" id="bl-new-top">+ New work item</button>
+            <button class="btn" id="bl-new-top">+ Νέα εργασία</button>
           </div>
           <div class="bl-table" id="bl-tree"></div>
         </div>
@@ -593,9 +593,9 @@ a:hover{text-decoration:underline}
         <div class="sprints-wrap">
           <div class="sprints-toolbar">
             <select id="sp-iteration">
-              <option value="">— No iteration —</option>
+              <option value="">— Καμία περίοδος —</option>
             </select>
-            <button class="btn ghost sm" id="sp-manage">⚙ Manage iterations</button>
+            <button class="btn ghost sm" id="sp-manage">⚙ Διαχείριση περιόδων</button>
             <div class="spacer" style="flex:1"></div>
             <span id="sp-meta" style="font-size:12px;color:var(--muted)"></span>
           </div>
@@ -630,8 +630,8 @@ a:hover{text-decoration:underline}
 // ════════════════════════════════════════════════════════════════════
 // CONFIG — same Supabase project as the main app
 // ════════════════════════════════════════════════════════════════════
-const SUPABASE_URL      = 'https://ouppawndgtiejiebamph.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_9gI5pdoJHW9DxvJ98KjGaw_C-7VsMP5';
+const SUPABASE_URL      = 'https://gjrxlmltnegwfdfhrdss.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_y0OoOhKEzj0eD8jU4lcjLg_HM21j3aP';
 
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: { persistSession: true, autoRefreshToken: true, storageKey: 'pm-ado-auth' }
@@ -663,19 +663,19 @@ const state = {
 // CONSTANTS — type hierarchy & visuals
 // ════════════════════════════════════════════════════════════════════
 const TYPE_META = {
-  epic:    { ico: '👑', label: 'Epic',    color: 'purple', children: ['feature'] },
-  feature: { ico: '✦',  label: 'Feature', color: 'orange', children: ['story'] },
-  story:   { ico: '📖', label: 'Story',   color: 'blue',   children: ['task','bug'] },
-  task:    { ico: '✓',  label: 'Task',    color: 'yellow', children: [] },
-  bug:     { ico: '🐞', label: 'Bug',     color: 'red',    children: [] },
+  epic:    { ico: '👑', label: 'Καμπάνια', color: 'purple', children: ['feature'] },
+  feature: { ico: '✦',  label: 'Δράση',    color: 'orange', children: ['story'] },
+  story:   { ico: '📖', label: 'Brief',    color: 'blue',   children: ['task','bug'] },
+  task:    { ico: '✓',  label: 'Εργασία',  color: 'yellow', children: [] },
+  bug:     { ico: '🐞', label: 'Πρόβλημα', color: 'red',    children: [] },
 };
 const TYPE_ORDER = ['epic','feature','story','task','bug'];
 
 const STATE_META = {
-  new:      { label: 'New',      class:'s-new' },
-  active:   { label: 'Active',   class:'s-active' },
-  resolved: { label: 'Resolved', class:'s-resolved' },
-  closed:   { label: 'Closed',   class:'s-closed' },
+  new:      { label: 'Νέο',         class:'s-new' },
+  active:   { label: 'Σε εξέλιξη',  class:'s-active' },
+  resolved: { label: 'Έτοιμο',      class:'s-resolved' },
+  closed:   { label: 'Κλειστό',     class:'s-closed' },
 };
 const STATE_ORDER = ['new','active','resolved','closed'];
 
@@ -683,24 +683,24 @@ const STATE_ORDER = ['new','active','resolved','closed'];
 // and a hint. Stored in work_items.custom_fields JSONB.
 const CUSTOM_FIELDS = {
   epic: [
-    { key:'business_value', label:'Business value', kind:'textarea', md:true,  hint:'Why this matters to the business.' },
-    { key:'target_date',    label:'Target date',    kind:'date' },
+    { key:'business_value', label:'Επιχειρηματική αξία', kind:'textarea', md:true,  hint:'Γιατί έχει σημασία για την επιχείρηση.' },
+    { key:'target_date',    label:'Προθεσμία',           kind:'date' },
   ],
   feature: [
-    { key:'acceptance_criteria', label:'Acceptance criteria', kind:'textarea', md:true,  hint:'How we know this feature is done.' },
-    { key:'target_date',         label:'Target date',         kind:'date' },
+    { key:'acceptance_criteria', label:'Κριτήρια αποδοχής', kind:'textarea', md:true,  hint:'Πώς ξέρουμε ότι η δράση ολοκληρώθηκε.' },
+    { key:'target_date',         label:'Προθεσμία',         kind:'date' },
   ],
   story: [
-    { key:'acceptance_criteria', label:'Acceptance criteria', kind:'textarea', md:true,  hint:'How we know this story is done.' },
+    { key:'acceptance_criteria', label:'Κριτήρια αποδοχής', kind:'textarea', md:true,  hint:'Πώς ξέρουμε ότι το brief ολοκληρώθηκε.' },
   ],
   task: [
-    { key:'activity', label:'Activity', kind:'select', options:['', 'Design', 'Development', 'Testing', 'Documentation', 'Deployment', 'Requirements'] },
+    { key:'activity', label:'Δραστηριότητα', kind:'select', options:['', 'Σχεδιασμός', 'Υλοποίηση', 'Έλεγχος', 'Τεκμηρίωση', 'Παράδοση', 'Απαιτήσεις'] },
   ],
   bug: [
-    { key:'severity',    label:'Severity',         kind:'select', options:['','1 - Critical','2 - High','3 - Medium','4 - Low'] },
-    { key:'repro_steps', label:'Repro steps',      kind:'textarea', md:true, hint:'Step-by-step to reproduce. Markdown OK.' },
-    { key:'system_info', label:'System info',      kind:'textarea',          hint:'Browser / OS / build / version.' },
-    { key:'found_in',    label:'Found in build',   kind:'text',              hint:'e.g. 1.4.2 or commit hash' },
+    { key:'severity',    label:'Σοβαρότητα',          kind:'select', options:['','1 - Κρίσιμη','2 - Υψηλή','3 - Μέτρια','4 - Χαμηλή'] },
+    { key:'repro_steps', label:'Βήματα αναπαραγωγής', kind:'textarea', md:true, hint:'Βήμα-βήμα για να αναπαραχθεί. Markdown OK.' },
+    { key:'system_info', label:'Πληροφορίες συστήματος', kind:'textarea',       hint:'Browser / OS / build / version.' },
+    { key:'found_in',    label:'Εντοπίστηκε σε',      kind:'text',              hint:'π.χ. 1.4.2 ή commit hash' },
   ],
 };
 function customFieldsFor(type){ return CUSTOM_FIELDS[type] || []; }
@@ -798,7 +798,7 @@ function wireMentionAutocomplete(ta){
       document.body.appendChild(pop);
     }
     if(!matches.length){
-      pop.innerHTML = '<div class="mp-empty">No member matches "' + esc(query) + '"</div>';
+      pop.innerHTML = '<div class="mp-empty">Κανένα μέλος για "' + esc(query) + '"</div>';
     } else {
       pop.innerHTML = matches.map((m, i) => `
         <div class="mp-item ${i===selIdx?'sel':''}" data-i="${i}">
@@ -900,8 +900,8 @@ function openInbox(){
   panel.className = 'inbox-panel';
   panel.innerHTML = `
     <div class="inbox-h">
-      <h3>Mentions</h3>
-      ${state.unreadMentions.length ? '<button class="btn ghost sm" id="inbox-mark-all">Mark all read</button>' : ''}
+      <h3>Αναφορές</h3>
+      ${state.unreadMentions.length ? '<button class="btn ghost sm" id="inbox-mark-all">Σήμανση όλων</button>' : ''}
     </div>
     ${state.unreadMentions.length ? state.unreadMentions.map(m => {
       const wi = m.work_items;
@@ -909,8 +909,8 @@ function openInbox(){
       const snippet = (m.comment?.body || '').slice(0, 140);
       return `<div class="inbox-item" data-mid="${esc(m.id)}" data-wid="${esc(m.work_item_id)}" data-pid="${esc(proj?.workspace_id ? wi.project_id : '')}">
         <div class="head">
-          <strong>${esc(m.author?.display_name || 'Someone')}</strong>
-          <span>mentioned you in</span>
+          <strong>${esc(m.author?.display_name || 'Κάποιος')}</strong>
+          <span>σας ανέφερε στο</span>
           <span class="id">#${wi?.display_id || '—'}</span>
           ${proj ? `<span style="color:var(--muted)">${esc(proj.name)}</span>` : ''}
         </div>
@@ -918,7 +918,7 @@ function openInbox(){
         <div class="body" style="color:var(--muted);font-style:italic;margin-top:3px">"${esc(snippet)}${(m.comment?.body || '').length > 140 ? '…' : ''}"</div>
         <div class="ts">${esc(fmtTime(m.created_at))}</div>
       </div>`;
-    }).join('') : '<div class="inbox-empty">No unread mentions 🎉</div>'}
+    }).join('') : '<div class="inbox-empty">Καμία νέα αναφορά 🎉</div>'}
   `;
   document.body.appendChild(panel);
   panel.querySelectorAll('.inbox-item').forEach(it => it.onclick = async ()=>{
@@ -1014,7 +1014,7 @@ function wireCustomFieldEditors(id, w){
         ta.value = orig;
         const hint = document.createElement('div');
         hint.className = 'md-hint';
-        hint.textContent = (f.hint || '') + ' Markdown supported.';
+        hint.textContent = (f.hint || '') + ' Υποστηρίζεται markdown.';
         wrap.appendChild(ta);
         wrap.appendChild(hint);
         el.replaceWith(wrap);
@@ -1116,11 +1116,11 @@ function toast(msg, kind=''){
 }
 
 function friendlyError(e){
-  if(!e) return 'Unknown error';
+  if(!e) return 'Άγνωστο σφάλμα';
   const m = e.message || e.error_description || JSON.stringify(e);
-  if(e.code === '42501') return 'Permission denied (RLS)';
-  if(e.code === '23505') return 'Already exists';
-  if(e.code === '23503') return 'Linked record not found';
+  if(e.code === '42501') return 'Δεν επιτρέπεται (RLS)';
+  if(e.code === '23505') return 'Υπάρχει ήδη';
+  if(e.code === '23503') return 'Δεν βρέθηκε συνδεδεμένη εγγραφή';
   return m;
 }
 
@@ -1129,11 +1129,11 @@ function fmtTime(iso){
   const d = new Date(iso);
   const now = new Date();
   const diff = (now - d) / 1000;
-  if(diff < 60) return 'just now';
-  if(diff < 3600) return Math.floor(diff/60) + 'm ago';
-  if(diff < 86400) return Math.floor(diff/3600) + 'h ago';
-  if(diff < 604800) return Math.floor(diff/86400) + 'd ago';
-  return d.toLocaleDateString();
+  if(diff < 60) return 'μόλις τώρα';
+  if(diff < 3600) return Math.floor(diff/60) + 'λ πριν';
+  if(diff < 86400) return Math.floor(diff/3600) + 'ώ πριν';
+  if(diff < 604800) return Math.floor(diff/86400) + 'η πριν';
+  return d.toLocaleDateString('el-GR');
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -1143,18 +1143,18 @@ let authMode = 'signin';
 $('btn-signin').onclick = async ()=>{
   const email = $('email').value.trim();
   const password = $('password').value;
-  if(!email){ toast('Email required','err'); return; }
+  if(!email){ toast('Απαιτείται email','err'); return; }
   if(authMode === 'magic'){
     const { error } = await sb.auth.signInWithOtp({ email });
     if(error){ toast(friendlyError(error),'err'); return; }
-    toast('Magic link sent — check email','ok');
+    toast('Το magic link στάλθηκε — ελέγξτε το email σας','ok');
     return;
   }
-  if(!password){ toast('Password required','err'); return; }
+  if(!password){ toast('Απαιτείται κωδικός','err'); return; }
   if(authMode === 'signup'){
     const { error } = await sb.auth.signUp({ email, password });
     if(error){ toast(friendlyError(error),'err'); return; }
-    toast('Check email to confirm, then sign in','ok');
+    toast('Ελέγξτε το email για επιβεβαίωση και μετά συνδεθείτε','ok');
     setAuthMode('signin');
     return;
   }
@@ -1165,7 +1165,7 @@ $('btn-signin').onclick = async ()=>{
 
 function setAuthMode(m){
   authMode = m;
-  $('btn-signin').textContent = m === 'signup' ? 'Sign up' : (m === 'magic' ? 'Send link' : 'Sign in');
+  $('btn-signin').textContent = m === 'signup' ? 'Εγγραφή' : (m === 'magic' ? 'Αποστολή link' : 'Σύνδεση');
   $('password').style.display = m === 'magic' ? 'none' : '';
   $('password').previousElementSibling.style.display = m === 'magic' ? 'none' : '';
 }
@@ -1216,7 +1216,7 @@ async function loadWorkspaces(){
     .from('workspace_members')
     .select('workspace_id, role, workspaces:workspace_id(id, name, owner_id)')
     .eq('user_id', state.user.id);
-  if(error){ toast('Workspaces: '+friendlyError(error),'err'); return; }
+  if(error){ toast('Χώροι εργασίας: '+friendlyError(error),'err'); return; }
   state.memberships = (data||[]).filter(m => m.workspaces);
   if(state.memberships.length){
     // Pick saved or first
@@ -1249,7 +1249,7 @@ function openWsPicker(){
   root.innerHTML = `
     <div class="modal-bg">
       <div class="modal" style="max-width:380px">
-        <div class="modal-h"><h3>Switch workspace</h3><button class="x" id="mx">×</button></div>
+        <div class="modal-h"><h3>Αλλαγή χώρου εργασίας</h3><button class="x" id="mx">×</button></div>
         <div class="modal-b">
           ${state.memberships.map(m => `
             <div class="dropdown-item" data-ws="${esc(m.workspaces.id)}" style="padding:10px 12px;border-radius:var(--r);cursor:pointer;display:flex;align-items:center;gap:8px;${m.workspaces.id===state.currentWsId?'background:var(--blue-dim);color:var(--blue);font-weight:600':''}">
@@ -1258,7 +1258,7 @@ function openWsPicker(){
               ${m.workspaces.id===state.currentWsId?'<span>✓</span>':''}
             </div>`).join('')}
           <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
-            <button class="btn" id="ws-new" style="width:100%">+ New workspace</button>
+            <button class="btn" id="ws-new" style="width:100%">+ Νέος χώρος εργασίας</button>
           </div>
         </div>
       </div>
@@ -1278,13 +1278,13 @@ function openNewWorkspaceModal(){
   root.innerHTML = `
     <div class="modal-bg">
       <div class="modal" style="max-width:380px">
-        <div class="modal-h"><h3>New workspace</h3><button class="x" id="mx">×</button></div>
+        <div class="modal-h"><h3>Νέος χώρος εργασίας</h3><button class="x" id="mx">×</button></div>
         <div class="modal-b">
-          <div class="field"><label>Name</label><input id="nw-name" placeholder="My team" maxlength="60"></div>
+          <div class="field"><label>Όνομα</label><input id="nw-name" placeholder="Η ομάδα μου" maxlength="60"></div>
         </div>
         <div class="modal-f">
-          <button class="btn ghost" id="cancel">Cancel</button>
-          <button class="btn" id="ok">Create</button>
+          <button class="btn ghost" id="cancel">Άκυρο</button>
+          <button class="btn" id="ok">Δημιουργία</button>
         </div>
       </div>
     </div>`;
@@ -1302,7 +1302,7 @@ function openNewWorkspaceModal(){
         .insert({ workspace_id: wsId, user_id: state.user.id, role:'owner' });
       if(e2) throw e2;
       close();
-      toast('Workspace created','ok');
+      toast('Ο χώρος εργασίας δημιουργήθηκε','ok');
       await loadWorkspaces();
     }catch(err){ toast(friendlyError(err),'err'); }
   };
@@ -1318,7 +1318,7 @@ async function loadProjects(){
     .select('id, name, description, created_at')
     .eq('workspace_id', state.currentWsId)
     .order('created_at', { ascending: true });
-  if(error){ toast('Projects: '+friendlyError(error),'err'); return; }
+  if(error){ toast('Έργα: '+friendlyError(error),'err'); return; }
   state.projects = data || [];
   renderProjectsSidebar();
   // Auto-pick first project if none selected
@@ -1357,19 +1357,19 @@ async function selectProject(id){
 
 $('btn-new-proj').onclick = ()=> openNewProjectModal();
 function openNewProjectModal(){
-  if(!state.currentWsId){ toast('Pick a workspace first','err'); return; }
+  if(!state.currentWsId){ toast('Επιλέξτε πρώτα χώρο εργασίας','err'); return; }
   const root = $('modal-root');
   root.innerHTML = `
     <div class="modal-bg">
       <div class="modal">
-        <div class="modal-h"><h3>New project</h3><button class="x" id="mx">×</button></div>
+        <div class="modal-h"><h3>Νέο έργο</h3><button class="x" id="mx">×</button></div>
         <div class="modal-b">
-          <div class="field"><label>Name</label><input id="np-name" placeholder="e.g. market-q3" maxlength="60"></div>
-          <div class="field"><label>Description (optional)</label><textarea id="np-desc" maxlength="500"></textarea></div>
+          <div class="field"><label>Όνομα</label><input id="np-name" placeholder="π.χ. market-q3" maxlength="60"></div>
+          <div class="field"><label>Περιγραφή (προαιρετικό)</label><textarea id="np-desc" maxlength="500"></textarea></div>
         </div>
         <div class="modal-f">
-          <button class="btn ghost" id="cancel">Cancel</button>
-          <button class="btn" id="ok">Create</button>
+          <button class="btn ghost" id="cancel">Άκυρο</button>
+          <button class="btn" id="ok">Δημιουργία</button>
         </div>
       </div>
     </div>`;
@@ -1387,7 +1387,7 @@ function openNewProjectModal(){
       });
       if(error) throw error;
       close();
-      toast('Project created','ok');
+      toast('Το έργο δημιουργήθηκε','ok');
       await loadProjects();
       await selectProject(pid);
     }catch(err){ toast(friendlyError(err),'err'); }
@@ -1413,7 +1413,7 @@ async function loadIterations(){
     .select('id, name, start_date, end_date, created_at')
     .eq('workspace_id', state.currentWsId)
     .order('start_date', { ascending: true, nullsFirst: true });
-  if(error){ toast('Iterations: '+friendlyError(error),'err'); return; }
+  if(error){ toast('Περίοδοι: '+friendlyError(error),'err'); return; }
   state.iterations = data || [];
 }
 
@@ -1441,7 +1441,7 @@ async function loadWorkItems(){
     .select('id, project_id, workspace_id, parent_id, type, title, description, state, priority, story_points, initial_estimate, remaining_work, assignee_id, area, iteration, iteration_id, tags, display_id, created_by, created_at, updated_at, position, custom_fields, assignee:assignee_id(id, display_name)')
     .eq('project_id', state.currentProjectId)
     .order('position', { ascending: true, nullsFirst: false });
-  if(error){ toast('Items: '+friendlyError(error),'err'); return; }
+  if(error){ toast('Εργασίες: '+friendlyError(error),'err'); return; }
   state.workItems = data || [];
 }
 
@@ -1482,10 +1482,10 @@ async function updateWorkItem(id, patch){
 }
 
 async function deleteWorkItem(id){
-  if(!confirm('Delete this work item? Its children will lose their parent link but remain.')) return;
+  if(!confirm('Διαγραφή εργασίας; Οι υποεργασίες θα παραμείνουν αλλά θα χάσουν τη σύνδεση με αυτήν.')) return;
   const { error } = await sb.from('work_items').delete().eq('id', id);
   if(error){ toast(friendlyError(error),'err'); return; }
-  toast('Deleted','ok');
+  toast('Διαγράφηκε','ok');
   await loadWorkItems();
   if(state.currentPage === 'detail' && state.currentItemId === id){
     goPage('backlog');
@@ -1567,12 +1567,12 @@ function goPage(name){
   $('sidebar').classList.remove('show');
   const ti = $('sub-title'), tabs = $('sub-tabs'), acts = $('sub-actions');
   tabs.innerHTML = ''; acts.innerHTML = '';
-  if(name === 'overview'){ ti.textContent = 'Overview'; $('crumb-page').textContent = 'Overview'; renderOverview(); }
-  else if(name === 'board'){ ti.textContent = state.currentProjectId ? (state.projects.find(p=>p.id===state.currentProjectId)?.name || '') : 'Boards'; $('crumb-page').textContent = 'Boards'; renderBoardHeader(); renderBoard(); }
-  else if(name === 'backlog'){ ti.textContent = state.currentProjectId ? (state.projects.find(p=>p.id===state.currentProjectId)?.name || '') : 'Backlog'; $('crumb-page').textContent = 'Backlog'; renderBacklog(); }
-  else if(name === 'sprints'){ ti.textContent = 'Sprints'; $('crumb-page').textContent = 'Sprints'; renderSprintsPage(); }
-  else if(name === 'detail'){ ti.textContent = ''; $('crumb-page').textContent = 'Work item'; renderDetail(); }
-  else if(name === 'members'){ ti.textContent = 'Members'; $('crumb-page').textContent = 'Members'; renderMembers(); }
+  if(name === 'overview'){ ti.textContent = 'Επισκόπηση'; $('crumb-page').textContent = 'Επισκόπηση'; renderOverview(); }
+  else if(name === 'board'){ ti.textContent = state.currentProjectId ? (state.projects.find(p=>p.id===state.currentProjectId)?.name || '') : 'Πίνακες'; $('crumb-page').textContent = 'Πίνακες'; renderBoardHeader(); renderBoard(); }
+  else if(name === 'backlog'){ ti.textContent = state.currentProjectId ? (state.projects.find(p=>p.id===state.currentProjectId)?.name || '') : 'Λίστα εργασιών'; $('crumb-page').textContent = 'Λίστα εργασιών'; renderBacklog(); }
+  else if(name === 'sprints'){ ti.textContent = 'Περίοδοι'; $('crumb-page').textContent = 'Περίοδοι'; renderSprintsPage(); }
+  else if(name === 'detail'){ ti.textContent = ''; $('crumb-page').textContent = 'Εργασία'; renderDetail(); }
+  else if(name === 'members'){ ti.textContent = 'Ομάδα'; $('crumb-page').textContent = 'Ομάδα'; renderMembers(); }
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -1584,9 +1584,9 @@ async function renderOverview(){
     el.innerHTML = `
       <div class="empty-state">
         <div class="ico">📋</div>
-        <div class="ti">No projects yet</div>
-        <div class="bd">Create your first project to start tracking epics, features, and tasks.</div>
-        <button class="btn" id="ov-new-proj" style="margin-top:16px">+ New project</button>
+        <div class="ti">Δεν υπάρχουν έργα ακόμη</div>
+        <div class="bd">Δημιουργήστε το πρώτο σας έργο για να ξεκινήσετε.</div>
+        <button class="btn" id="ov-new-proj" style="margin-top:16px">+ Νέο έργο</button>
       </div>`;
     $('ov-new-proj').onclick = openNewProjectModal;
     return;
@@ -1603,19 +1603,19 @@ async function renderOverview(){
   el.innerHTML = `
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:24px">
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);padding:14px">
-        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:600">Projects</div>
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:600">Έργα</div>
         <div style="font-size:28px;font-weight:600;color:var(--blue)">${state.projects.length}</div>
       </div>
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);padding:14px">
-        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:600">Open items</div>
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:600">Ανοιχτές εργασίες</div>
         <div style="font-size:28px;font-weight:600;color:var(--blue)">${totalOpen}</div>
       </div>
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);padding:14px">
-        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:600">Assigned to you</div>
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:600">Ανατεθειμένες σε εσάς</div>
         <div style="font-size:28px;font-weight:600;color:var(--blue)">${myOpen}</div>
       </div>
     </div>
-    <h2 style="font-size:16px;font-weight:600;margin-bottom:10px">Projects</h2>
+    <h2 style="font-size:16px;font-weight:600;margin-bottom:10px">Έργα</h2>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">
       ${state.projects.map(p => {
         const items = byProj[p.id] || [];
@@ -1623,10 +1623,10 @@ async function renderOverview(){
         const closed = items.length - open;
         return `<div class="proj-card" data-pid="${esc(p.id)}" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);padding:14px;cursor:pointer">
           <div style="font-weight:600;font-size:14px;margin-bottom:4px">#${esc(p.name)}</div>
-          <div style="color:var(--muted);font-size:12px;margin-bottom:10px;min-height:32px">${esc(p.description||'No description')}</div>
+          <div style="color:var(--muted);font-size:12px;margin-bottom:10px;min-height:32px">${esc(p.description||'Χωρίς περιγραφή')}</div>
           <div style="display:flex;gap:14px;font-size:12px">
-            <span><strong>${open}</strong> <span style="color:var(--muted)">open</span></span>
-            <span><strong>${closed}</strong> <span style="color:var(--muted)">closed</span></span>
+            <span><strong>${open}</strong> <span style="color:var(--muted)">ανοιχτές</span></span>
+            <span><strong>${closed}</strong> <span style="color:var(--muted)">κλειστές</span></span>
           </div>
         </div>`;
       }).join('')}
@@ -1643,17 +1643,17 @@ async function renderOverview(){
 function renderBoardHeader(){
   if(!state.currentProjectId) return;
   const tabs = $('sub-tabs');
-  tabs.innerHTML = `<div class="tab active">Board</div>`;
+  tabs.innerHTML = `<div class="tab active">Πίνακας</div>`;
   const acts = $('sub-actions');
   acts.innerHTML = `
     <select id="board-type-filter" style="font-size:12px;padding:4px 8px">
-      <option value="story">Stories</option>
-      <option value="epic">Epics</option>
-      <option value="feature">Features</option>
-      <option value="task">Tasks</option>
-      <option value="bug">Bugs</option>
+      <option value="story">Briefs</option>
+      <option value="epic">Καμπάνιες</option>
+      <option value="feature">Δράσεις</option>
+      <option value="task">Εργασίες</option>
+      <option value="bug">Προβλήματα</option>
     </select>
-    <button class="btn sm" id="board-new">+ Add</button>`;
+    <button class="btn sm" id="board-new">+ Προσθήκη</button>`;
   $('board-type-filter').onchange = renderBoard;
   $('board-new').onclick = ()=>{
     const type = $('board-type-filter').value;
@@ -1663,7 +1663,7 @@ function renderBoardHeader(){
 
 function renderBoard(){
   if(!state.currentProjectId){
-    $('board-cols').innerHTML = '<div class="empty-state"><div class="ti">No project selected</div><div class="bd">Pick a project from the sidebar.</div></div>';
+    $('board-cols').innerHTML = '<div class="empty-state"><div class="ti">Δεν έχει επιλεγεί έργο</div><div class="bd">Επιλέξτε ένα έργο από το πλαϊνό μενού.</div></div>';
     return;
   }
   const typeFilter = $('board-type-filter')?.value || 'story';
@@ -1682,7 +1682,7 @@ function renderBoard(){
       <div class="col-body">
         ${list.map(w => renderCard(w)).join('')}
       </div>
-      <div class="add-card" data-state="${s}">+ Add work item</div>
+      <div class="add-card" data-state="${s}">+ Προσθήκη εργασίας</div>
     </div>`;
   }).join('');
   $('board-cols').innerHTML = html;
@@ -1737,7 +1737,7 @@ function renderBoard(){
           }
           if(stateChanged){
             const sm = STATE_META[newState];
-            toast(`Moved to ${sm.label}`, 'ok');
+            toast(`Μετακινήθηκε σε ${sm.label}`, 'ok');
           }
           // Re-render counts/columns
           renderBoard();
@@ -1794,7 +1794,7 @@ function refreshBacklogTagFilter(){
   if(!tagSel) return;
   const cur = tagSel.value;
   const tags = allTags();
-  tagSel.innerHTML = '<option value="">All tags</option>' +
+  tagSel.innerHTML = '<option value="">Όλες οι ετικέτες</option>' +
     tags.map(t => `<option value="${esc(t)}" ${t===cur?'selected':''}>${esc(t)}</option>`).join('');
 }
 
@@ -1803,7 +1803,7 @@ function renderBacklog(){
   refreshBacklogTagFilter();
 
   if(!state.currentProjectId){
-    $('bl-tree').innerHTML = '<div class="bl-empty">No project selected</div>';
+    $('bl-tree').innerHTML = '<div class="bl-empty">Δεν έχει επιλεγεί έργο</div>';
     return;
   }
   const typeF  = $('bl-type-filter')?.value  || 'all';
@@ -1847,12 +1847,12 @@ function renderBacklog(){
       <div></div>
       <div></div>
       <div>ID</div>
-      <div>Title</div>
-      <div>Assigned to</div>
-      <div>State</div>
-      <div style="text-align:right">Remain</div>
+      <div>Τίτλος</div>
+      <div>Υπεύθυνος</div>
+      <div>Κατάσταση</div>
+      <div style="text-align:right">Υπόλοιπο</div>
     </div>
-    ${rowsHtml || '<div class="bl-empty">No work items match these filters. Try "+ New work item" or change the filter.</div>'}`;
+    ${rowsHtml || '<div class="bl-empty">Δεν υπάρχουν εργασίες που να ταιριάζουν με τα φίλτρα. Δοκιμάστε "+ Νέα εργασία" ή αλλάξτε φίλτρο.</div>'}`;
 
   // Wire
   $('bl-tree').querySelectorAll('.bl-row').forEach(row => {
@@ -1915,7 +1915,7 @@ function renderBacklog(){
               newParentId = aboveItem.id;
             } else {
               // Invalid drop — revert
-              toast(`Cannot place ${TYPE_META[item.type].label} under ${TYPE_META[aboveItem.type].label}`, 'err');
+              toast(`Δεν είναι δυνατή η τοποθέτηση: ${TYPE_META[item.type].label} κάτω από ${TYPE_META[aboveItem.type].label}`, 'err');
               renderBacklog();
               return;
             }
@@ -1961,7 +1961,7 @@ function renderBacklogRow(w, depth, hasKids, isExp){
   const childTypes = TYPE_META[w.type].children;
   const canAdd = childTypes.length > 0;
   return `<div class="bl-row depth-${Math.min(depth,4)}" data-id="${esc(w.id)}">
-    <div class="drag-handle" title="Drag to reorder">⋮⋮</div>
+    <div class="drag-handle" title="Σύρετε για αλλαγή σειράς">⋮⋮</div>
     <div class="expand ${hasKids?'':'none'} ${isExp?'open':''}">▶</div>
     <div class="id-cell">
       <span class="type-ico" title="${esc(tm.label)}">${tm.ico}</span>
@@ -1970,7 +1970,7 @@ function renderBacklogRow(w, depth, hasKids, isExp){
     <div class="title-cell">
       <span class="ti">${esc(w.title)}</span>
       ${(w.tags||[]).slice(0,2).map(t => renderTagChip(t)).join(' ')}
-      ${canAdd ? '<button class="add-child" title="Add child">+</button>' : ''}
+      ${canAdd ? '<button class="add-child" title="Προσθήκη υποεργασίας">+</button>' : ''}
     </div>
     <div class="av-name">${av}</div>
     <div><span class="state ${sm.class}">${esc(sm.label)}</span></div>
@@ -1992,7 +1992,7 @@ function openAddChildMenu(anchor, parentId){
   menu.style.left = r.left + 'px';
   menu.innerHTML = childTypes.map(t => {
     const m = TYPE_META[t];
-    return `<div class="item" data-t="${t}"><span class="type-ico">${m.ico}</span>Add ${esc(m.label)}</div>`;
+    return `<div class="item" data-t="${t}"><span class="type-ico">${m.ico}</span>Προσθήκη ${esc(m.label)}</div>`;
   }).join('');
   document.body.appendChild(menu);
   menu.querySelectorAll('[data-t]').forEach(it => it.onclick = ()=>{
@@ -2012,46 +2012,46 @@ function openAddChildMenu(anchor, parentId){
 // NEW ITEM MODAL
 // ════════════════════════════════════════════════════════════════════
 function openNewItemModal({ type, parent_id, state: itemState }){
-  if(!state.currentProjectId){ toast('Pick a project first','err'); return; }
+  if(!state.currentProjectId){ toast('Επιλέξτε πρώτα έργο','err'); return; }
   type = type || 'story';
   const parent = parent_id ? itemById(parent_id) : null;
   const root = $('modal-root');
   root.innerHTML = `
     <div class="modal-bg">
       <div class="modal">
-        <div class="modal-h"><h3>New ${TYPE_META[type].label}</h3><button class="x" id="mx">×</button></div>
+        <div class="modal-h"><h3>Νέα ${TYPE_META[type].label}</h3><button class="x" id="mx">×</button></div>
         <div class="modal-b">
-          ${parent ? `<div class="field"><label>Parent</label><div style="padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);font-size:13px"><span style="font-family:var(--mono);color:var(--muted);font-size:11px">#${parent.display_id||'—'}</span> ${TYPE_META[parent.type].ico} ${esc(parent.title)}</div></div>` : ''}
-          <div class="field"><label>Type</label>
+          ${parent ? `<div class="field"><label>Γονική εργασία</label><div style="padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);font-size:13px"><span style="font-family:var(--mono);color:var(--muted);font-size:11px">#${parent.display_id||'—'}</span> ${TYPE_META[parent.type].ico} ${esc(parent.title)}</div></div>` : ''}
+          <div class="field"><label>Τύπος</label>
             <select id="ni-type">
               ${TYPE_ORDER.map(t => `<option value="${t}" ${t===type?'selected':''}>${TYPE_META[t].ico} ${TYPE_META[t].label}</option>`).join('')}
             </select>
           </div>
-          <div class="field"><label>Title</label><input id="ni-title" maxlength="200" autofocus></div>
-          <div class="field"><label>Description (optional)</label><textarea id="ni-desc"></textarea></div>
+          <div class="field"><label>Τίτλος</label><input id="ni-title" maxlength="200" autofocus></div>
+          <div class="field"><label>Περιγραφή (προαιρετικό)</label><textarea id="ni-desc"></textarea></div>
           <div class="field" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-            <div><label>State</label>
+            <div><label>Κατάσταση</label>
               <select id="ni-state">${STATE_ORDER.map(s => `<option value="${s}" ${s===(itemState||'new')?'selected':''}>${STATE_META[s].label}</option>`).join('')}</select>
             </div>
-            <div><label>Priority</label>
+            <div><label>Προτεραιότητα</label>
               <select id="ni-priority">
-                <option value="1">P1 — Critical</option>
-                <option value="2" selected>P2 — High</option>
-                <option value="3">P3 — Medium</option>
-                <option value="4">P4 — Low</option>
+                <option value="1">P1 — Κρίσιμη</option>
+                <option value="2" selected>P2 — Υψηλή</option>
+                <option value="3">P3 — Μέτρια</option>
+                <option value="4">P4 — Χαμηλή</option>
               </select>
             </div>
           </div>
-          <div class="field"><label>Assignee</label>
+          <div class="field"><label>Υπεύθυνος</label>
             <select id="ni-assignee">
-              <option value="">— Unassigned —</option>
+              <option value="">— Χωρίς ανάθεση —</option>
               ${state.members.map(m => `<option value="${esc(m.id)}">${esc(m.display_name)}</option>`).join('')}
             </select>
           </div>
         </div>
         <div class="modal-f">
-          <button class="btn ghost" id="cancel">Cancel</button>
-          <button class="btn" id="ok">Create</button>
+          <button class="btn ghost" id="cancel">Άκυρο</button>
+          <button class="btn" id="ok">Δημιουργία</button>
         </div>
       </div>
     </div>`;
@@ -2060,7 +2060,7 @@ function openNewItemModal({ type, parent_id, state: itemState }){
   setTimeout(()=> $('ni-title').focus(), 30);
   $('ok').onclick = async ()=>{
     const title = $('ni-title').value.trim();
-    if(!title){ toast('Title required','err'); return; }
+    if(!title){ toast('Απαιτείται τίτλος','err'); return; }
     const payload = {
       type: $('ni-type').value,
       title,
@@ -2073,7 +2073,7 @@ function openNewItemModal({ type, parent_id, state: itemState }){
     const id = await createWorkItem(payload);
     if(id){
       close();
-      toast('Created','ok');
+      toast('Δημιουργήθηκε','ok');
       // If created from backlog with a parent, auto-expand the parent
       if(parent_id){
         const set = getExpanded(); set.add(parent_id); setExpanded(set);
@@ -2122,10 +2122,10 @@ async function loadDetailActivity(){
 // Human-readable formatting for activity entries
 function activityFieldLabel(field){
   const map = {
-    title:'title', state:'state', priority:'priority', assignee_id:'assignee',
-    story_points:'story points', remaining_work:'remaining work', parent_id:'parent',
-    iteration_id:'iteration', tags:'tags', description:'description',
-    custom_fields:'custom fields', created:'created', deleted:'deleted',
+    title:'τον τίτλο', state:'την κατάσταση', priority:'την προτεραιότητα', assignee_id:'τον υπεύθυνο',
+    story_points:'τους πόντους', remaining_work:'το υπόλοιπο', parent_id:'τη γονική εργασία',
+    iteration_id:'την περίοδο', tags:'τις ετικέτες', description:'την περιγραφή',
+    custom_fields:'τα πεδία τύπου', created:'δημιουργήθηκε', deleted:'διαγράφηκε',
   };
   return map[field] || field;
 }
@@ -2134,11 +2134,11 @@ function activityValue(field, raw){
   // Resolve UUIDs to friendlier names
   if(field === 'assignee_id'){
     const m = state.members.find(x => x.id === raw);
-    return m ? m.display_name : 'someone';
+    return m ? m.display_name : 'κάποιον';
   }
   if(field === 'parent_id'){
     const p = state.workItems.find(x => x.id === raw);
-    return p ? `#${p.display_id} ${p.title}` : 'an item';
+    return p ? `#${p.display_id} ${p.title}` : 'μια εργασία';
   }
   if(field === 'iteration_id'){
     const it = state.iterations.find(x => x.id === raw);
@@ -2154,22 +2154,23 @@ function activityValue(field, raw){
 }
 function renderActivityHtml(){
   if(!detailActivity.length){
-    return '<div style="color:var(--muted);font-style:italic;font-size:12px">No history yet.</div>';
+    return '<div style="color:var(--muted);font-style:italic;font-size:12px">Δεν υπάρχει ιστορικό ακόμη.</div>';
   }
   return detailActivity.map(a => {
-    const who = a.author?.display_name || 'Someone';
+    const who = a.author?.display_name || 'Κάποιος';
     const fld = activityFieldLabel(a.field);
     let line;
     if(a.field === 'created'){
-      line = `created this ${esc(a.new_value || 'item')}`;
+      const typeLabel = TYPE_META[a.new_value]?.label || 'εργασία';
+      line = `δημιούργησε αυτή την ${esc(typeLabel)}`;
     } else if(a.field === 'deleted'){
-      line = `deleted this item`;
+      line = `διέγραψε αυτή την εργασία`;
     } else if(a.field === 'description' || a.field === 'custom_fields'){
-      line = `edited ${esc(fld)}`;
+      line = `επεξεργάστηκε ${esc(fld)}`;
     } else {
       const from = activityValue(a.field, a.old_value);
       const to   = activityValue(a.field, a.new_value);
-      line = `changed ${esc(fld)} from <strong>${esc(from)}</strong> to <strong>${esc(to)}</strong>`;
+      line = `άλλαξε ${esc(fld)} από <strong>${esc(from)}</strong> σε <strong>${esc(to)}</strong>`;
     }
     return `<div class="act">
       <div class="act-av">${esc(initial(who))}</div>
@@ -2182,7 +2183,7 @@ function renderActivityHtml(){
 }
 
 function renderCommentsHtml(){
-  if(!detailComments.length) return '<div style="color:var(--muted);font-style:italic;font-size:13px;padding:8px 0">No comments yet. Start the discussion.</div>';
+  if(!detailComments.length) return '<div style="color:var(--muted);font-style:italic;font-size:13px;padding:8px 0">Δεν υπάρχουν σχόλια ακόμη. Ξεκινήστε τη συζήτηση.</div>';
   return detailComments.map(c => `
     <div class="comment">
       <div class="av">${esc(initial(c.author?.display_name))}</div>
@@ -2215,52 +2216,52 @@ async function renderDetail(){
 
   $('detail-content').innerHTML = `
     <div class="det-top">
-      <button class="back" id="back-btn">← Back</button>
+      <button class="back" id="back-btn">← Πίσω</button>
       <div class="badge"><span class="type-ico">${tm.ico}</span>${esc(tm.label)}</div>
       <h2><span class="id">#${w.display_id || '—'}</span><span id="det-title-text">${esc(w.title)}</span></h2>
-      <button class="btn ghost sm" id="del-btn">Delete</button>
+      <button class="btn ghost sm" id="del-btn">Διαγραφή</button>
     </div>
     <div class="det-body">
       <div class="det-left">
         <div class="det-section">
           <div class="det-field">
-            <label>Title</label>
+            <label>Τίτλος</label>
             <input class="det-title-input" id="det-title" value="${esc(w.title)}" maxlength="200">
           </div>
         </div>
         <div class="det-section">
-          <h3>Description</h3>
-          <div class="det-desc ${w.description?'md-body':'empty'}" id="det-desc">${w.description ? renderMarkdown(w.description) : 'Click to add a description…'}</div>
+          <h3>Περιγραφή</h3>
+          <div class="det-desc ${w.description?'md-body':'empty'}" id="det-desc">${w.description ? renderMarkdown(w.description) : 'Πατήστε για να προσθέσετε περιγραφή…'}</div>
         </div>
         <div class="det-section">
-          <h3>Discussion</h3>
+          <h3>Συζήτηση</h3>
           <div class="comments" id="det-comments"></div>
           <div class="comment-input">
-            <textarea id="det-comment-input" placeholder="Add a comment…"></textarea>
-            <button class="btn" id="det-comment-send">Comment</button>
+            <textarea id="det-comment-input" placeholder="Γράψτε σχόλιο…"></textarea>
+            <button class="btn" id="det-comment-send">Σχόλιο</button>
           </div>
         </div>
       </div>
       <div class="det-right">
         <div class="det-section">
-          <h3>Status</h3>
+          <h3>Κατάσταση</h3>
           <div class="det-field">
-            <label>State</label>
+            <label>Κατάσταση</label>
             <select id="det-state">${STATE_ORDER.map(s => `<option value="${s}" ${s===w.state?'selected':''}>${STATE_META[s].label}</option>`).join('')}</select>
           </div>
           <div class="det-field">
-            <label>Assigned to</label>
+            <label>Υπεύθυνος</label>
             <select id="det-assignee">
-              <option value="">— Unassigned —</option>
+              <option value="">— Χωρίς ανάθεση —</option>
               ${state.members.map(m => `<option value="${esc(m.id)}" ${m.id===w.assignee_id?'selected':''}>${esc(m.display_name)}</option>`).join('')}
             </select>
           </div>
           <div class="det-field row">
-            <div><label>Area</label><input id="det-area" value="${esc(w.area||'')}"></div>
+            <div><label>Κατηγορία</label><input id="det-area" value="${esc(w.area||'')}"></div>
             <div>
-              <label>Iteration</label>
+              <label>Περίοδος</label>
               <select id="det-iteration-id">
-                <option value="">— None —</option>
+                <option value="">— Καμία —</option>
                 ${state.iterations.map(it => `<option value="${esc(it.id)}" ${it.id===w.iteration_id?'selected':''}>${esc(it.name)}</option>`).join('')}
               </select>
             </div>
@@ -2268,60 +2269,60 @@ async function renderDetail(){
         </div>
 
         <div class="det-section">
-          <h3>Tags</h3>
+          <h3>Ετικέτες</h3>
           <div class="tag-input-wrap" id="det-tag-wrap">
             ${(w.tags || []).map(t => renderTagChip(t, true)).join(' ')}
-            <input id="det-tag-input" placeholder="Type tag name…" autocomplete="off">
-            <button class="btn sm" id="det-tag-add" type="button">+ Add</button>
+            <input id="det-tag-input" placeholder="Όνομα ετικέτας…" autocomplete="off">
+            <button class="btn sm" id="det-tag-add" type="button">+ Προσθήκη</button>
           </div>
-          <div class="md-hint">Press Enter or click Add. Tags are saved instantly.</div>
+          <div class="md-hint">Πατήστε Enter ή Προσθήκη. Οι ετικέτες αποθηκεύονται άμεσα.</div>
         </div>
 
         ${customFieldsFor(w.type).length ? `
         <div class="det-section">
-          <h3>${esc(TYPE_META[w.type].label)} details</h3>
+          <h3>Πεδία ${esc(TYPE_META[w.type].label)}</h3>
           ${customFieldsFor(w.type).map(f => renderCustomFieldEditor(w, f)).join('')}
         </div>` : ''}
 
         <div class="det-section">
-          <h3>Details</h3>
+          <h3>Λεπτομέρειες</h3>
           <div class="det-field">
-            <label>Priority</label>
+            <label>Προτεραιότητα</label>
             <select id="det-priority">
-              <option value="1" ${w.priority===1?'selected':''}>P1 — Critical</option>
-              <option value="2" ${w.priority===2?'selected':''}>P2 — High</option>
-              <option value="3" ${w.priority===3?'selected':''}>P3 — Medium</option>
-              <option value="4" ${w.priority===4?'selected':''}>P4 — Low</option>
+              <option value="1" ${w.priority===1?'selected':''}>P1 — Κρίσιμη</option>
+              <option value="2" ${w.priority===2?'selected':''}>P2 — Υψηλή</option>
+              <option value="3" ${w.priority===3?'selected':''}>P3 — Μέτρια</option>
+              <option value="4" ${w.priority===4?'selected':''}>P4 — Χαμηλή</option>
             </select>
           </div>
           <div class="det-field">
-            <label>Story points</label>
+            <label>Πόντοι</label>
             <input type="number" step="0.5" id="det-pts" value="${w.story_points ?? ''}">
           </div>
           <div class="det-field row">
-            <div><label>Initial est.</label><input type="number" step="0.5" id="det-init" value="${w.initial_estimate ?? ''}"></div>
-            <div><label>Remaining</label><input type="number" step="0.5" id="det-rem" value="${w.remaining_work ?? ''}"></div>
+            <div><label>Αρχική εκτίμηση</label><input type="number" step="0.5" id="det-init" value="${w.initial_estimate ?? ''}"></div>
+            <div><label>Υπόλοιπο</label><input type="number" step="0.5" id="det-rem" value="${w.remaining_work ?? ''}"></div>
           </div>
         </div>
 
         <div class="det-section">
-          <h3>Related work</h3>
+          <h3>Σχετικές εργασίες</h3>
           <div class="related">
-            ${parent ? `<div class="ri" data-go="${esc(parent.id)}"><span class="lbl">Parent</span><span class="type-ico">${TYPE_META[parent.type].ico}</span><span class="id">#${parent.display_id||'—'}</span><span class="ti">${esc(parent.title)}</span></div>` : ''}
-            ${kids.map(k => `<div class="ri" data-go="${esc(k.id)}"><span class="lbl">Child</span><span class="type-ico">${TYPE_META[k.type].ico}</span><span class="id">#${k.display_id||'—'}</span><span class="ti">${esc(k.title)}</span></div>`).join('')}
-            ${TYPE_META[w.type].children.length ? `<div class="add-related" id="add-child-btn">+ Add child</div>` : ''}
-            ${!parent && w.type !== 'epic' ? `<div class="add-related" id="set-parent-btn">+ Set parent</div>` : ''}
+            ${parent ? `<div class="ri" data-go="${esc(parent.id)}"><span class="lbl">Γονική</span><span class="type-ico">${TYPE_META[parent.type].ico}</span><span class="id">#${parent.display_id||'—'}</span><span class="ti">${esc(parent.title)}</span></div>` : ''}
+            ${kids.map(k => `<div class="ri" data-go="${esc(k.id)}"><span class="lbl">Υπο</span><span class="type-ico">${TYPE_META[k.type].ico}</span><span class="id">#${k.display_id||'—'}</span><span class="ti">${esc(k.title)}</span></div>`).join('')}
+            ${TYPE_META[w.type].children.length ? `<div class="add-related" id="add-child-btn">+ Προσθήκη υποεργασίας</div>` : ''}
+            ${!parent && w.type !== 'epic' ? `<div class="add-related" id="set-parent-btn">+ Ορισμός γονικού</div>` : ''}
           </div>
         </div>
 
         <div class="det-section">
-          <h3>History</h3>
-          <div class="activity" id="det-activity"><div style="color:var(--muted);font-size:12px">Loading…</div></div>
+          <h3>Ιστορικό</h3>
+          <div class="activity" id="det-activity"><div style="color:var(--muted);font-size:12px">Φόρτωση…</div></div>
         </div>
 
         <div class="det-section">
-          <h3>Created</h3>
-          <div style="font-size:12px;color:var(--muted)">${esc(fmtTime(w.created_at))} · Updated ${esc(fmtTime(w.updated_at))}</div>
+          <h3>Δημιουργία</h3>
+          <div style="font-size:12px;color:var(--muted)">${esc(fmtTime(w.created_at))} · Ενημερώθηκε ${esc(fmtTime(w.updated_at))}</div>
         </div>
       </div>
     </div>`;
@@ -2346,7 +2347,7 @@ async function renderDetail(){
     ta.value = orig;
     const hint = document.createElement('div');
     hint.className = 'md-hint';
-    hint.innerHTML = 'Markdown supported · <strong>**bold**</strong> · <em>*italic*</em> · `code` · # heading · - list · [text](url)';
+    hint.innerHTML = 'Υποστηρίζεται markdown · <strong>**έντονα**</strong> · <em>*πλάγια*</em> · `κώδικας` · # τίτλος · - λίστα · [κείμενο](url)';
     wrap.appendChild(ta);
     wrap.appendChild(hint);
     $('det-desc').replaceWith(wrap);
@@ -2385,7 +2386,7 @@ async function renderDetail(){
     if(!name) return;
     if(name.length > 30) name = name.slice(0, 30);
     const existing = w.tags || [];
-    if(existing.includes(name)){ toast('Tag already added','err'); return; }
+    if(existing.includes(name)){ toast('Η ετικέτα υπάρχει ήδη','err'); return; }
     const newTags = [...existing, name];
     const ok = await updateWorkItem(id, { tags: newTags });
     if(ok){
@@ -2395,7 +2396,7 @@ async function renderDetail(){
       // dropdown needs refreshing too — repopulate it now so the new tag
       // is selectable next time the user opens the backlog.
       refreshBacklogTagFilter();
-      toast(`Tag "${name}" added`, 'ok');
+      toast(`Η ετικέτα "${name}" προστέθηκε`, 'ok');
     }
   }
   async function removeTag(name){
@@ -2411,8 +2412,8 @@ async function renderDetail(){
     const wrap = $('det-tag-wrap');
     if(!wrap) return;
     wrap.innerHTML = (w.tags || []).map(t => renderTagChip(t, true)).join(' ') +
-      `<input id="det-tag-input" placeholder="Type tag name…" autocomplete="off">` +
-      `<button class="btn sm" id="det-tag-add" type="button">+ Add</button>`;
+      `<input id="det-tag-input" placeholder="Όνομα ετικέτας…" autocomplete="off">` +
+      `<button class="btn sm" id="det-tag-add" type="button">+ Προσθήκη</button>`;
     wireTagInputs();
   }
   function wireTagInputs(){
@@ -2498,19 +2499,19 @@ function openSetParentModal(id){
   root.innerHTML = `
     <div class="modal-bg">
       <div class="modal">
-        <div class="modal-h"><h3>Set parent</h3><button class="x" id="mx">×</button></div>
+        <div class="modal-h"><h3>Ορισμός γονικού</h3><button class="x" id="mx">×</button></div>
         <div class="modal-b">
-          ${validParents.length === 0 ? `<div style="color:var(--muted);font-style:italic">No valid parents exist. Create a ${TYPE_META[w.type === 'task' || w.type === 'bug' ? 'story' : (w.type === 'story' ? 'feature' : 'epic')].label} first.</div>` : `
-          <div class="field"><label>Choose a parent</label>
+          ${validParents.length === 0 ? `<div style="color:var(--muted);font-style:italic">Δεν υπάρχει έγκυρη γονική εργασία. Δημιουργήστε πρώτα μια ${TYPE_META[w.type === 'task' || w.type === 'bug' ? 'story' : (w.type === 'story' ? 'feature' : 'epic')].label}.</div>` : `
+          <div class="field"><label>Επιλέξτε γονική</label>
             <select id="sp-pid">
-              <option value="">— None —</option>
+              <option value="">— Καμία —</option>
               ${validParents.map(p => `<option value="${esc(p.id)}">${TYPE_META[p.type].ico} #${p.display_id||'—'} ${esc(p.title)}</option>`).join('')}
             </select>
           </div>`}
         </div>
         <div class="modal-f">
-          <button class="btn ghost" id="cancel">Cancel</button>
-          <button class="btn" id="ok" ${validParents.length === 0 ? 'disabled' : ''}>Save</button>
+          <button class="btn ghost" id="cancel">Άκυρο</button>
+          <button class="btn" id="ok" ${validParents.length === 0 ? 'disabled' : ''}>Αποθήκευση</button>
         </div>
       </div>
     </div>`;
@@ -2535,7 +2536,7 @@ async function renderSprintsPage(){
   if(!state.currentIterationId){
     state.currentIterationId = currentIteration()?.id || '';
   }
-  sel.innerHTML = '<option value="">— No iteration selected —</option>' +
+  sel.innerHTML = '<option value="">— Δεν έχει επιλεγεί περίοδος —</option>' +
     state.iterations.map(it => {
       const d = (it.start_date && it.end_date)
         ? ` (${it.start_date} → ${it.end_date})`
@@ -2550,15 +2551,15 @@ async function renderSprintsPage(){
   if(!state.iterations.length){
     board.innerHTML = `
       <div class="sp-empty">
-        <div class="ti">No iterations yet</div>
-        <div>Iterations group work into time-boxed sprints. Create one to get started.</div>
-        <button class="btn" style="margin-top:12px" onclick="document.getElementById('sp-manage').click()">+ New iteration</button>
+        <div class="ti">Δεν υπάρχουν περίοδοι ακόμη</div>
+        <div>Οι περίοδοι ομαδοποιούν την εργασία σε χρονικά πλαίσια. Δημιουργήστε μία για να ξεκινήσετε.</div>
+        <button class="btn" style="margin-top:12px" onclick="document.getElementById('sp-manage').click()">+ Νέα περίοδος</button>
       </div>`;
     $('sp-meta').textContent = '';
     return;
   }
   if(!state.currentIterationId){
-    board.innerHTML = '<div class="sp-empty"><div class="ti">Pick an iteration above</div></div>';
+    board.innerHTML = '<div class="sp-empty"><div class="ti">Επιλέξτε μια περίοδο παραπάνω</div></div>';
     $('sp-meta').textContent = '';
     return;
   }
@@ -2570,15 +2571,15 @@ async function renderSprintsPage(){
     .eq('workspace_id', state.currentWsId)
     .eq('iteration_id', state.currentIterationId)
     .order('position', { ascending: true, nullsFirst: false });
-  if(error){ toast('Sprint items: '+friendlyError(error),'err'); return; }
+  if(error){ toast('Εργασίες περιόδου: '+friendlyError(error),'err'); return; }
   const list = items || [];
 
   // Stats
   const totalPts = list.reduce((s,i) => s + (i.story_points || 0), 0);
   const donePts  = list.filter(i => i.state === 'closed').reduce((s,i) => s + (i.story_points || 0), 0);
   const it = state.iterations.find(i => i.id === state.currentIterationId);
-  const dateRange = (it.start_date && it.end_date) ? `${it.start_date} → ${it.end_date}` : 'No dates';
-  $('sp-meta').textContent = `${list.length} items · ${dateRange}`;
+  const dateRange = (it.start_date && it.end_date) ? `${it.start_date} → ${it.end_date}` : 'Χωρίς ημερομηνίες';
+  $('sp-meta').textContent = `${list.length} εργασίες · ${dateRange}`;
 
   const projById = Object.fromEntries(state.projects.map(p => [p.id, p]));
 
@@ -2615,10 +2616,10 @@ async function renderSprintsPage(){
 
   board.innerHTML = `
     <div class="sp-stats">
-      <div class="stat"><strong>${list.length}</strong>Total items</div>
-      <div class="stat"><strong>${totalPts}</strong>Total points</div>
-      <div class="stat"><strong>${donePts}</strong>Completed points</div>
-      <div class="stat"><strong>${totalPts > 0 ? Math.round(donePts/totalPts*100) : 0}%</strong>Progress</div>
+      <div class="stat"><strong>${list.length}</strong>Συνολικές εργασίες</div>
+      <div class="stat"><strong>${totalPts}</strong>Συνολικοί πόντοι</div>
+      <div class="stat"><strong>${donePts}</strong>Ολοκληρωμένοι πόντοι</div>
+      <div class="stat"><strong>${totalPts > 0 ? Math.round(donePts/totalPts*100) : 0}%</strong>Πρόοδος</div>
     </div>
     <div class="sp-board">${cols}</div>`;
   board.querySelectorAll('.card').forEach(c => c.onclick = ()=> openDetail(c.dataset.id));
@@ -2629,20 +2630,20 @@ function openManageIterationsModal(){
   root.innerHTML = `
     <div class="modal-bg">
       <div class="modal" style="max-width:560px">
-        <div class="modal-h"><h3>Manage iterations</h3><button class="x" id="mx">×</button></div>
+        <div class="modal-h"><h3>Διαχείριση περιόδων</h3><button class="x" id="mx">×</button></div>
         <div class="modal-b">
           <div id="it-list" style="margin-bottom:14px"></div>
           <div style="border-top:1px solid var(--border);padding-top:14px">
-            <div style="font-weight:600;font-size:13px;margin-bottom:8px">New iteration</div>
-            <div class="field"><label>Name</label><input id="it-name" placeholder="e.g. Sprint 7" maxlength="60"></div>
+            <div style="font-weight:600;font-size:13px;margin-bottom:8px">Νέα περίοδος</div>
+            <div class="field"><label>Όνομα</label><input id="it-name" placeholder="π.χ. Περίοδος Q3" maxlength="60"></div>
             <div class="field row" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-              <div><label>Start date</label><input type="date" id="it-start"></div>
-              <div><label>End date</label><input type="date" id="it-end"></div>
+              <div><label>Ημ/νία έναρξης</label><input type="date" id="it-start"></div>
+              <div><label>Ημ/νία λήξης</label><input type="date" id="it-end"></div>
             </div>
-            <button class="btn" id="it-add">+ Add iteration</button>
+            <button class="btn" id="it-add">+ Προσθήκη περιόδου</button>
           </div>
         </div>
-        <div class="modal-f"><button class="btn ghost" id="close">Close</button></div>
+        <div class="modal-f"><button class="btn ghost" id="close">Κλείσιμο</button></div>
       </div>
     </div>`;
   const close = ()=> root.innerHTML='';
@@ -2650,21 +2651,21 @@ function openManageIterationsModal(){
 
   function renderList(){
     if(!state.iterations.length){
-      $('it-list').innerHTML = '<div style="color:var(--muted);font-style:italic;font-size:13px">No iterations yet</div>';
+      $('it-list').innerHTML = '<div style="color:var(--muted);font-style:italic;font-size:13px">Δεν υπάρχουν περίοδοι ακόμη</div>';
       return;
     }
     $('it-list').innerHTML = state.iterations.map(it => {
-      const d = (it.start_date && it.end_date) ? `${it.start_date} → ${it.end_date}` : '(no dates)';
+      const d = (it.start_date && it.end_date) ? `${it.start_date} → ${it.end_date}` : '(χωρίς ημερομηνίες)';
       return `<div style="display:flex;align-items:center;gap:8px;padding:8px;border:1px solid var(--border);border-radius:var(--r);margin-bottom:6px">
         <div style="flex:1;min-width:0">
           <div style="font-weight:600;font-size:13px">${esc(it.name)}</div>
           <div style="font-size:11px;color:var(--muted)">${esc(d)}</div>
         </div>
-        <button class="btn ghost sm" data-del="${esc(it.id)}">Delete</button>
+        <button class="btn ghost sm" data-del="${esc(it.id)}">Διαγραφή</button>
       </div>`;
     }).join('');
     $('it-list').querySelectorAll('[data-del]').forEach(b => b.onclick = async ()=>{
-      if(!confirm('Delete this iteration? Work items will lose their iteration link.')) return;
+      if(!confirm('Διαγραφή περιόδου; Οι εργασίες θα χάσουν τη σύνδεση με αυτήν.')) return;
       const { error } = await sb.from('iterations').delete().eq('id', b.dataset.del);
       if(error){ toast(friendlyError(error),'err'); return; }
       await loadIterations();
@@ -2678,7 +2679,7 @@ function openManageIterationsModal(){
 
   $('it-add').onclick = async ()=>{
     const name = $('it-name').value.trim();
-    if(!name){ toast('Name required','err'); return; }
+    if(!name){ toast('Απαιτείται όνομα','err'); return; }
     const payload = {
       id: crypto.randomUUID(),
       workspace_id: state.currentWsId,
@@ -2692,7 +2693,7 @@ function openManageIterationsModal(){
     $('it-name').value = ''; $('it-start').value = ''; $('it-end').value = '';
     await loadIterations();
     renderList();
-    toast('Iteration created','ok');
+    toast('Η περίοδος δημιουργήθηκε','ok');
   };
 }
 // ════════════════════════════════════════════════════════════════════
@@ -2700,28 +2701,28 @@ function openManageIterationsModal(){
 // ════════════════════════════════════════════════════════════════════
 async function renderMembers(){
   const el = $('members-content');
-  el.innerHTML = '<div style="padding:20px;color:var(--muted)">Loading…</div>';
+  el.innerHTML = '<div style="padding:20px;color:var(--muted)">Φόρτωση…</div>';
   const { data } = await sb
     .from('workspace_members')
     .select('user_id, role, profiles:user_id(id, display_name, email)')
     .eq('workspace_id', state.currentWsId);
   const mems = (data || []).map(r => ({ ...r.profiles, role: r.role })).filter(p => p.id);
   el.innerHTML = `
-    <h2 style="font-size:16px;font-weight:600;margin-bottom:14px">Workspace members</h2>
+    <h2 style="font-size:16px;font-weight:600;margin-bottom:14px">Μέλη ομάδας</h2>
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);overflow:hidden">
       ${mems.map(m => `
         <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border)">
           <div style="width:32px;height:32px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:600">${esc(initial(m.display_name))}</div>
           <div style="flex:1;min-width:0">
-            <div style="font-weight:600;font-size:13px">${esc(m.display_name)}${m.id===state.user.id?' (you)':''}</div>
+            <div style="font-weight:600;font-size:13px">${esc(m.display_name)}${m.id===state.user.id?' (εσείς)':''}</div>
             <div style="font-size:11px;color:var(--muted)">${esc(m.email||'')}</div>
           </div>
           <span style="font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600">${esc(m.role)}</span>
         </div>`).join('')}
     </div>
     <div style="margin-top:24px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rm)">
-      <h3 style="font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:8px">Note</h3>
-      <div style="font-size:13px;color:var(--text2)">Member invitations live in the original ProMapp app — this ADO-style view shares the same workspace, so invites accepted there appear here automatically.</div>
+      <h3 style="font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:8px">Σημείωση</h3>
+      <div style="font-size:13px;color:var(--text2)">Οι προσκλήσεις μελών γίνονται από την κύρια εφαρμογή ProMapp — αυτή η προβολή μοιράζεται τον ίδιο χώρο εργασίας, οπότε όσοι προσκληθούν εκεί εμφανίζονται και εδώ αυτόματα.</div>
     </div>`;
 }
 
@@ -2767,7 +2768,7 @@ document.addEventListener('keydown', (e)=>{
 async function runSearch(q){
   if(!state.currentWsId) return;
   searchResults.classList.remove('hidden');
-  searchResults.innerHTML = '<div class="sr-loading">Searching…</div>';
+  searchResults.innerHTML = '<div class="sr-loading">Αναζήτηση…</div>';
   const seq = ++searchSeq;
 
   // Try exact display_id match (e.g. "17" or "#17")
@@ -2796,11 +2797,11 @@ async function runSearch(q){
   const { data, error } = await query;
   if(seq !== searchSeq) return;  // stale
   if(error){
-    searchResults.innerHTML = '<div class="sr-empty">Search error: ' + esc(friendlyError(error)) + '</div>';
+    searchResults.innerHTML = '<div class="sr-empty">Σφάλμα αναζήτησης: ' + esc(friendlyError(error)) + '</div>';
     return;
   }
   if(!data || !data.length){
-    searchResults.innerHTML = '<div class="sr-empty">No matches for "' + esc(q) + '"</div>';
+    searchResults.innerHTML = '<div class="sr-empty">Κανένα αποτέλεσμα για "' + esc(q) + '"</div>';
     return;
   }
   searchResults.innerHTML = data.map(r => {
@@ -2854,7 +2855,7 @@ async function boot(){
   }catch(e){
     hide('boot');
     show('auth');
-    toast('Boot error: ' + (e?.message || e), 'err');
+    toast('Σφάλμα εκκίνησης: ' + (e?.message || e), 'err');
   }finally{
     bootDone = true;
   }
