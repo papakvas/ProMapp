@@ -113,6 +113,25 @@ a:hover{text-decoration:underline}
 .topbar .user .av{width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:600}
 .topbar .user .nm{font-size:12px;font-weight:500}
 
+/* Search */
+.search-wrap{position:relative;flex:0 1 320px;max-width:320px}
+.search-wrap input{width:100%;background:var(--surface2);border:1px solid var(--border);padding:4px 10px;border-radius:var(--r);font-size:12px}
+.search-wrap input:focus{background:var(--surface);border-color:var(--blue);box-shadow:0 0 0 1px var(--blue)}
+.search-results{position:absolute;top:34px;left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);box-shadow:var(--shadow-lg);max-height:60vh;overflow-y:auto;z-index:180}
+.search-results .sr-item{padding:8px 12px;cursor:pointer;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);font-size:13px}
+.search-results .sr-item:last-child{border-bottom:none}
+.search-results .sr-item:hover{background:var(--hover)}
+.search-results .sr-item .type-ico{font-size:14px;flex-shrink:0}
+.search-results .sr-item .id{font-family:var(--mono);color:var(--muted);font-size:11px;flex-shrink:0}
+.search-results .sr-item .ti{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.search-results .sr-item .proj{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;flex-shrink:0}
+.search-results .sr-empty{padding:14px;text-align:center;color:var(--muted);font-style:italic;font-size:12px}
+.search-results .sr-loading{padding:14px;text-align:center;color:var(--muted);font-size:12px}
+@media (max-width:720px){
+  .search-wrap{flex:1;max-width:none}
+  .topbar .crumb{display:none}
+}
+
 /* ─── MAIN LAYOUT ─── */
 .main{flex:1;display:flex;min-height:0;overflow:hidden}
 .sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
@@ -241,6 +260,50 @@ a:hover{text-decoration:underline}
 .md-body a{color:var(--blue);text-decoration:underline}
 .md-body blockquote{border-left:3px solid var(--border2);padding-left:10px;color:var(--text2);margin:6px 0}
 .md-hint{font-size:11px;color:var(--muted);margin-top:4px;font-style:italic}
+
+/* @mention chips inside rendered comments */
+.mention{background:var(--blue-dim);color:var(--blue);padding:1px 5px;border-radius:3px;font-weight:600;font-size:.95em}
+
+/* Mention autocomplete popover under the comment input */
+.mention-pop{position:absolute;background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);box-shadow:var(--shadow-lg);max-height:200px;overflow-y:auto;z-index:160;min-width:200px}
+.mention-pop .mp-item{padding:6px 12px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:13px}
+.mention-pop .mp-item:hover, .mention-pop .mp-item.sel{background:var(--blue-dim);color:var(--blue)}
+.mention-pop .mp-av{width:22px;height:22px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:600;flex-shrink:0}
+.mention-pop .mp-empty{padding:10px 12px;color:var(--muted);font-style:italic;font-size:12px}
+
+/* Inbox bell in topbar */
+.bell{position:relative;width:32px;height:32px;border-radius:var(--r);display:grid;place-items:center;color:var(--text2)}
+.bell:hover{background:var(--hover);color:var(--text)}
+.bell .dot{position:absolute;top:4px;right:5px;width:8px;height:8px;border-radius:50%;background:var(--red);border:1.5px solid var(--surface)}
+.bell.has-unread .dot{display:block}
+.bell .dot{display:none}
+.bell .count{position:absolute;top:0px;right:-2px;background:var(--red);color:#fff;font-size:9px;font-weight:700;border-radius:999px;padding:1px 5px;min-width:14px;text-align:center;line-height:1.2}
+
+/* Inbox panel */
+.inbox-panel{position:absolute;right:8px;top:46px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);box-shadow:var(--shadow-lg);width:360px;max-height:60vh;overflow-y:auto;z-index:170}
+.inbox-h{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.inbox-h h3{font-size:14px;font-weight:600;flex:1}
+.inbox-empty{padding:30px 14px;text-align:center;color:var(--muted);font-style:italic;font-size:13px}
+.inbox-item{padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;font-size:13px}
+.inbox-item:last-child{border-bottom:none}
+.inbox-item:hover{background:var(--hover)}
+.inbox-item .head{display:flex;align-items:center;gap:6px;margin-bottom:3px;font-size:12px;color:var(--muted)}
+.inbox-item .head .id{font-family:var(--mono);font-weight:600}
+.inbox-item .body{color:var(--text);line-height:1.4}
+.inbox-item .ts{font-size:10px;color:var(--muted);margin-top:3px}
+
+
+.activity{display:flex;flex-direction:column;gap:8px}
+.act{display:flex;gap:8px;align-items:flex-start}
+.act-av{width:22px;height:22px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--text2);display:grid;place-items:center;font-size:10px;font-weight:600;flex-shrink:0}
+.act-body{flex:1;min-width:0;font-size:12px;line-height:1.45}
+.act-body strong{font-weight:600;color:var(--text)}
+.act-ts{font-size:10px;color:var(--muted);margin-top:2px}
+
+
+.cf-md{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:8px 10px;min-height:36px;cursor:text;font-size:13px;line-height:1.5}
+.cf-md:hover{border-color:var(--border2)}
+.cf-md.empty{color:var(--muted);font-style:italic}
 .card .row1 .type-ico{font-size:13px}
 .card .row1 .id{font-family:var(--mono);font-weight:600}
 .card .row1 .pts{margin-left:auto;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:1px 7px;font-family:var(--mono);font-weight:600;color:var(--text2)}
@@ -428,11 +491,19 @@ a:hover{text-decoration:underline}
     <div class="logo"><div class="mark">P</div><span>ProMapp</span></div>
     <span class="crumb"><span id="crumb-ws">—</span><span class="sep">/</span><span id="crumb-page">Boards</span></span>
     <div class="spacer"></div>
+    <div class="search-wrap" id="search-wrap">
+      <input id="search-input" placeholder="Search work items… (Ctrl+/)" autocomplete="off">
+      <div class="search-results hidden" id="search-results"></div>
+    </div>
     <button class="ws-pick" id="ws-pick">
       <span id="ws-pick-name">workspace</span>
       <span style="font-size:10px">▾</span>
     </button>
     <button class="iconbtn" id="theme-toggle" title="Toggle theme">◐</button>
+    <button class="bell" id="bell-btn" title="Inbox (mentions of you)">
+      <span style="font-size:15px">🔔</span>
+      <span class="count hidden" id="bell-count">0</span>
+    </button>
     <div class="user">
       <div class="av" id="user-av">?</div>
       <span class="nm" id="user-nm">—</span>
@@ -584,7 +655,8 @@ const state = {
   currentIterationId: null,    // which sprint is the Sprints page showing
   members: [],
   filters: { type:'all', state:'open', tag:null },
-  channels: { wi:null, wic:null, wicol:null, it:null },
+  unreadMentions: [],          // unread @mentions for the current user (workspace-wide)
+  channels: { wi:null, wic:null, wicol:null, it:null, mentions:null },
 };
 
 // ════════════════════════════════════════════════════════════════════
@@ -606,6 +678,32 @@ const STATE_META = {
   closed:   { label: 'Closed',   class:'s-closed' },
 };
 const STATE_ORDER = ['new','active','resolved','closed'];
+
+// Type-specific custom fields. Each entry defines its label, input kind,
+// and a hint. Stored in work_items.custom_fields JSONB.
+const CUSTOM_FIELDS = {
+  epic: [
+    { key:'business_value', label:'Business value', kind:'textarea', md:true,  hint:'Why this matters to the business.' },
+    { key:'target_date',    label:'Target date',    kind:'date' },
+  ],
+  feature: [
+    { key:'acceptance_criteria', label:'Acceptance criteria', kind:'textarea', md:true,  hint:'How we know this feature is done.' },
+    { key:'target_date',         label:'Target date',         kind:'date' },
+  ],
+  story: [
+    { key:'acceptance_criteria', label:'Acceptance criteria', kind:'textarea', md:true,  hint:'How we know this story is done.' },
+  ],
+  task: [
+    { key:'activity', label:'Activity', kind:'select', options:['', 'Design', 'Development', 'Testing', 'Documentation', 'Deployment', 'Requirements'] },
+  ],
+  bug: [
+    { key:'severity',    label:'Severity',         kind:'select', options:['','1 - Critical','2 - High','3 - Medium','4 - Low'] },
+    { key:'repro_steps', label:'Repro steps',      kind:'textarea', md:true, hint:'Step-by-step to reproduce. Markdown OK.' },
+    { key:'system_info', label:'System info',      kind:'textarea',          hint:'Browser / OS / build / version.' },
+    { key:'found_in',    label:'Found in build',   kind:'text',              hint:'e.g. 1.4.2 or commit hash' },
+  ],
+};
+function customFieldsFor(type){ return CUSTOM_FIELDS[type] || []; }
 
 // ════════════════════════════════════════════════════════════════════
 // HELPERS
@@ -629,6 +727,327 @@ function allTags(){
     for(const t of (w.tags || [])) set.add(t);
   }
   return [...set].sort();
+}
+
+// ── @mention parsing ─────────────────────────────────────────────────
+// Names can include spaces. We match against the actual member list,
+// longest-name-first so "Mit Giannou" wins over "Mit". Returns array
+// of {name, id} for unique mentions.
+function parseMentions(body){
+  if(!body || !state.members.length) return [];
+  const members = [...state.members].sort((a,b) =>
+    (b.display_name||'').length - (a.display_name||'').length
+  );
+  const found = new Map();
+  let scratch = body;
+  for(const m of members){
+    if(!m.display_name) continue;
+    // Build regex: @<name> bounded by start/space/punct on both sides
+    const escName = m.display_name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp(`(^|[\\s\\(\\[])@(${escName})(?=$|[\\s.,;:!?\\)\\]])`, 'g');
+    if(re.test(scratch)){
+      found.set(m.id, { id: m.id, name: m.display_name });
+      // Strip so we don't match overlapping shorter names inside it
+      scratch = scratch.replace(re, '$1');
+    }
+  }
+  return [...found.values()];
+}
+
+// Replace @Name with styled chips, for rendered comments.
+function renderMentionsInHtml(html){
+  if(!state.members.length) return html;
+  const members = [...state.members].sort((a,b) =>
+    (b.display_name||'').length - (a.display_name||'').length
+  );
+  let s = html;
+  for(const m of members){
+    if(!m.display_name) continue;
+    const escName = m.display_name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp(`@(${escName})\\b`, 'g');
+    s = s.replace(re, `<span class="mention">@$1</span>`);
+  }
+  return s;
+}
+
+// Wire @mention autocomplete on a textarea. Detects `@` typed, shows
+// a popover of matching members, arrow keys to navigate, Enter/Tab to
+// pick, Escape to dismiss.
+function wireMentionAutocomplete(ta){
+  if(!ta || ta._mentionWired) return;
+  ta._mentionWired = true;
+  let pop = null;
+  let triggerPos = -1;   // position of the '@' in the textarea
+  let filtered = [];
+  let selIdx = 0;
+
+  function close(){
+    if(pop){ pop.remove(); pop = null; }
+    triggerPos = -1; filtered = []; selIdx = 0;
+  }
+
+  function showPop(query){
+    const matches = state.members
+      .filter(m => m.display_name && m.display_name.toLowerCase().includes(query.toLowerCase()))
+      .slice(0, 8);
+    filtered = matches;
+    selIdx = 0;
+    if(!pop){
+      pop = document.createElement('div');
+      pop.className = 'mention-pop';
+      document.body.appendChild(pop);
+    }
+    if(!matches.length){
+      pop.innerHTML = '<div class="mp-empty">No member matches "' + esc(query) + '"</div>';
+    } else {
+      pop.innerHTML = matches.map((m, i) => `
+        <div class="mp-item ${i===selIdx?'sel':''}" data-i="${i}">
+          <div class="mp-av">${esc(initial(m.display_name))}</div>
+          <span>${esc(m.display_name)}</span>
+        </div>`).join('');
+      pop.querySelectorAll('.mp-item').forEach(el => el.onclick = ()=> pick(parseInt(el.dataset.i)));
+    }
+    // Position under the textarea
+    const r = ta.getBoundingClientRect();
+    pop.style.left = (r.left + window.scrollX) + 'px';
+    pop.style.top  = (r.bottom + window.scrollY + 4) + 'px';
+  }
+
+  function pick(i){
+    const m = filtered[i];
+    if(!m) return;
+    const before = ta.value.slice(0, triggerPos);
+    const after  = ta.value.slice(ta.selectionStart);
+    const insert = '@' + m.display_name + ' ';
+    ta.value = before + insert + after;
+    const newCursor = (before + insert).length;
+    ta.setSelectionRange(newCursor, newCursor);
+    ta.focus();
+    close();
+  }
+
+  function updateSelHighlight(){
+    if(!pop) return;
+    pop.querySelectorAll('.mp-item').forEach((el, i) => el.classList.toggle('sel', i === selIdx));
+  }
+
+  ta.addEventListener('input', ()=>{
+    const cur = ta.selectionStart;
+    const text = ta.value.slice(0, cur);
+    // Find most recent '@' preceded by start-of-line or whitespace
+    const m = text.match(/(^|\s)@([^\s@]{0,40})$/);
+    if(m){
+      triggerPos = cur - m[0].length + m[1].length;  // points to '@'
+      showPop(m[2]);
+    } else {
+      close();
+    }
+  });
+
+  ta.addEventListener('keydown', (e)=>{
+    if(!pop || !filtered.length) return;
+    if(e.key === 'ArrowDown'){ e.preventDefault(); selIdx = (selIdx+1) % filtered.length; updateSelHighlight(); }
+    else if(e.key === 'ArrowUp'){ e.preventDefault(); selIdx = (selIdx-1+filtered.length) % filtered.length; updateSelHighlight(); }
+    else if(e.key === 'Enter' || e.key === 'Tab'){ e.preventDefault(); pick(selIdx); }
+    else if(e.key === 'Escape'){ e.preventDefault(); close(); }
+  });
+
+  ta.addEventListener('blur', ()=>{
+    // Delay so click on popover item still fires
+    setTimeout(close, 150);
+  });
+}
+
+// ── Inbox: unread mentions of the current user ───────────────────────
+async function loadUnreadMentions(){
+  if(!state.user) return;
+  const { data, error } = await sb
+    .from('work_item_mentions')
+    .select('id, work_item_id, comment_id, created_at, mentioned_by, work_items:work_item_id(display_id, title, project_id, projects:project_id(name, workspace_id)), comment:comment_id(body), author:mentioned_by(display_name)')
+    .eq('mentioned_user_id', state.user.id)
+    .is('read_at', null)
+    .order('created_at', { ascending: false })
+    .limit(40);
+  if(error){ console.warn('Mentions load failed:', error); return; }
+  // Filter to current workspace
+  state.unreadMentions = (data || []).filter(m =>
+    m.work_items?.projects?.workspace_id === state.currentWsId
+  );
+  renderBellBadge();
+}
+
+function renderBellBadge(){
+  const n = state.unreadMentions.length;
+  const bell = $('bell-btn');
+  const cnt = $('bell-count');
+  if(!bell || !cnt) return;
+  if(n > 0){
+    bell.classList.add('has-unread');
+    cnt.classList.remove('hidden');
+    cnt.textContent = n > 99 ? '99+' : String(n);
+  } else {
+    bell.classList.remove('has-unread');
+    cnt.classList.add('hidden');
+  }
+}
+
+function openInbox(){
+  // Close existing if open
+  const existing = document.getElementById('inbox-panel');
+  if(existing){ existing.remove(); return; }
+  const panel = document.createElement('div');
+  panel.id = 'inbox-panel';
+  panel.className = 'inbox-panel';
+  panel.innerHTML = `
+    <div class="inbox-h">
+      <h3>Mentions</h3>
+      ${state.unreadMentions.length ? '<button class="btn ghost sm" id="inbox-mark-all">Mark all read</button>' : ''}
+    </div>
+    ${state.unreadMentions.length ? state.unreadMentions.map(m => {
+      const wi = m.work_items;
+      const proj = wi?.projects;
+      const snippet = (m.comment?.body || '').slice(0, 140);
+      return `<div class="inbox-item" data-mid="${esc(m.id)}" data-wid="${esc(m.work_item_id)}" data-pid="${esc(proj?.workspace_id ? wi.project_id : '')}">
+        <div class="head">
+          <strong>${esc(m.author?.display_name || 'Someone')}</strong>
+          <span>mentioned you in</span>
+          <span class="id">#${wi?.display_id || '—'}</span>
+          ${proj ? `<span style="color:var(--muted)">${esc(proj.name)}</span>` : ''}
+        </div>
+        <div class="body">${esc(wi?.title || '')}</div>
+        <div class="body" style="color:var(--muted);font-style:italic;margin-top:3px">"${esc(snippet)}${(m.comment?.body || '').length > 140 ? '…' : ''}"</div>
+        <div class="ts">${esc(fmtTime(m.created_at))}</div>
+      </div>`;
+    }).join('') : '<div class="inbox-empty">No unread mentions 🎉</div>'}
+  `;
+  document.body.appendChild(panel);
+  panel.querySelectorAll('.inbox-item').forEach(it => it.onclick = async ()=>{
+    const mid = it.dataset.mid;
+    const wid = it.dataset.wid;
+    // Mark read
+    await sb.from('work_item_mentions').update({ read_at: new Date().toISOString() }).eq('id', mid);
+    state.unreadMentions = state.unreadMentions.filter(m => m.id !== mid);
+    renderBellBadge();
+    panel.remove();
+    // Open the work item — switching project if needed
+    const wi = state.unreadMentions.find(m => m.id === mid)?.work_items
+            || state.workItems.find(w => w.id === wid);
+    // We may not have the project loaded; do a fast fetch for project_id if missing
+    let pid = state.workItems.find(w => w.id === wid)?.project_id;
+    if(!pid){
+      const { data } = await sb.from('work_items').select('project_id').eq('id', wid).maybeSingle();
+      pid = data?.project_id;
+    }
+    if(pid && pid !== state.currentProjectId){
+      await selectProject(pid);
+    }
+    openDetail(wid);
+  });
+  const ma = $('inbox-mark-all');
+  if(ma) ma.onclick = async (e)=>{
+    e.stopPropagation();
+    const ids = state.unreadMentions.map(m => m.id);
+    if(!ids.length) return;
+    const { error } = await sb.from('work_item_mentions').update({ read_at: new Date().toISOString() }).in('id', ids);
+    if(error){ toast(friendlyError(error),'err'); return; }
+    state.unreadMentions = [];
+    renderBellBadge();
+    panel.remove();
+  };
+  // Click-outside dismiss
+  setTimeout(()=>{
+    const off = (e)=>{
+      if(!panel.contains(e.target) && !e.target.closest('#bell-btn')){
+        panel.remove();
+        document.removeEventListener('click', off);
+      }
+    };
+    document.addEventListener('click', off);
+  }, 0);
+}
+
+
+// Render the editor for one custom field. Returns HTML; the caller
+// must wire change/blur handlers via wireCustomFieldEditors() afterwards.
+function renderCustomFieldEditor(w, f){
+  const v = (w.custom_fields && w.custom_fields[f.key]) ?? '';
+  const inputId = 'cf-' + f.key;
+  let editor;
+  if(f.kind === 'textarea'){
+    if(f.md){
+      // Read-only markdown rendering with click-to-edit
+      editor = `<div class="cf-md md-body ${v?'':'empty'}" data-key="${esc(f.key)}" id="${inputId}">${v ? renderMarkdown(v) : 'Click to add…'}</div>`;
+    } else {
+      editor = `<textarea id="${inputId}" data-key="${esc(f.key)}" rows="3">${esc(v)}</textarea>`;
+    }
+  } else if(f.kind === 'select'){
+    editor = `<select id="${inputId}" data-key="${esc(f.key)}">
+      ${f.options.map(o => `<option value="${esc(o)}" ${o===v?'selected':''}>${esc(o || '— None —')}</option>`).join('')}
+    </select>`;
+  } else if(f.kind === 'date'){
+    editor = `<input type="date" id="${inputId}" data-key="${esc(f.key)}" value="${esc(v)}">`;
+  } else {
+    editor = `<input type="text" id="${inputId}" data-key="${esc(f.key)}" value="${esc(v)}">`;
+  }
+  return `<div class="det-field">
+    <label>${esc(f.label)}</label>
+    ${editor}
+    ${f.hint ? `<div class="md-hint">${esc(f.hint)}</div>` : ''}
+  </div>`;
+}
+
+// Wire up custom-field editors on the detail page. Saves to
+// work_items.custom_fields (JSONB) — merge, don't overwrite.
+function wireCustomFieldEditors(id, w){
+  const fields = customFieldsFor(w.type);
+  for(const f of fields){
+    const el = $('cf-' + f.key);
+    if(!el) continue;
+    if(f.kind === 'textarea' && f.md){
+      // Click-to-edit markdown
+      el.onclick = ()=>{
+        const orig = (w.custom_fields && w.custom_fields[f.key]) || '';
+        const wrap = document.createElement('div');
+        const ta = document.createElement('textarea');
+        ta.className = 'det-desc-edit';
+        ta.style.minHeight = '100px';
+        ta.value = orig;
+        const hint = document.createElement('div');
+        hint.className = 'md-hint';
+        hint.textContent = (f.hint || '') + ' Markdown supported.';
+        wrap.appendChild(ta);
+        wrap.appendChild(hint);
+        el.replaceWith(wrap);
+        ta.focus();
+        let saving = false;
+        ta.onblur = async ()=>{
+          if(saving) return;
+          saving = true;
+          const newVal = ta.value.trim();
+          if(newVal !== orig){
+            await saveCustomField(id, w, f.key, newVal);
+          }
+          renderDetail();
+        };
+      };
+    } else if(f.kind === 'select') {
+      el.onchange = ()=> saveCustomField(id, w, f.key, el.value || null);
+    } else {
+      el.onblur = ()=> saveCustomField(id, w, f.key, el.value || null);
+    }
+  }
+}
+
+async function saveCustomField(id, w, key, value){
+  const cur = w.custom_fields || {};
+  const next = { ...cur };
+  if(value === null || value === '' || value === undefined){
+    delete next[key];
+  } else {
+    next[key] = value;
+  }
+  const ok = await updateWorkItem(id, { custom_fields: next });
+  if(ok){ w.custom_fields = next; }
 }
 
 // ── Minimal markdown renderer + sanitizer ──────────────────────────────
@@ -758,6 +1177,11 @@ $('signout').onclick = async ()=>{
   location.reload();
 };
 
+$('bell-btn').onclick = (e)=>{
+  e.stopPropagation();
+  openInbox();
+};
+
 // supabase-js fires SIGNED_IN whenever it restores a session (every page
 // load) as well as on actual login. We track whether boot has finished
 // and only act on events from THAT point on. Even then, we don't reload
@@ -815,7 +1239,7 @@ async function setActiveWorkspace(wsId){
   state.projects = [];
   state.workItems = [];
   unsubAll();
-  await Promise.all([ loadProjects(), loadMembers(), loadIterations() ]);
+  await Promise.all([ loadProjects(), loadMembers(), loadIterations(), loadUnreadMentions() ]);
   goPage('overview');
 }
 
@@ -1014,7 +1438,7 @@ async function loadWorkItems(){
   if(!state.currentProjectId){ state.workItems = []; return; }
   const { data, error } = await sb
     .from('work_items')
-    .select('id, project_id, workspace_id, parent_id, type, title, description, state, priority, story_points, initial_estimate, remaining_work, assignee_id, area, iteration, iteration_id, tags, display_id, created_by, created_at, updated_at, position, assignee:assignee_id(id, display_name)')
+    .select('id, project_id, workspace_id, parent_id, type, title, description, state, priority, story_points, initial_estimate, remaining_work, assignee_id, area, iteration, iteration_id, tags, display_id, created_by, created_at, updated_at, position, custom_fields, assignee:assignee_id(id, display_name)')
     .eq('project_id', state.currentProjectId)
     .order('position', { ascending: true, nullsFirst: false });
   if(error){ toast('Items: '+friendlyError(error),'err'); return; }
@@ -1082,8 +1506,21 @@ function rerenderCurrent(){
 // ════════════════════════════════════════════════════════════════════
 function unsubAll(){
   for(const k of Object.keys(state.channels)){
+    if(k === 'mentions') continue;  // user-scoped, persists across project switches
     if(state.channels[k]){ sb.removeChannel(state.channels[k]); state.channels[k] = null; }
   }
+}
+
+// User-scoped subscription that follows them across workspaces.
+// Called once after first workspace load.
+function subscribeUserMentions(){
+  if(state.channels.mentions) return;
+  state.channels.mentions = sb.channel('mentions-'+state.user.id)
+    .on('postgres_changes', {
+      event: '*', schema: 'public', table: 'work_item_mentions',
+      filter: `mentioned_user_id=eq.${state.user.id}`,
+    }, ()=> loadUnreadMentions())
+    .subscribe();
 }
 
 function subscribeRealtime(){
@@ -1092,7 +1529,11 @@ function subscribeRealtime(){
   const pid = state.currentProjectId;
   state.channels.wi = sb.channel('wi-'+pid)
     .on('postgres_changes', { event:'*', schema:'public', table:'work_items', filter:`project_id=eq.${pid}` },
-      async ()=>{ await loadWorkItems(); rerenderCurrent(); })
+      async ()=>{
+        await loadWorkItems();
+        rerenderCurrent();
+        if(state.currentPage === 'detail') loadDetailActivity();
+      })
     .subscribe();
   state.channels.wic = sb.channel('wic-'+pid)
     .on('postgres_changes', { event:'*', schema:'public', table:'work_item_comments' },
@@ -1660,9 +2101,84 @@ async function loadDetailComments(){
     .eq('work_item_id', state.currentItemId)
     .order('created_at', { ascending: true });
   detailComments = data || [];
-  // Re-render only the comments section if detail is open
   const cm = document.getElementById('det-comments');
   if(cm) cm.innerHTML = renderCommentsHtml();
+}
+
+let detailActivity = [];
+async function loadDetailActivity(){
+  if(!state.currentItemId){ detailActivity = []; return; }
+  const { data } = await sb
+    .from('work_item_activity')
+    .select('id, field, old_value, new_value, created_at, user_id, author:user_id(display_name)')
+    .eq('work_item_id', state.currentItemId)
+    .order('created_at', { ascending: false })
+    .limit(80);
+  detailActivity = data || [];
+  const el = document.getElementById('det-activity');
+  if(el) el.innerHTML = renderActivityHtml();
+}
+
+// Human-readable formatting for activity entries
+function activityFieldLabel(field){
+  const map = {
+    title:'title', state:'state', priority:'priority', assignee_id:'assignee',
+    story_points:'story points', remaining_work:'remaining work', parent_id:'parent',
+    iteration_id:'iteration', tags:'tags', description:'description',
+    custom_fields:'custom fields', created:'created', deleted:'deleted',
+  };
+  return map[field] || field;
+}
+function activityValue(field, raw){
+  if(raw == null || raw === '') return '—';
+  // Resolve UUIDs to friendlier names
+  if(field === 'assignee_id'){
+    const m = state.members.find(x => x.id === raw);
+    return m ? m.display_name : 'someone';
+  }
+  if(field === 'parent_id'){
+    const p = state.workItems.find(x => x.id === raw);
+    return p ? `#${p.display_id} ${p.title}` : 'an item';
+  }
+  if(field === 'iteration_id'){
+    const it = state.iterations.find(x => x.id === raw);
+    return it ? it.name : raw;
+  }
+  if(field === 'state'){
+    return (STATE_META[raw] || {label:raw}).label;
+  }
+  if(field === 'priority'){
+    return 'P' + raw;
+  }
+  return raw;
+}
+function renderActivityHtml(){
+  if(!detailActivity.length){
+    return '<div style="color:var(--muted);font-style:italic;font-size:12px">No history yet.</div>';
+  }
+  return detailActivity.map(a => {
+    const who = a.author?.display_name || 'Someone';
+    const fld = activityFieldLabel(a.field);
+    let line;
+    if(a.field === 'created'){
+      line = `created this ${esc(a.new_value || 'item')}`;
+    } else if(a.field === 'deleted'){
+      line = `deleted this item`;
+    } else if(a.field === 'description' || a.field === 'custom_fields'){
+      line = `edited ${esc(fld)}`;
+    } else {
+      const from = activityValue(a.field, a.old_value);
+      const to   = activityValue(a.field, a.new_value);
+      line = `changed ${esc(fld)} from <strong>${esc(from)}</strong> to <strong>${esc(to)}</strong>`;
+    }
+    return `<div class="act">
+      <div class="act-av">${esc(initial(who))}</div>
+      <div class="act-body">
+        <div><strong>${esc(who)}</strong> ${line}</div>
+        <div class="act-ts">${esc(fmtTime(a.created_at))}</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function renderCommentsHtml(){
@@ -1672,7 +2188,7 @@ function renderCommentsHtml(){
       <div class="av">${esc(initial(c.author?.display_name))}</div>
       <div class="body">
         <div class="head"><span class="nm">${esc(c.author?.display_name || 'Unknown')}</span><span class="ts">${esc(fmtTime(c.created_at))}</span></div>
-        <div class="text md-body">${renderMarkdown(c.body)}</div>
+        <div class="text md-body">${renderMentionsInHtml(renderMarkdown(c.body))}</div>
       </div>
     </div>`).join('');
 }
@@ -1693,8 +2209,9 @@ async function renderDetail(){
   const parent = w.parent_id ? itemById(w.parent_id) : null;
   const kids = childrenOf(id);
 
-  // Load comments
+  // Load comments + activity
   loadDetailComments();
+  loadDetailActivity();
 
   $('detail-content').innerHTML = `
     <div class="det-top">
@@ -1760,6 +2277,12 @@ async function renderDetail(){
           <div class="md-hint">Press Enter or click Add. Tags are saved instantly.</div>
         </div>
 
+        ${customFieldsFor(w.type).length ? `
+        <div class="det-section">
+          <h3>${esc(TYPE_META[w.type].label)} details</h3>
+          ${customFieldsFor(w.type).map(f => renderCustomFieldEditor(w, f)).join('')}
+        </div>` : ''}
+
         <div class="det-section">
           <h3>Details</h3>
           <div class="det-field">
@@ -1789,6 +2312,11 @@ async function renderDetail(){
             ${TYPE_META[w.type].children.length ? `<div class="add-related" id="add-child-btn">+ Add child</div>` : ''}
             ${!parent && w.type !== 'epic' ? `<div class="add-related" id="set-parent-btn">+ Set parent</div>` : ''}
           </div>
+        </div>
+
+        <div class="det-section">
+          <h3>History</h3>
+          <div class="activity" id="det-activity"><div style="color:var(--muted);font-size:12px">Loading…</div></div>
         </div>
 
         <div class="det-section">
@@ -1914,14 +2442,36 @@ async function renderDetail(){
   }
   wireTagInputs();
 
+  // Type-specific custom fields
+  wireCustomFieldEditors(id, w);
+
+  // Mention autocomplete in comment input
+  wireMentionAutocomplete($('det-comment-input'));
+
   $('det-comment-send').onclick = async ()=>{
     const body = $('det-comment-input').value.trim();
     if(!body) return;
     $('det-comment-input').value = '';
+    const commentId = crypto.randomUUID();
     const { error } = await sb.from('work_item_comments').insert({
-      work_item_id: id, user_id: state.user.id, body
+      id: commentId, work_item_id: id, user_id: state.user.id, body
     });
     if(error){ toast(friendlyError(error),'err'); return; }
+    // Write mention rows (skip self-mentions)
+    const mentions = parseMentions(body).filter(m => m.id !== state.user.id);
+    if(mentions.length){
+      const rows = mentions.map(m => ({
+        comment_id: commentId,
+        work_item_id: id,
+        mentioned_user_id: m.id,
+        mentioned_by: state.user.id,
+      }));
+      const { error: mErr } = await sb.from('work_item_mentions').insert(rows);
+      if(mErr){
+        // Non-fatal — comment is already in.
+        console.warn('Mention rows failed:', mErr);
+      }
+    }
     loadDetailComments();
   };
 
@@ -2176,6 +2726,108 @@ async function renderMembers(){
 }
 
 // ════════════════════════════════════════════════════════════════════
+// SEARCH (workspace-wide, debounced, full-text)
+// ════════════════════════════════════════════════════════════════════
+let searchDebounce = null;
+let searchSeq = 0;  // ignore stale responses
+const searchInput = $('search-input');
+const searchResults = $('search-results');
+
+function closeSearch(){
+  searchResults.classList.add('hidden');
+}
+
+searchInput.addEventListener('input', ()=>{
+  clearTimeout(searchDebounce);
+  const q = searchInput.value.trim();
+  if(!q){ closeSearch(); return; }
+  searchDebounce = setTimeout(()=> runSearch(q), 200);
+});
+searchInput.addEventListener('focus', ()=>{
+  if(searchInput.value.trim()) searchResults.classList.remove('hidden');
+});
+searchInput.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape'){ searchInput.value = ''; closeSearch(); searchInput.blur(); }
+});
+
+// Click outside closes
+document.addEventListener('click', (e)=>{
+  if(!e.target.closest('#search-wrap')) closeSearch();
+});
+
+// Ctrl+/ focuses
+document.addEventListener('keydown', (e)=>{
+  if((e.ctrlKey || e.metaKey) && e.key === '/'){
+    e.preventDefault();
+    searchInput.focus();
+    searchInput.select();
+  }
+});
+
+async function runSearch(q){
+  if(!state.currentWsId) return;
+  searchResults.classList.remove('hidden');
+  searchResults.innerHTML = '<div class="sr-loading">Searching…</div>';
+  const seq = ++searchSeq;
+
+  // Try exact display_id match (e.g. "17" or "#17")
+  const idMatch = q.match(/^#?(\d+)$/);
+  const tsQuery = q
+    .split(/\s+/)
+    .filter(Boolean)
+    .map(t => t.replace(/[^a-zA-Z0-9_]/g,'') + ':*')
+    .join(' & ');
+
+  let query = sb.from('work_items')
+    .select('id, type, title, state, display_id, project_id, projects:project_id(name)')
+    .eq('workspace_id', state.currentWsId)
+    .limit(20);
+
+  if(idMatch){
+    query = query.eq('display_id', parseInt(idMatch[1], 10));
+  } else if(tsQuery){
+    // Postgres @@ via textSearch — supabase-js exposes `textSearch`
+    query = query.textSearch('search_tsv', tsQuery, { config: 'simple' });
+  } else {
+    // Fallback to ILIKE on title
+    query = query.ilike('title', '%' + q + '%');
+  }
+
+  const { data, error } = await query;
+  if(seq !== searchSeq) return;  // stale
+  if(error){
+    searchResults.innerHTML = '<div class="sr-empty">Search error: ' + esc(friendlyError(error)) + '</div>';
+    return;
+  }
+  if(!data || !data.length){
+    searchResults.innerHTML = '<div class="sr-empty">No matches for "' + esc(q) + '"</div>';
+    return;
+  }
+  searchResults.innerHTML = data.map(r => {
+    const tm = TYPE_META[r.type] || TYPE_META.task;
+    return `<div class="sr-item" data-id="${esc(r.id)}" data-pid="${esc(r.project_id)}">
+      <span class="type-ico">${tm.ico}</span>
+      <span class="id">#${r.display_id || '—'}</span>
+      <span class="ti">${esc(r.title)}</span>
+      <span class="proj">${esc(r.projects?.name || '')}</span>
+    </div>`;
+  }).join('');
+  searchResults.querySelectorAll('.sr-item').forEach(item => item.onclick = async ()=>{
+    const pid = item.dataset.pid;
+    const id  = item.dataset.id;
+    closeSearch();
+    searchInput.value = '';
+    // If the item belongs to a different project than the one we're in,
+    // switch projects first so the detail view has its parent/child links.
+    if(pid !== state.currentProjectId){
+      await selectProject(pid);
+    }
+    openDetail(id);
+  });
+}
+
+
+// ════════════════════════════════════════════════════════════════════
 // THEME
 // ════════════════════════════════════════════════════════════════════
 function applyTheme(){
@@ -2220,6 +2872,7 @@ async function enterApp(user){
   hide('auth');
   $('app').classList.add('show');
   await loadWorkspaces();
+  subscribeUserMentions();
 }
 
 boot();
