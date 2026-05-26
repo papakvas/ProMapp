@@ -150,6 +150,10 @@ header.top{display:flex;align-items:center;justify-content:space-between;padding
 .sidebar-foot button:hover{background:var(--panel2);color:var(--cream)}
 .sidebar-foot button.active{background:var(--amber-dim);color:var(--amber)}
 .sidebar-foot button .ico{font-size:14px;opacity:.8}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-family:var(--body);font-weight:700;padding:1px 7px;border-radius:999px;min-width:18px;text-align:center;line-height:1.5;display:none}
+.nav-badge.show{display:inline-block}
+.proj-item .pbadge{margin-left:auto;background:var(--red);color:#fff;font-size:9px;font-family:var(--body);font-weight:700;padding:1px 6px;border-radius:999px;min-width:16px;text-align:center;display:none}
+.proj-item .pbadge.show{display:inline-block}
 
 /* ── MAIN PANE ── */
 .main{display:flex;flex-direction:column;min-height:0;background:var(--dark)}
@@ -484,10 +488,10 @@ header.top{display:flex;align-items:center;justify-content:space-between;padding
         <div class="proj-empty">Loading…</div>
       </div>
       <div class="sidebar-foot">
-        <button id="nav-home" class="active"><span class="ico">⌂</span><span>Overview</span></button>
-        <button id="nav-calendar"><span class="ico">📅</span><span>Calendar</span></button>
-        <button id="nav-chats"><span class="ico">💬</span><span>Chats</span></button>
-        <button id="nav-members"><span class="ico">👥</span><span>Members</span></button>
+        <button id="nav-home" class="active"><span class="ico">⌂</span><span>Overview</span><span class="nav-badge" id="badge-home"></span></button>
+        <button id="nav-calendar"><span class="ico">📅</span><span>Calendar</span><span class="nav-badge" id="badge-calendar"></span></button>
+        <button id="nav-chats"><span class="ico">💬</span><span>Chats</span><span class="nav-badge" id="badge-chats"></span></button>
+        <button id="nav-members"><span class="ico">👥</span><span>Members</span><span class="nav-badge" id="badge-members"></span></button>
       </div>
     </aside>
 
@@ -630,6 +634,7 @@ header.top{display:flex;align-items:center;justify-content:space-between;padding
               <div class="nm" id="chat-open-name">—</div>
               <div class="sub" id="chat-open-sub"></div>
             </div>
+            <button class="leave" id="chat-open-settings" title="Chat settings">⚙</button>
             <button class="leave" id="chat-open-leave">Leave</button>
           </div>
           <div class="messages" id="conv-messages"></div>
@@ -809,7 +814,7 @@ const state = {
   conversations: [],
   currentConvId: null,
   convMessages: [],
-  channels: { messages:null, tasks:null, ideas:null, votes:null, comments:null, invites:null, members:null, conv:null, convList:null },
+  channels: { messages:null, tasks:null, ideas:null, votes:null, comments:null, invites:null, members:null, conv:null, convList:null, unread:null },
 };
 
 // ─── ROUTE PERSISTENCE ──────────────────────────────────────────────────
@@ -871,6 +876,8 @@ async function setActiveWorkspace(wsId, {skipLand=false} = {}){
   await loadProjects();
   if(!skipLand) goPage('home');
   renderWsPicker();
+  subscribeUnread();
+  computeUnread();
 }
 
 // ─── WS PICKER ──────────────────────────────────────────────────────────
@@ -1015,8 +1022,10 @@ function renderProjects(){
   el.innerHTML = visible.map(p => `
     <div class="proj-item ${p.id===state.currentProjectId?'active':''}" data-id="${esc(p.id)}">
       <span class="hash">#</span><span>${esc(p.name)}</span>
+      <span class="pbadge" id="pbadge-${esc(p.id)}"></span>
     </div>`).join('');
   el.querySelectorAll('.proj-item').forEach(n => n.onclick = ()=> selectProject(n.dataset.id));
+  renderBadges();
 }
 
 // Filter toggle (load + persist)
@@ -1041,6 +1050,8 @@ async function selectProject(id){
   setView('board');
   await Promise.all([ loadTasks(), loadMessages(), loadIdeas() ]);
   subscribeRealtime();
+  markVisited('proj:'+id);
+  computeUnread();
 }
 
 $('btn-new-proj').onclick = ()=> openProjectModal();
@@ -2194,6 +2205,7 @@ async function loadConversations(){
   }));
   renderChatTables();
   subscribeChatList();
+  renderBadges();
 }
 
 function conversationDisplayName(c){
@@ -2289,9 +2301,9 @@ async function openNewChatModal(){
           <div class="field"><label>Pick teammates</label>
             <div class="chip-list" id="nc-chips"></div>
           </div>
-          <div class="field" id="nc-name-field" style="display:none">
-            <label>Group name (optional)</label>
-            <input id="nc-name" placeholder="e.g. Design crit" maxlength="60">
+          <div class="field" id="nc-name-field">
+            <label>Chat name (optional)</label>
+            <input id="nc-name" placeholder="e.g. Design crit — leave blank for default" maxlength="60">
           </div>
         </div>
         <div class="modal-f">
@@ -2321,19 +2333,16 @@ async function openNewChatModal(){
       </span>`;
     wrap.innerHTML = (chips || '<span class="chip-empty">Pick at least one teammate.</span>') + picker;
     wrap.querySelectorAll('[data-rm]').forEach(x => x.onclick = (e)=>{
-      e.stopPropagation(); selected.delete(x.dataset.rm); renderNcChips(); toggleNameField();
+      e.stopPropagation(); selected.delete(x.dataset.rm); renderNcChips();
     });
     const addBtn = $('nc-add'); const menu = $('nc-menu');
     if(addBtn){
       addBtn.onclick = (e)=>{ e.stopPropagation(); menu.classList.toggle('show'); };
       menu.querySelectorAll('[data-add]').forEach(it => it.onclick = (e)=>{
         e.stopPropagation();
-        selected.add(it.dataset.add); menu.classList.remove('show'); renderNcChips(); toggleNameField();
+        selected.add(it.dataset.add); menu.classList.remove('show'); renderNcChips();
       });
     }
-  };
-  const toggleNameField = ()=>{
-    $('nc-name-field').style.display = selected.size > 1 ? '' : 'none';
   };
   renderNcChips();
 
@@ -2412,14 +2421,17 @@ async function openConversation(convId){
   await loadConvMessages();
   subscribeConversation();
 
-  // Mark as read
+  // Mark as read (both server-side and local-device)
+  markVisited('conv:'+convId);
   try{
     await sb.from('conversation_members').update({ last_read_at: new Date().toISOString() })
       .eq('conversation_id', convId).eq('user_id', state.user.id);
   }catch{}
+  computeUnread();
 }
 
 $('chat-back').onclick = ()=> goPage('chats');
+$('chat-open-settings').onclick = ()=> openChatSettings();
 $('chat-open-leave').onclick = async ()=>{
   if(!state.currentConvId) return;
   if(!confirm('Leave this chat? You will not see new messages.')) return;
@@ -2433,6 +2445,115 @@ $('chat-open-leave').onclick = async ()=>{
     goPage('chats');
   }catch(err){ toast(friendlyError(err),'err'); }
 };
+
+async function openChatSettings(){
+  if(!state.currentConvId) return;
+  const conv = state.conversations.find(c => c.id === state.currentConvId);
+  if(!conv){ toast('Chat not found','err'); return; }
+  const isCreator = conv.created_by === state.user.id;
+
+  // Load all workspace members so the creator can add new ones
+  const { data: wsMembers } = await sb
+    .from('workspace_members')
+    .select('user_id, profiles:user_id(id, display_name)')
+    .eq('workspace_id', conv.workspace_id);
+  const allPeople = (wsMembers||[]).map(r => r.profiles).filter(Boolean);
+  const memberIds = new Set(conv.members.map(m => m.id));
+
+  const root = $('modal-root');
+  root.innerHTML = `
+    <div class="modal-bg">
+      <div class="modal">
+        <div class="modal-h"><h3>Chat settings</h3><button class="x" id="mx">×</button></div>
+        <div class="modal-b">
+          <div class="field">
+            <label>Chat name</label>
+            <input id="cs-name" value="${esc(conv.name||'')}" maxlength="60" ${isCreator?'':'disabled'} placeholder="${esc(conversationDisplayName(conv))}">
+            ${isCreator ? '' : '<div style="font-size:11px;color:var(--muted);margin-top:4px">Only the creator can rename</div>'}
+          </div>
+          <div class="field">
+            <label>Members (${conv.members.length})</label>
+            <div class="chip-list" id="cs-members"></div>
+          </div>
+        </div>
+        <div class="modal-f">
+          <button class="btn ghost" id="cs-close">Close</button>
+          ${isCreator ? '<button class="btn" id="cs-save">Save name</button>' : ''}
+        </div>
+      </div>
+    </div>`;
+  const close = ()=> root.innerHTML='';
+  $('mx').onclick = close; $('cs-close').onclick = close;
+
+  function renderMembers(){
+    const wrap = $('cs-members');
+    const chips = conv.members.map(m => {
+      const isMe = m.id === state.user.id;
+      const canRemove = isCreator && !isMe;
+      const x = canRemove ? `<span class="x" data-rm="${esc(m.id)}" title="Remove">×</span>` : '';
+      return `<span class="chip" style="background:${isMe?'var(--amber-dim)':'var(--blue-dim)'};border-color:${isMe?'var(--amber)':'var(--blue)'};color:${isMe?'var(--amber)':'var(--blue)'}">${esc(m.display_name)}${isMe?' (you)':''} ${x}</span>`;
+    }).join('');
+    let picker = '';
+    if(isCreator){
+      const available = allPeople.filter(p => !memberIds.has(p.id));
+      picker = `
+        <span class="chip-picker">
+          <button type="button" class="add-chip" id="cs-add">+ Add</button>
+          <div class="picker-menu" id="cs-menu">
+            ${available.length
+              ? available.map(p => `<div class="item" data-add="${esc(p.id)}">${esc(p.display_name)}</div>`).join('')
+              : '<div class="empty">Everyone in this workspace is already in the chat.</div>'}
+          </div>
+        </span>`;
+    }
+    wrap.innerHTML = chips + picker;
+    wrap.querySelectorAll('[data-rm]').forEach(x => x.onclick = async (e)=>{
+      e.stopPropagation();
+      const uid = x.dataset.rm;
+      if(!confirm('Remove this person from the chat?')) return;
+      const { error } = await sb.from('conversation_members').delete()
+        .eq('conversation_id', state.currentConvId)
+        .eq('user_id', uid);
+      if(error){ toast(friendlyError(error),'err'); return; }
+      // Update local state
+      conv.members = conv.members.filter(m => m.id !== uid);
+      memberIds.delete(uid);
+      renderMembers();
+      toast('Removed','ok');
+    });
+    if(isCreator){
+      const addBtn = $('cs-add'); const menu = $('cs-menu');
+      addBtn.onclick = (e)=>{ e.stopPropagation(); menu.classList.toggle('show'); };
+      menu.querySelectorAll('[data-add]').forEach(it => it.onclick = async (e)=>{
+        e.stopPropagation();
+        menu.classList.remove('show');
+        const uid = it.dataset.add;
+        const { error } = await sb.from('conversation_members').insert({
+          conversation_id: state.currentConvId, user_id: uid
+        });
+        if(error){ toast(friendlyError(error),'err'); return; }
+        const profile = allPeople.find(p => p.id === uid);
+        if(profile){ conv.members.push(profile); memberIds.add(uid); }
+        renderMembers();
+        toast('Added','ok');
+      });
+    }
+  }
+  renderMembers();
+
+  if(isCreator){
+    $('cs-save').onclick = async ()=>{
+      const newName = $('cs-name').value.trim() || null;
+      const { error } = await sb.from('conversations').update({ name: newName })
+        .eq('id', state.currentConvId);
+      if(error){ toast(friendlyError(error),'err'); return; }
+      conv.name = newName;
+      $('chat-open-name').textContent = conversationDisplayName(conv);
+      toast('Saved','ok');
+      close();
+    };
+  }
+}
 
 async function loadConvMessages(){
   if(!state.currentConvId){ state.convMessages = []; renderConvMessages(); return; }
@@ -2492,6 +2613,175 @@ function subscribeConversation(){
       ()=> loadConvMessages())
     .subscribe();
 }
+
+// ════════════════════════════════════════════════════════════════════════
+// NOTIFICATIONS / UNREAD BADGES
+//
+// "Unread" semantics (per device, via localStorage):
+//  - Chats: messages in convs you're in, after your last_read_at OR the
+//    local last-visited time for that conv (whichever is more recent)
+//  - Per chat (table card): same logic, scoped to that conv
+//  - Members: count of pending invitations addressed to you
+//  - Projects (sidebar): tasks newly assigned to you (primary or collab)
+//    OR @-mentions, since you last visited that project
+// Counts are computed on demand and on realtime events.
+// ════════════════════════════════════════════════════════════════════════
+const VISIT_KEY = 'pm:visits';
+function loadVisits(){
+  try{ return JSON.parse(localStorage.getItem(VISIT_KEY) || '{}'); }catch{ return {}; }
+}
+function saveVisits(v){
+  try{ localStorage.setItem(VISIT_KEY, JSON.stringify(v)); }catch{}
+}
+function markVisited(key){
+  const v = loadVisits();
+  v[key] = new Date().toISOString();
+  saveVisits(v);
+  renderBadges();
+}
+function lastVisit(key){
+  return loadVisits()[key] || '1970-01-01T00:00:00Z';
+}
+
+// In-memory cache of counts so renderBadges() can paint synchronously
+state.unread = {
+  chats: 0,                  // total unread across all conversations
+  perChat: {},               // convId -> count
+  members: 0,                // pending invites for me
+  perProject: {},            // projectId -> count
+  projectsTotal: 0,          // sum (used for "Projects badge" on overview if you want)
+};
+
+async function computeUnread(){
+  if(!state.user || !state.currentWsId){
+    state.unread = { chats:0, perChat:{}, members:0, perProject:{}, projectsTotal:0 };
+    renderBadges();
+    return;
+  }
+  // Pending invites
+  try{
+    const { data: invs } = await sb.rpc('my_pending_invitations');
+    state.unread.members = (invs||[]).length;
+  }catch{ state.unread.members = 0; }
+
+  // Conversations: count messages newer than my last_read_at (or my local visit, whichever is more recent)
+  state.unread.chats = 0;
+  state.unread.perChat = {};
+  // Pull my last_read_at per conv
+  const { data: mems } = await sb
+    .from('conversation_members')
+    .select('conversation_id, last_read_at')
+    .eq('user_id', state.user.id);
+  const cutoffs = {};
+  for(const m of (mems||[])){
+    const local = lastVisit('conv:'+m.conversation_id);
+    cutoffs[m.conversation_id] = (m.last_read_at && m.last_read_at > local) ? m.last_read_at : local;
+  }
+  const convIds = Object.keys(cutoffs);
+  if(convIds.length){
+    // Single query: get all messages in my convs newer than the earliest cutoff,
+    // then filter per-conv in JS. Cheaper than N queries.
+    const earliest = Object.values(cutoffs).sort()[0];
+    const { data: msgs } = await sb
+      .from('conversation_messages')
+      .select('conversation_id, user_id, created_at')
+      .in('conversation_id', convIds)
+      .gt('created_at', earliest);
+    for(const msg of (msgs||[])){
+      if(msg.user_id === state.user.id) continue; // don't count own messages
+      const cutoff = cutoffs[msg.conversation_id];
+      if(msg.created_at > cutoff){
+        state.unread.perChat[msg.conversation_id] = (state.unread.perChat[msg.conversation_id]||0) + 1;
+        state.unread.chats++;
+      }
+    }
+  }
+
+  // Per-project unread: new tasks assigned/collab to me + @-mentions since last visit
+  state.unread.perProject = {};
+  state.unread.projectsTotal = 0;
+  if(state.projects.length){
+    const projIds = state.projects.map(p => p.id);
+    // Tasks assigned to me as primary, created after I last visited that project
+    // Pull all tasks once, filter per-project; same with collabs and mentions.
+    const [tRes, cRes, mRes] = await Promise.all([
+      sb.from('tasks').select('project_id, created_at, assignee_id')
+        .in('project_id', projIds).eq('assignee_id', state.user.id),
+      sb.from('task_collaborators').select('added_at, tasks(project_id)')
+        .eq('user_id', state.user.id),
+      sb.from('chat_mentions').select('project_id, created_at')
+        .in('project_id', projIds).eq('user_id', state.user.id),
+    ]);
+    const bump = (pid, ts)=>{
+      if(!pid) return;
+      if(ts > lastVisit('proj:'+pid)){
+        state.unread.perProject[pid] = (state.unread.perProject[pid]||0) + 1;
+        state.unread.projectsTotal++;
+      }
+    };
+    (tRes.data||[]).forEach(t => bump(t.project_id, t.created_at));
+    (cRes.data||[]).forEach(c => bump(c.tasks?.project_id, c.added_at));
+    (mRes.data||[]).forEach(m => bump(m.project_id, m.created_at));
+  }
+
+  renderBadges();
+}
+
+function setBadge(id, n){
+  const el = document.getElementById(id);
+  if(!el) return;
+  if(n > 0){
+    el.textContent = n > 99 ? '99+' : String(n);
+    el.classList.add('show');
+  } else {
+    el.classList.remove('show');
+    el.textContent = '';
+  }
+}
+
+function renderBadges(){
+  setBadge('badge-chats',   state.unread.chats);
+  setBadge('badge-members', state.unread.members);
+  // Per-project badges in sidebar
+  for(const p of state.projects){
+    setBadge('pbadge-'+p.id, state.unread.perProject[p.id] || 0);
+  }
+  // Per-chat-table badges on the Chats page
+  document.querySelectorAll('[data-cid]').forEach(card => {
+    const cid = card.getAttribute('data-cid');
+    let badge = card.querySelector('.badge-new');
+    const n = state.unread.perChat[cid] || 0;
+    if(n > 0){
+      if(!badge){
+        badge = document.createElement('span');
+        badge.className = 'badge-new';
+        card.appendChild(badge);
+      }
+      badge.textContent = n > 99 ? '99+' : String(n);
+    } else if(badge){
+      badge.remove();
+    }
+  });
+}
+
+// Subscribe to anything that should refresh unread counts.
+// We piggyback on the existing realtime channels by re-computing
+// when relevant tables change, plus on app focus.
+function subscribeUnread(){
+  if(state.channels.unread){ sb.removeChannel(state.channels.unread); state.channels.unread = null; }
+  state.channels.unread = sb.channel('unread-'+state.user.id)
+    .on('postgres_changes', { event:'INSERT', schema:'public', table:'conversation_messages' }, ()=> computeUnread())
+    .on('postgres_changes', { event:'INSERT', schema:'public', table:'tasks' }, ()=> computeUnread())
+    .on('postgres_changes', { event:'INSERT', schema:'public', table:'task_collaborators' }, ()=> computeUnread())
+    .on('postgres_changes', { event:'INSERT', schema:'public', table:'chat_mentions' }, ()=> computeUnread())
+    .on('postgres_changes', { event:'*',      schema:'public', table:'invitations' }, ()=> computeUnread())
+    .subscribe();
+}
+
+// Recompute when the tab becomes visible (catches anything missed offline)
+document.addEventListener('visibilitychange', ()=>{
+  if(!document.hidden) computeUnread();
+});
 
 // ════════════════════════════════════════════════════════════════════════
 // BOOT
