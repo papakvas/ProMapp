@@ -310,6 +310,25 @@ a:hover{text-decoration:underline}
 .act-body strong{font-weight:600;color:var(--text)}
 .act-ts{font-size:10px;color:var(--muted);margin-top:2px}
 
+/* Overview tabs + lists */
+.ov-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);padding:14px}
+.ov-stat-l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:600}
+.ov-stat-v{font-size:28px;font-weight:600;color:var(--blue);margin-top:2px}
+.ov-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:14px}
+.ov-tab{padding:8px 14px;border-bottom:2px solid transparent;color:var(--text2);font-weight:500;font-size:13px;cursor:pointer;background:transparent;border-top:none;border-left:none;border-right:none}
+.ov-tab:hover{color:var(--text)}
+.ov-tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+.ov-list{background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);overflow:hidden}
+.ov-row{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--border);cursor:pointer;font-size:13px}
+.ov-row:last-child{border-bottom:none}
+.ov-row:hover{background:var(--hover)}
+.ov-row .state{font-size:10px;padding:1px 6px;border-radius:2px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;display:inline-block;margin-left:6px}
+.ov-row .state.s-new{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
+.ov-row .state.s-active{background:var(--blue-dim);color:var(--blue)}
+.ov-row .state.s-resolved{background:var(--yellow-dim);color:#a67000}
+.ov-row .state.s-closed{background:var(--green-dim);color:var(--green)}
+.ov-row .av{width:20px;height:20px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-size:10px;font-weight:600;flex-shrink:0}
+
 
 .cf-md{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:8px 10px;min-height:36px;cursor:text;font-size:13px;line-height:1.5}
 .cf-md:hover{border-color:var(--border2)}
@@ -436,6 +455,10 @@ a:hover{text-decoration:underline}
 .comment .head .nm{font-weight:600;font-size:13px}
 .comment .head .ts{font-size:11px;color:var(--muted)}
 .comment .text{font-size:13px;line-height:1.5}
+.comment .cmt-actions{margin-left:auto;display:flex;gap:2px;opacity:0;transition:opacity .15s}
+.comment:hover .cmt-actions{opacity:1}
+.cmt-act-btn{width:22px;height:22px;border-radius:var(--r);display:grid;place-items:center;color:var(--muted);font-size:12px;background:transparent;border:none;cursor:pointer}
+.cmt-act-btn:hover{background:var(--hover);color:var(--text)}
 .comment-input-wrap{margin-top:14px;display:flex;flex-direction:column;gap:6px}
 .comment-input-wrap textarea{width:100%;min-height:60px}
 
@@ -1711,49 +1734,126 @@ async function renderOverview(){
     $('ov-new-proj').onclick = openNewProjectModal;
     return;
   }
-  // Per-project stats
-  const wsItems = []; // pull all workspace work items for stats
-  const { data: all } = await sb.from('work_items').select('id,project_id,type,state,assignee_id').eq('workspace_id', state.currentWsId);
+  // Pull all workspace work items with everything we need to slice them
+  const { data: all } = await sb
+    .from('work_items')
+    .select('id, project_id, type, title, state, priority, assignee_id, iteration_id, custom_fields, display_id, updated_at, assignee:assignee_id(id, display_name)')
+    .eq('workspace_id', state.currentWsId);
+  const items = all || [];
   const byProj = {};
-  for(const w of (all||[])){
-    (byProj[w.project_id] ||= []).push(w);
-  }
-  const myOpen = (all||[]).filter(w => w.assignee_id === state.user.id && w.state !== 'closed').length;
-  const totalOpen = (all||[]).filter(w => w.state !== 'closed').length;
-  el.innerHTML = `
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:24px">
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);padding:14px">
-        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:600">Έργα</div>
-        <div style="font-size:28px;font-weight:600;color:var(--blue)">${state.projects.length}</div>
-      </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);padding:14px">
-        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:600">Ανοιχτές εργασίες</div>
-        <div style="font-size:28px;font-weight:600;color:var(--blue)">${totalOpen}</div>
-      </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);padding:14px">
-        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:600">Ανατεθειμένες σε εσάς</div>
-        <div style="font-size:28px;font-weight:600;color:var(--blue)">${myOpen}</div>
-      </div>
-    </div>
-    <h2 style="font-size:16px;font-weight:600;margin-bottom:10px">Έργα</h2>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">
-      ${state.projects.map(p => {
-        const items = byProj[p.id] || [];
-        const open = items.filter(i => i.state !== 'closed').length;
-        const closed = items.length - open;
-        return `<div class="proj-card" data-pid="${esc(p.id)}" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);padding:14px;cursor:pointer">
-          <div style="font-weight:600;font-size:14px;margin-bottom:4px">#${esc(p.name)}</div>
-          <div style="color:var(--muted);font-size:12px;margin-bottom:10px;min-height:32px">${esc(p.description||'Χωρίς περιγραφή')}</div>
-          <div style="display:flex;gap:14px;font-size:12px">
-            <span><strong>${open}</strong> <span style="color:var(--muted)">ανοιχτές</span></span>
-            <span><strong>${closed}</strong> <span style="color:var(--muted)">κλειστές</span></span>
-          </div>
-        </div>`;
-      }).join('')}
+  for(const w of items) (byProj[w.project_id] ||= []).push(w);
+  const myOpen   = items.filter(w => w.assignee_id === state.user.id && w.state !== 'closed').length;
+  const totalOpen = items.filter(w => w.state !== 'closed').length;
+
+  // Date helpers
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayIso = today.toISOString().slice(0,10);
+  const weekEnd = new Date(today); weekEnd.setDate(weekEnd.getDate() + 7);
+  const weekEndIso = weekEnd.toISOString().slice(0,10);
+
+  // Today bucket: target_date == today, OR priority 1 + open + assigned to me,
+  // OR iteration ends today.
+  const iterEndsToday = new Set(state.iterations.filter(it => it.end_date === todayIso).map(it => it.id));
+  const todayItems = items.filter(w => {
+    if(w.state === 'closed') return false;
+    const td = w.custom_fields?.target_date;
+    if(td && td <= todayIso) return true;
+    if(w.priority === 1 && w.assignee_id === state.user.id) return true;
+    if(w.iteration_id && iterEndsToday.has(w.iteration_id)) return true;
+    return false;
+  });
+
+  // This week bucket: target_date within next 7 days, OR active iteration & assigned to me
+  const activeIter = currentIteration();
+  const weekItems = items.filter(w => {
+    if(w.state === 'closed') return false;
+    const td = w.custom_fields?.target_date;
+    if(td && td >= todayIso && td <= weekEndIso) return true;
+    if(activeIter && w.iteration_id === activeIter.id && w.assignee_id === state.user.id) return true;
+    return false;
+  });
+
+  // Tab selection persisted
+  const tab = localStorage.getItem('pm-ado:ov-tab') || 'projects';
+
+  function renderItemRow(w){
+    const tm = TYPE_META[w.type] || TYPE_META.task;
+    const sm = STATE_META[w.state] || STATE_META.new;
+    const av = w.assignee ? `<span class="av" title="${esc(w.assignee.display_name)}">${esc(initial(w.assignee.display_name))}</span>` : '';
+    const proj = state.projects.find(p => p.id === w.project_id);
+    const td = w.custom_fields?.target_date;
+    const tdLbl = td ? `<span style="font-size:11px;color:${td <= todayIso ? 'var(--red)' : 'var(--muted)'};margin-left:6px">📅 ${esc(td)}</span>` : '';
+    const pri = w.priority === 1 ? `<span class="pri p1" style="margin-left:4px">P1</span>` : '';
+    return `<div class="ov-row" data-id="${esc(w.id)}">
+      <span class="type-ico" style="font-size:14px">${tm.ico}</span>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--muted);font-weight:600">#${w.display_id||'—'}</span>
+      <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(w.title)}${pri}${tdLbl}</span>
+      <span style="font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)">${esc(proj?.name||'')}</span>
+      <span class="state ${sm.class}">${esc(sm.label)}</span>
+      ${av}
     </div>`;
+  }
+  function renderItemsList(arr, emptyMsg){
+    if(!arr.length) return `<div style="padding:30px 14px;text-align:center;color:var(--muted);font-style:italic;font-size:13px">${esc(emptyMsg)}</div>`;
+    return arr.map(renderItemRow).join('');
+  }
+
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px">
+      <div class="ov-stat"><div class="ov-stat-l">Έργα</div><div class="ov-stat-v">${state.projects.length}</div></div>
+      <div class="ov-stat"><div class="ov-stat-l">Ανοιχτές εργασίες</div><div class="ov-stat-v">${totalOpen}</div></div>
+      <div class="ov-stat"><div class="ov-stat-l">Ανατεθειμένες σε εσάς</div><div class="ov-stat-v">${myOpen}</div></div>
+      <div class="ov-stat"><div class="ov-stat-l">Σήμερα</div><div class="ov-stat-v">${todayItems.length}</div></div>
+    </div>
+
+    <div class="ov-tabs">
+      <button class="ov-tab ${tab==='today'?'active':''}" data-tab="today">Σήμερα</button>
+      <button class="ov-tab ${tab==='week'?'active':''}" data-tab="week">Αυτή την εβδομάδα</button>
+      <button class="ov-tab ${tab==='projects'?'active':''}" data-tab="projects">Έργα</button>
+    </div>
+
+    <div class="ov-pane ${tab==='today'?'':'hidden'}" id="ov-pane-today">
+      <div class="ov-list">${renderItemsList(todayItems, 'Καμία εργασία για σήμερα. Καλή σας ημέρα!')}</div>
+    </div>
+
+    <div class="ov-pane ${tab==='week'?'':'hidden'}" id="ov-pane-week">
+      <div class="ov-list">${renderItemsList(weekItems, 'Δεν υπάρχουν εργασίες με προθεσμία αυτή την εβδομάδα.')}</div>
+    </div>
+
+    <div class="ov-pane ${tab==='projects'?'':'hidden'}" id="ov-pane-projects">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">
+        ${state.projects.map(p => {
+          const its = byProj[p.id] || [];
+          const open = its.filter(i => i.state !== 'closed').length;
+          const closed = its.length - open;
+          return `<div class="proj-card" data-pid="${esc(p.id)}" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);padding:14px;cursor:pointer">
+            <div style="font-weight:600;font-size:14px;margin-bottom:4px">#${esc(p.name)}</div>
+            <div style="color:var(--muted);font-size:12px;margin-bottom:10px;min-height:32px">${esc(p.description||'Χωρίς περιγραφή')}</div>
+            <div style="display:flex;gap:14px;font-size:12px">
+              <span><strong>${open}</strong> <span style="color:var(--muted)">ανοιχτές</span></span>
+              <span><strong>${closed}</strong> <span style="color:var(--muted)">κλειστές</span></span>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+
   el.querySelectorAll('[data-pid]').forEach(n => n.onclick = async ()=>{
     await selectProject(n.dataset.pid);
     goPage('board');
+  });
+  el.querySelectorAll('.ov-row').forEach(r => r.onclick = ()=>{
+    const w = items.find(x => x.id === r.dataset.id);
+    if(!w) return;
+    if(w.project_id !== state.currentProjectId){
+      selectProject(w.project_id).then(()=> openDetail(w.id));
+    } else openDetail(w.id);
+  });
+  el.querySelectorAll('.ov-tab').forEach(b => b.onclick = ()=>{
+    const t = b.dataset.tab;
+    try{ localStorage.setItem('pm-ado:ov-tab', t); }catch{}
+    el.querySelectorAll('.ov-tab').forEach(x => x.classList.toggle('active', x.dataset.tab === t));
+    el.querySelectorAll('.ov-pane').forEach(x => x.classList.toggle('hidden', x.id !== 'ov-pane-' + t));
   });
 }
 
@@ -2240,12 +2340,15 @@ async function loadDetailComments(){
   if(!state.currentItemId){ detailComments = []; renderDetail(); return; }
   const { data } = await sb
     .from('work_item_comments')
-    .select('id, body, created_at, user_id, author:user_id(display_name)')
+    .select('id, body, created_at, edited_at, user_id, author:user_id(display_name)')
     .eq('work_item_id', state.currentItemId)
     .order('created_at', { ascending: true });
   detailComments = data || [];
   const cm = document.getElementById('det-comments');
-  if(cm) cm.innerHTML = renderCommentsHtml();
+  if(cm){
+    cm.innerHTML = renderCommentsHtml();
+    wireCommentActions();
+  }
 }
 
 let detailActivity = [];
@@ -2327,14 +2430,117 @@ function renderActivityHtml(){
 
 function renderCommentsHtml(){
   if(!detailComments.length) return '<div style="color:var(--muted);font-style:italic;font-size:13px;padding:8px 0">Δεν υπάρχουν σχόλια ακόμη. Ξεκινήστε τη συζήτηση.</div>';
-  return detailComments.map(c => `
-    <div class="comment">
+  return detailComments.map(c => {
+    const own = c.user_id === state.user.id;
+    const editedLbl = c.edited_at ? ` · <span title="${esc(c.edited_at)}">επεξεργασμένο</span>` : '';
+    return `
+    <div class="comment" data-cid="${esc(c.id)}">
       <div class="av">${esc(initial(c.author?.display_name))}</div>
       <div class="body">
-        <div class="head"><span class="nm">${esc(c.author?.display_name || 'Unknown')}</span><span class="ts">${esc(fmtTime(c.created_at))}</span></div>
-        <div class="text md-body">${renderMentionsInHtml(renderMarkdown(c.body))}</div>
+        <div class="head">
+          <span class="nm">${esc(c.author?.display_name || 'Άγνωστο')}</span>
+          <span class="ts">${esc(fmtTime(c.created_at))}${editedLbl}</span>
+          ${own ? `<div class="cmt-actions">
+            <button class="cmt-act-btn" data-act="edit"   title="Επεξεργασία">✎</button>
+            <button class="cmt-act-btn" data-act="delete" title="Διαγραφή">🗑</button>
+          </div>` : ''}
+        </div>
+        <div class="text md-body" data-cmt-body>${renderMentionsInHtml(renderMarkdown(c.body))}</div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+}
+
+// Wire edit/delete buttons on rendered comments
+function wireCommentActions(){
+  const root = document.getElementById('det-comments');
+  if(!root) return;
+  root.querySelectorAll('.comment').forEach(el => {
+    const cid = el.dataset.cid;
+    const c = detailComments.find(x => x.id === cid);
+    if(!c || c.user_id !== state.user.id) return;
+    el.querySelectorAll('.cmt-act-btn').forEach(b => b.onclick = (e)=>{
+      e.stopPropagation();
+      if(b.dataset.act === 'delete') return deleteComment(cid);
+      if(b.dataset.act === 'edit')   return startEditComment(cid, el);
+    });
+  });
+}
+
+async function deleteComment(cid){
+  if(!confirm('Διαγραφή σχολίου;')) return;
+  const { error } = await sb.from('work_item_comments').delete().eq('id', cid);
+  if(error){ toast(friendlyError(error),'err'); return; }
+  // Also clear any mention rows pointing to this comment (cascade should
+  // handle it, but if not we don't want stale inbox entries)
+  await sb.from('work_item_mentions').delete().eq('comment_id', cid);
+  toast('Διαγράφηκε', 'ok');
+  loadDetailComments();
+}
+
+function startEditComment(cid, el){
+  const c = detailComments.find(x => x.id === cid);
+  if(!c) return;
+  const bodyEl = el.querySelector('[data-cmt-body]');
+  if(!bodyEl) return;
+  const orig = c.body;
+  const ta = document.createElement('textarea');
+  ta.className = 'det-desc-edit';
+  ta.style.minHeight = '60px';
+  ta.value = orig;
+
+  const actBar = document.createElement('div');
+  actBar.className = 'attach-bar';
+  const save = document.createElement('button');
+  save.type = 'button';
+  save.className = 'btn sm';
+  save.textContent = 'Αποθήκευση';
+  const cancel = document.createElement('button');
+  cancel.type = 'button';
+  cancel.className = 'btn ghost sm';
+  cancel.textContent = 'Άκυρο';
+  actBar.appendChild(document.createElement('span')).style.flex = '1';
+  actBar.appendChild(cancel);
+  actBar.appendChild(save);
+
+  const wrap = document.createElement('div');
+  wrap.appendChild(ta);
+  wrap.appendChild(actBar);
+  bodyEl.replaceWith(wrap);
+  // Hide the actions row while editing
+  el.querySelector('.cmt-actions')?.classList.add('hidden');
+  ta.focus();
+
+  wireMentionAutocomplete(ta);
+
+  cancel.onclick = ()=> loadDetailComments();
+  ta.onkeydown = (e)=>{
+    if(e.key === 'Escape'){ loadDetailComments(); }
+    if((e.ctrlKey || e.metaKey) && e.key === 'Enter'){ save.click(); }
+  };
+  save.onclick = async ()=>{
+    const v = ta.value.trim();
+    if(!v){ toast('Το σχόλιο δεν μπορεί να είναι κενό','err'); return; }
+    if(v === orig){ loadDetailComments(); return; }
+    const { error } = await sb
+      .from('work_item_comments')
+      .update({ body: v, edited_at: new Date().toISOString() })
+      .eq('id', cid);
+    if(error){ toast(friendlyError(error),'err'); return; }
+    // Recompute mention rows: drop old, insert new (excluding self)
+    await sb.from('work_item_mentions').delete().eq('comment_id', cid);
+    const mentions = parseMentions(v).filter(m => m.id !== state.user.id);
+    if(mentions.length){
+      await sb.from('work_item_mentions').insert(mentions.map(m => ({
+        comment_id: cid,
+        work_item_id: c.work_item_id || state.currentItemId,
+        mentioned_user_id: m.id,
+        mentioned_by: state.user.id,
+      })));
+    }
+    toast('Αποθηκεύτηκε', 'ok');
+    loadDetailComments();
+  };
 }
 
 async function renderDetail(){
