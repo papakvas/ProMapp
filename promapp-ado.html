@@ -259,7 +259,17 @@ a:hover{text-decoration:underline}
 .md-body h3{font-size:14px;font-weight:600;margin:6px 0 4px}
 .md-body a{color:var(--blue);text-decoration:underline}
 .md-body blockquote{border-left:3px solid var(--border2);padding-left:10px;color:var(--text2);margin:6px 0}
+.md-body .md-img{max-width:100%;max-height:380px;border-radius:var(--r);border:1px solid var(--border);display:inline-block;margin:6px 0;cursor:zoom-in;background:var(--surface2)}
 .md-hint{font-size:11px;color:var(--muted);margin-top:4px;font-style:italic}
+
+/* Attachment upload UI */
+.attach-bar{display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap}
+.attach-btn{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);color:var(--text2);font-size:12px;font-weight:500;cursor:pointer}
+.attach-btn:hover{background:var(--hover);color:var(--text)}
+.attach-btn .ico{font-size:13px}
+.attach-status{font-size:11px;color:var(--muted);font-style:italic}
+.attach-status.err{color:var(--red);font-style:normal;font-weight:500}
+.drag-zone-on{outline:2px dashed var(--blue);outline-offset:-4px;background:var(--blue-dim) !important}
 
 /* @mention chips inside rendered comments */
 .mention{background:var(--blue-dim);color:var(--blue);padding:1px 5px;border-radius:3px;font-weight:600;font-size:.95em}
@@ -385,7 +395,12 @@ a:hover{text-decoration:underline}
 .det-top .spacer{flex:1}
 
 .det-body{flex:1;display:grid;grid-template-columns:1fr 320px;gap:0;overflow:hidden;min-height:0}
-@media (max-width:900px){.det-body{grid-template-columns:1fr}}
+@media (max-width:900px){
+  .det-body{grid-template-columns:1fr;overflow-y:auto}
+  /* On mobile, surface status/assignee/priority first */
+  .det-right{order:1;border-right:none;border-bottom:1px solid var(--border);overflow-y:visible}
+  .det-left{order:2;overflow-y:visible}
+}
 .det-left{padding:18px 22px;overflow-y:auto;border-right:1px solid var(--border)}
 .det-right{padding:18px 22px;overflow-y:auto;background:var(--surface2);font-size:13px}
 
@@ -421,8 +436,8 @@ a:hover{text-decoration:underline}
 .comment .head .nm{font-weight:600;font-size:13px}
 .comment .head .ts{font-size:11px;color:var(--muted)}
 .comment .text{font-size:13px;line-height:1.5}
-.comment-input{display:flex;gap:10px;margin-top:14px}
-.comment-input textarea{flex:1;min-height:60px}
+.comment-input-wrap{margin-top:14px;display:flex;flex-direction:column;gap:6px}
+.comment-input-wrap textarea{width:100%;min-height:60px}
 
 /* ─── MODAL / DROPDOWN ─── */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;display:grid;place-items:center;padding:20px}
@@ -458,8 +473,6 @@ a:hover{text-decoration:underline}
   .topbar .menu-btn{display:grid !important}
   .bl-h, .bl-row{grid-template-columns:24px 24px 60px 1fr 80px}
   .bl-h > :nth-child(n+6), .bl-row > :nth-child(n+6){display:none}
-  .det-body{grid-template-columns:1fr}
-  .det-right{border-top:1px solid var(--border)}
 }
 .menu-btn{display:none;width:32px;height:32px;border-radius:var(--r)}
 .menu-btn:hover{background:var(--hover)}
@@ -489,7 +502,7 @@ a:hover{text-decoration:underline}
   <div class="topbar">
     <button class="iconbtn menu-btn" id="menu-btn">≡</button>
     <div class="logo"><div class="mark">P</div><span>ProMapp</span></div>
-    <span class="crumb"><span id="crumb-ws">—</span><span class="sep">/</span><span id="crumb-page">Πίνακες</span></span>
+    <span class="crumb"><span id="crumb-ws">—</span><span class="sep">/</span><span id="crumb-page">Ροή εργασιών</span></span>
     <div class="spacer"></div>
     <div class="search-wrap" id="search-wrap">
       <input id="search-input" placeholder="Αναζήτηση εργασιών… (Ctrl+/)" autocomplete="off">
@@ -522,7 +535,7 @@ a:hover{text-decoration:underline}
       </div>
       <div class="sb-nav">
         <div class="group">Σχεδιασμός</div>
-        <button id="nav-board"   ><span class="ico">▤</span>Πίνακες</button>
+        <button id="nav-board"   ><span class="ico">▤</span>Ροή εργασιών</button>
         <button id="nav-backlog" ><span class="ico">≣</span>Λίστα εργασιών</button>
         <button id="nav-sprints" ><span class="ico">🏃</span>Περίοδοι</button>
         <div class="group">Έργο</div>
@@ -581,6 +594,11 @@ a:hover{text-decoration:underline}
             <select id="bl-tag-filter">
               <option value="">Όλες οι ετικέτες</option>
             </select>
+            <select id="bl-assignee-filter">
+              <option value="">Όλοι οι υπεύθυνοι</option>
+              <option value="__me__">Σε εμένα</option>
+              <option value="__none__">Χωρίς ανάθεση</option>
+            </select>
             <div class="spacer" style="flex:1"></div>
             <button class="btn" id="bl-new-top">+ Νέα εργασία</button>
           </div>
@@ -596,6 +614,11 @@ a:hover{text-decoration:underline}
               <option value="">— Καμία περίοδος —</option>
             </select>
             <button class="btn ghost sm" id="sp-manage">⚙ Διαχείριση περιόδων</button>
+            <select id="sp-assignee-filter">
+              <option value="">Όλοι οι υπεύθυνοι</option>
+              <option value="__me__">Σε εμένα</option>
+              <option value="__none__">Χωρίς ανάθεση</option>
+            </select>
             <div class="spacer" style="flex:1"></div>
             <span id="sp-meta" style="font-size:12px;color:var(--muted)"></span>
           </div>
@@ -728,6 +751,100 @@ function allTags(){
   }
   return [...set].sort();
 }
+
+// ── Image upload ─────────────────────────────────────────────────────
+const ATTACHMENT_BUCKET = 'work-item-attachments';
+const ATTACHMENT_MAX_BYTES = 10 * 1024 * 1024;          // 10 MB
+const ATTACHMENT_MIME_OK = ['image/png','image/jpeg','image/gif','image/webp','image/svg+xml'];
+
+async function uploadImage(file){
+  if(!file) return null;
+  if(!ATTACHMENT_MIME_OK.includes(file.type)){
+    throw new Error('Μη υποστηριζόμενος τύπος: ' + file.type);
+  }
+  if(file.size > ATTACHMENT_MAX_BYTES){
+    throw new Error('Πολύ μεγάλο αρχείο (όριο 10MB)');
+  }
+  // Path: <workspace_id>/<user_id>/<uuid>-<safe-name>
+  const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-80);
+  const path = `${state.currentWsId}/${state.user.id}/${crypto.randomUUID()}-${safe}`;
+  const { error } = await sb.storage.from(ATTACHMENT_BUCKET).upload(path, file, {
+    cacheControl: '3600',
+    upsert: false,
+    contentType: file.type,
+  });
+  if(error) throw error;
+  const { data } = sb.storage.from(ATTACHMENT_BUCKET).getPublicUrl(path);
+  return data.publicUrl;
+}
+
+// Wire a textarea + an optional drop-zone to support image upload.
+// Uploads insert `![filename](url)` at the cursor. Status lives in a
+// sibling element with class .attach-status (caller provides it).
+function wireImageUpload(ta, dropEl, statusEl){
+  if(!ta || ta._uploadWired) return;
+  ta._uploadWired = true;
+
+  function insertAtCursor(text){
+    const start = ta.selectionStart ?? ta.value.length;
+    const end   = ta.selectionEnd   ?? ta.value.length;
+    ta.value = ta.value.slice(0, start) + text + ta.value.slice(end);
+    const newPos = start + text.length;
+    ta.setSelectionRange(newPos, newPos);
+    ta.focus();
+  }
+
+  async function doUpload(file){
+    if(statusEl){ statusEl.textContent = 'Μεταφόρτωση…'; statusEl.classList.remove('err'); }
+    try{
+      const url = await uploadImage(file);
+      const alt = file.name.replace(/\.[a-z0-9]+$/i, '');
+      insertAtCursor(`\n![${alt}](${url})\n`);
+      if(statusEl){ statusEl.textContent = '✓ Μεταφορτώθηκε'; setTimeout(()=>{ if(statusEl) statusEl.textContent = ''; }, 1800); }
+    }catch(e){
+      if(statusEl){ statusEl.textContent = 'Σφάλμα: ' + (e?.message || e); statusEl.classList.add('err'); }
+      else toast('Σφάλμα μεταφόρτωσης: ' + (e?.message || e), 'err');
+    }
+  }
+
+  // Paste from clipboard
+  ta.addEventListener('paste', async (e)=>{
+    const items = e.clipboardData?.items || [];
+    for(const it of items){
+      if(it.kind === 'file'){
+        const f = it.getAsFile();
+        if(f && f.type.startsWith('image/')){
+          e.preventDefault();
+          await doUpload(f);
+          return;
+        }
+      }
+    }
+  });
+
+  // Drag-and-drop into target zone (the textarea or a parent)
+  const zone = dropEl || ta;
+  ['dragenter','dragover'].forEach(ev => zone.addEventListener(ev, (e)=>{
+    if(e.dataTransfer?.types?.includes('Files')){
+      e.preventDefault();
+      zone.classList.add('drag-zone-on');
+    }
+  }));
+  ['dragleave','drop'].forEach(ev => zone.addEventListener(ev, (e)=>{
+    zone.classList.remove('drag-zone-on');
+  }));
+  zone.addEventListener('drop', async (e)=>{
+    if(!e.dataTransfer?.files?.length) return;
+    e.preventDefault();
+    for(const f of e.dataTransfer.files){
+      if(f.type.startsWith('image/')) await doUpload(f);
+    }
+  });
+
+  // Expose for explicit-button uploads
+  ta._doUpload = doUpload;
+}
+
 
 // ── @mention parsing ─────────────────────────────────────────────────
 // Names can include spaces. We match against the actual member list,
@@ -1075,7 +1192,10 @@ function renderMarkdown(src){
   // 5) Bold / italic
   s = s.replace(/\*\*([^\*\n]+)\*\*/g, '<strong>$1</strong>');
   s = s.replace(/(?<!\*)\*([^\*\n]+)\*(?!\*)/g, '<em>$1</em>');
-  // 6) Links — http(s) and mailto only
+  // 6a) Images — http(s) only; rendered as inline thumbnail with click-to-zoom
+  s = s.replace(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g,
+    '<a href="$2" target="_blank" rel="noopener noreferrer"><img src="$2" alt="$1" class="md-img" loading="lazy"></a>');
+  // 6b) Links — http(s) and mailto only
   s = s.replace(/\[([^\]]+)\]\(((?:https?:\/\/|mailto:)[^\s)]+)\)/g,
     '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
   // 7) Blockquotes
@@ -1568,7 +1688,7 @@ function goPage(name){
   const ti = $('sub-title'), tabs = $('sub-tabs'), acts = $('sub-actions');
   tabs.innerHTML = ''; acts.innerHTML = '';
   if(name === 'overview'){ ti.textContent = 'Επισκόπηση'; $('crumb-page').textContent = 'Επισκόπηση'; renderOverview(); }
-  else if(name === 'board'){ ti.textContent = state.currentProjectId ? (state.projects.find(p=>p.id===state.currentProjectId)?.name || '') : 'Πίνακες'; $('crumb-page').textContent = 'Πίνακες'; renderBoardHeader(); renderBoard(); }
+  else if(name === 'board'){ ti.textContent = state.currentProjectId ? (state.projects.find(p=>p.id===state.currentProjectId)?.name || '') : 'Ροή εργασιών'; $('crumb-page').textContent = 'Ροή εργασιών'; renderBoardHeader(); renderBoard(); }
   else if(name === 'backlog'){ ti.textContent = state.currentProjectId ? (state.projects.find(p=>p.id===state.currentProjectId)?.name || '') : 'Λίστα εργασιών'; $('crumb-page').textContent = 'Λίστα εργασιών'; renderBacklog(); }
   else if(name === 'sprints'){ ti.textContent = 'Περίοδοι'; $('crumb-page').textContent = 'Περίοδοι'; renderSprintsPage(); }
   else if(name === 'detail'){ ti.textContent = ''; $('crumb-page').textContent = 'Εργασία'; renderDetail(); }
@@ -1643,7 +1763,7 @@ async function renderOverview(){
 function renderBoardHeader(){
   if(!state.currentProjectId) return;
   const tabs = $('sub-tabs');
-  tabs.innerHTML = `<div class="tab active">Πίνακας</div>`;
+  tabs.innerHTML = `<div class="tab active">Ροή εργασιών</div>`;
   const acts = $('sub-actions');
   acts.innerHTML = `
     <select id="board-type-filter" style="font-size:12px;padding:4px 8px">
@@ -1778,6 +1898,7 @@ function renderCard(w){
 $('bl-type-filter')  && ($('bl-type-filter').onchange = renderBacklog);
 $('bl-state-filter') && ($('bl-state-filter').onchange = renderBacklog);
 $('bl-tag-filter')   && ($('bl-tag-filter').onchange = renderBacklog);
+$('bl-assignee-filter') && ($('bl-assignee-filter').onchange = renderBacklog);
 $('bl-new-top')      && ($('bl-new-top').onclick = ()=> openNewItemModal({}));
 
 // Track expanded state per item id (persist in localStorage so it survives reload)
@@ -1798,9 +1919,25 @@ function refreshBacklogTagFilter(){
     tags.map(t => `<option value="${esc(t)}" ${t===cur?'selected':''}>${esc(t)}</option>`).join('');
 }
 
+function refreshBacklogAssigneeFilter(){
+  const sel = $('bl-assignee-filter');
+  if(!sel) return;
+  const cur = sel.value;
+  const memberOpts = state.members
+    .filter(m => m.id !== state.user.id)
+    .map(m => `<option value="${esc(m.id)}" ${m.id===cur?'selected':''}>${esc(m.display_name)}</option>`)
+    .join('');
+  sel.innerHTML =
+    `<option value="" ${cur===''?'selected':''}>Όλοι οι υπεύθυνοι</option>` +
+    `<option value="__me__" ${cur==='__me__'?'selected':''}>Σε εμένα</option>` +
+    `<option value="__none__" ${cur==='__none__'?'selected':''}>Χωρίς ανάθεση</option>` +
+    memberOpts;
+}
+
 function renderBacklog(){
   // Always refresh tag-filter options (new tags from anywhere appear here)
   refreshBacklogTagFilter();
+  refreshBacklogAssigneeFilter();
 
   if(!state.currentProjectId){
     $('bl-tree').innerHTML = '<div class="bl-empty">Δεν έχει επιλεγεί έργο</div>';
@@ -1809,10 +1946,16 @@ function renderBacklog(){
   const typeF  = $('bl-type-filter')?.value  || 'all';
   const stateF = $('bl-state-filter')?.value || 'open';
   const tagF   = $('bl-tag-filter')?.value   || '';
+  const asgF   = $('bl-assignee-filter')?.value || '';
   // Build filtered set
   const matches = (w) => {
     if(typeF !== 'all' && w.type !== typeF) return false;
     if(tagF && !(w.tags || []).includes(tagF)) return false;
+    if(asgF){
+      if(asgF === '__me__'  && w.assignee_id !== state.user.id) return false;
+      if(asgF === '__none__' && w.assignee_id) return false;
+      if(asgF !== '__me__' && asgF !== '__none__' && w.assignee_id !== asgF) return false;
+    }
     if(stateF === 'open') return w.state !== 'closed';
     if(stateF !== 'all') return w.state === stateF;
     return true;
@@ -1824,8 +1967,8 @@ function renderBacklog(){
   let rowsHtml = '';
   const expanded = getExpanded();
 
-  if(typeF !== 'all' || tagF){
-    // Flat list when filtering by type or tag (parents may not match)
+  if(typeF !== 'all' || tagF || asgF){
+    // Flat list when filtering by type, tag, or assignee
     rowsHtml = matching.map(w => renderBacklogRow(w, 0, false, false)).join('');
   } else {
     // Tree
@@ -2236,9 +2379,15 @@ async function renderDetail(){
         <div class="det-section">
           <h3>Συζήτηση</h3>
           <div class="comments" id="det-comments"></div>
-          <div class="comment-input">
+          <div class="comment-input-wrap" id="det-comment-wrap">
             <textarea id="det-comment-input" placeholder="Γράψτε σχόλιο…"></textarea>
-            <button class="btn" id="det-comment-send">Σχόλιο</button>
+            <div class="attach-bar">
+              <button type="button" class="attach-btn" id="det-comment-att-btn"><span class="ico">📎</span>Εικόνα</button>
+              <input type="file" id="det-comment-att-input" accept="image/*" style="display:none">
+              <span class="attach-status" id="det-comment-att-status"></span>
+              <div style="flex:1"></div>
+              <button class="btn" id="det-comment-send">Σχόλιο</button>
+            </div>
           </div>
         </div>
       </div>
@@ -2345,20 +2494,68 @@ async function renderDetail(){
     const ta = document.createElement('textarea');
     ta.className = 'det-desc-edit';
     ta.value = orig;
+
+    // Attachment bar: upload button + status
+    const attBar = document.createElement('div');
+    attBar.className = 'attach-bar';
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.style.display = 'none';
+    const upBtn = document.createElement('button');
+    upBtn.type = 'button';
+    upBtn.className = 'attach-btn';
+    upBtn.innerHTML = '<span class="ico">📎</span>Εικόνα';
+    const status = document.createElement('span');
+    status.className = 'attach-status';
+    const saveBtn = document.createElement('button');
+    saveBtn.type = 'button';
+    saveBtn.className = 'btn sm';
+    saveBtn.textContent = 'Αποθήκευση';
+    const cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.className = 'btn ghost sm';
+    cancelBtn.textContent = 'Άκυρο';
+    attBar.appendChild(upBtn);
+    attBar.appendChild(fileInput);
+    attBar.appendChild(status);
+    attBar.appendChild(document.createElement('span')).style.flex = '1';
+    attBar.appendChild(cancelBtn);
+    attBar.appendChild(saveBtn);
+
     const hint = document.createElement('div');
     hint.className = 'md-hint';
-    hint.innerHTML = 'Υποστηρίζεται markdown · <strong>**έντονα**</strong> · <em>*πλάγια*</em> · `κώδικας` · # τίτλος · - λίστα · [κείμενο](url)';
+    hint.innerHTML = 'Υποστηρίζεται markdown · <strong>**έντονα**</strong> · <em>*πλάγια*</em> · `κώδικας` · # τίτλος · - λίστα · [κείμενο](url) · σύρετε ή επικολλήστε εικόνα';
+
     wrap.appendChild(ta);
+    wrap.appendChild(attBar);
     wrap.appendChild(hint);
     $('det-desc').replaceWith(wrap);
     ta.focus();
+
+    wireImageUpload(ta, wrap, status);
+
+    upBtn.onclick = ()=> fileInput.click();
+    fileInput.onchange = async ()=>{
+      const f = fileInput.files?.[0];
+      if(f && ta._doUpload) await ta._doUpload(f);
+      fileInput.value = '';
+    };
+
     let saving = false;
-    ta.onblur = async ()=>{
+    async function save(){
       if(saving) return;
       saving = true;
       const v = ta.value.trim();
       if(v !== orig){ await updateWorkItem(id, { description: v }); w.description = v; }
       renderDetail();
+    }
+    saveBtn.onclick = save;
+    cancelBtn.onclick = ()=>{ saving = true; renderDetail(); };
+    // Keep ctrl/cmd+Enter save shortcut
+    ta.onkeydown = (e)=>{
+      if((e.ctrlKey || e.metaKey) && e.key === 'Enter'){ e.preventDefault(); save(); }
+      if(e.key === 'Escape'){ e.preventDefault(); saving = true; renderDetail(); }
     };
   };
 
@@ -2446,8 +2643,16 @@ async function renderDetail(){
   // Type-specific custom fields
   wireCustomFieldEditors(id, w);
 
-  // Mention autocomplete in comment input
-  wireMentionAutocomplete($('det-comment-input'));
+  // Mention autocomplete + image upload in comment input
+  const commentTa = $('det-comment-input');
+  wireMentionAutocomplete(commentTa);
+  wireImageUpload(commentTa, $('det-comment-wrap'), $('det-comment-att-status'));
+  $('det-comment-att-btn').onclick = ()=> $('det-comment-att-input').click();
+  $('det-comment-att-input').onchange = async ()=>{
+    const f = $('det-comment-att-input').files?.[0];
+    if(f && commentTa._doUpload) await commentTa._doUpload(f);
+    $('det-comment-att-input').value = '';
+  };
 
   $('det-comment-send').onclick = async ()=>{
     const body = $('det-comment-input').value.trim();
@@ -2564,6 +2769,18 @@ async function renderSprintsPage(){
     return;
   }
 
+  // Populate assignee filter with current workspace members (preserve selection)
+  const asgSel = $('sp-assignee-filter');
+  if(asgSel){
+    const curAsg = asgSel.value;
+    asgSel.innerHTML =
+      `<option value="" ${curAsg===''?'selected':''}>Όλοι οι υπεύθυνοι</option>` +
+      `<option value="__me__" ${curAsg==='__me__'?'selected':''}>Σε εμένα</option>` +
+      `<option value="__none__" ${curAsg==='__none__'?'selected':''}>Χωρίς ανάθεση</option>` +
+      state.members.map(m => `<option value="${esc(m.id)}" ${curAsg===m.id?'selected':''}>${esc(m.display_name)}</option>`).join('');
+    asgSel.onchange = renderSprintsPage;
+  }
+
   // Pull items in this iteration across all projects in the workspace
   const { data: items, error } = await sb
     .from('work_items')
@@ -2572,7 +2789,13 @@ async function renderSprintsPage(){
     .eq('iteration_id', state.currentIterationId)
     .order('position', { ascending: true, nullsFirst: false });
   if(error){ toast('Εργασίες περιόδου: '+friendlyError(error),'err'); return; }
-  const list = items || [];
+  let list = items || [];
+
+  // Apply assignee filter
+  const asgF = asgSel?.value || '';
+  if(asgF === '__me__')      list = list.filter(w => w.assignee_id === state.user.id);
+  else if(asgF === '__none__') list = list.filter(w => !w.assignee_id);
+  else if(asgF)              list = list.filter(w => w.assignee_id === asgF);
 
   // Stats
   const totalPts = list.reduce((s,i) => s + (i.story_points || 0), 0);
