@@ -328,6 +328,7 @@ a:hover{text-decoration:underline}
 .ov-row .state.s-resolved{background:var(--yellow-dim);color:#a67000}
 .ov-row .state.s-closed{background:var(--green-dim);color:var(--green)}
 .ov-row .av{width:20px;height:20px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-size:10px;font-weight:600;flex-shrink:0}
+.settings-col-row:hover{background:var(--hover)}
 
 
 .cf-md{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:8px 10px;min-height:36px;cursor:text;font-size:13px;line-height:1.5}
@@ -494,8 +495,6 @@ a:hover{text-decoration:underline}
   .sidebar{position:fixed;left:0;top:44px;bottom:0;z-index:100;transform:translateX(-100%);transition:transform .2s}
   .sidebar.show{transform:translateX(0)}
   .topbar .menu-btn{display:grid !important}
-  .bl-h, .bl-row{grid-template-columns:24px 24px 60px 1fr 80px}
-  .bl-h > :nth-child(n+6), .bl-row > :nth-child(n+6){display:none}
 }
 .menu-btn{display:none;width:32px;height:32px;border-radius:var(--r)}
 .menu-btn:hover{background:var(--hover)}
@@ -564,6 +563,7 @@ a:hover{text-decoration:underline}
         <div class="group">Έργο</div>
         <button id="nav-overview" class="active"><span class="ico">⌂</span>Επισκόπηση</button>
         <button id="nav-members" ><span class="ico">👥</span>Ομάδα</button>
+        <button id="nav-settings" ><span class="ico">⚙</span>Ρυθμίσεις</button>
       </div>
       <div class="sb-projects-list" id="proj-list">
         <div class="empty">Φόρτωση έργων…</div>
@@ -661,6 +661,13 @@ a:hover{text-decoration:underline}
         </div>
       </div>
 
+      <!-- SETTINGS PAGE -->
+      <div class="page hidden" id="page-settings">
+        <div style="padding:24px;max-width:680px;margin:0 auto">
+          <div id="settings-content"></div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -694,7 +701,7 @@ const state = {
   currentRole: 'member',
   projects: [],
   currentProjectId: null,
-  currentPage: 'overview',     // 'overview' | 'board' | 'backlog' | 'sprints' | 'detail' | 'members'
+  currentPage: 'overview',     // 'overview' | 'board' | 'backlog' | 'sprints' | 'detail' | 'members' | 'settings'
   currentItemId: null,
   workItems: [],
   iterations: [],              // workspace-scoped sprint list
@@ -702,8 +709,43 @@ const state = {
   members: [],
   filters: { type:'all', state:'open', tag:null },
   unreadMentions: [],          // unread @mentions for the current user (workspace-wide)
+  backlogColumns: null,        // user's chosen columns (loaded from localStorage)
   channels: { wi:null, wic:null, wicol:null, it:null, mentions:null },
 };
+
+// ════════════════════════════════════════════════════════════════════
+// BACKLOG COLUMNS — configurable via Settings page
+// ════════════════════════════════════════════════════════════════════
+// Each column: key, label, default-on, width (grid track), and a render fn.
+// id + title are always shown and not toggleable.
+const BACKLOG_COLUMNS = [
+  { key:'type',      label:'Τύπος',         width:'70px',  on:true  },
+  { key:'priority',  label:'Προτεραιότητα', width:'90px',  on:false },
+  { key:'assignee',  label:'Υπεύθυνος',     width:'140px', on:true  },
+  { key:'state',     label:'Κατάσταση',     width:'110px', on:true  },
+  { key:'tags',      label:'Ετικέτες',      width:'160px', on:false },
+  { key:'iteration', label:'Περίοδος',      width:'120px', on:false },
+  { key:'target',    label:'Προθεσμία',     width:'110px', on:false },
+  { key:'points',    label:'Πόντοι',        width:'70px',  on:false },
+  { key:'remaining', label:'Υπόλοιπο',      width:'80px',  on:true  },
+  { key:'updated',   label:'Ενημέρωση',     width:'110px', on:false },
+];
+function backlogColsKey(){ return 'pm-ado:cols:' + state.currentWsId; }
+function loadBacklogColumns(){
+  try{
+    const saved = JSON.parse(localStorage.getItem(backlogColsKey()) || 'null');
+    if(Array.isArray(saved) && saved.length){ state.backlogColumns = saved; return; }
+  }catch{}
+  state.backlogColumns = BACKLOG_COLUMNS.filter(c => c.on).map(c => c.key);
+}
+function saveBacklogColumns(){
+  try{ localStorage.setItem(backlogColsKey(), JSON.stringify(state.backlogColumns)); }catch{}
+}
+function activeBacklogColumns(){
+  if(!state.backlogColumns) loadBacklogColumns();
+  // Keep canonical order from BACKLOG_COLUMNS, filtered to chosen keys
+  return BACKLOG_COLUMNS.filter(c => state.backlogColumns.includes(c.key));
+}
 
 // ════════════════════════════════════════════════════════════════════
 // CONSTANTS — type hierarchy & visuals
@@ -1382,6 +1424,7 @@ async function setActiveWorkspace(wsId){
   state.projects = [];
   state.workItems = [];
   unsubAll();
+  loadBacklogColumns();
   await Promise.all([ loadProjects(), loadMembers(), loadIterations(), loadUnreadMentions() ]);
   goPage('overview');
 }
@@ -1696,14 +1739,15 @@ $('nav-board').onclick    = ()=> goPage('board');
 $('nav-backlog').onclick  = ()=> goPage('backlog');
 $('nav-sprints').onclick  = ()=> goPage('sprints');
 $('nav-members').onclick  = ()=> goPage('members');
+$('nav-settings').onclick = ()=> goPage('settings');
 $('menu-btn').onclick     = ()=> $('sidebar').classList.toggle('show');
 
 function goPage(name){
   state.currentPage = name;
-  ['overview','board','backlog','sprints','detail','members'].forEach(p =>
+  ['overview','board','backlog','sprints','detail','members','settings'].forEach(p =>
     $('page-'+p).classList.toggle('hidden', p !== name)
   );
-  ['overview','board','backlog','sprints','members'].forEach(p => {
+  ['overview','board','backlog','sprints','members','settings'].forEach(p => {
     const btn = $('nav-'+p);
     if(btn) btn.classList.toggle('active', p === name);
   });
@@ -1716,6 +1760,7 @@ function goPage(name){
   else if(name === 'sprints'){ ti.textContent = 'Περίοδοι'; $('crumb-page').textContent = 'Περίοδοι'; renderSprintsPage(); }
   else if(name === 'detail'){ ti.textContent = ''; $('crumb-page').textContent = 'Εργασία'; renderDetail(); }
   else if(name === 'members'){ ti.textContent = 'Ομάδα'; $('crumb-page').textContent = 'Ομάδα'; renderMembers(); }
+  else if(name === 'settings'){ ti.textContent = 'Ρυθμίσεις'; $('crumb-page').textContent = 'Ρυθμίσεις'; renderSettings(); }
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -1807,9 +1852,9 @@ async function renderOverview(){
     </div>
 
     <div class="ov-tabs">
+      <button class="ov-tab ${tab==='projects'?'active':''}" data-tab="projects">Έργα</button>
       <button class="ov-tab ${tab==='today'?'active':''}" data-tab="today">Σήμερα</button>
       <button class="ov-tab ${tab==='week'?'active':''}" data-tab="week">Αυτή την εβδομάδα</button>
-      <button class="ov-tab ${tab==='projects'?'active':''}" data-tab="projects">Έργα</button>
     </div>
 
     <div class="ov-pane ${tab==='today'?'':'hidden'}" id="ov-pane-today">
@@ -2085,15 +2130,21 @@ function renderBacklog(){
     for(const r of roots) walk(r, 0);
   }
 
+  const isNarrow = window.matchMedia && window.matchMedia('(max-width:720px)').matches;
+  const allCols = activeBacklogColumns();
+  const cols = isNarrow ? allCols.slice(0, 1) : allCols;
+  const lead = ['24px','24px','70px','1fr'];
+  const tmpl = [...lead, ...cols.map(c => c.width)].join(' ');
+  const headCells = cols.map(c =>
+    `<div${(c.key==='remaining'||c.key==='points') ? ' style="text-align:right"' : ''}>${esc(c.label)}</div>`
+  ).join('');
   $('bl-tree').innerHTML = `
-    <div class="bl-h">
+    <div class="bl-h" style="grid-template-columns:${tmpl}">
       <div></div>
       <div></div>
       <div>ID</div>
       <div>Τίτλος</div>
-      <div>Υπεύθυνος</div>
-      <div>Κατάσταση</div>
-      <div style="text-align:right">Υπόλοιπο</div>
+      ${headCells}
     </div>
     ${rowsHtml || '<div class="bl-empty">Δεν υπάρχουν εργασίες που να ταιριάζουν με τα φίλτρα. Δοκιμάστε "+ Νέα εργασία" ή αλλάξτε φίλτρο.</div>'}`;
 
@@ -2197,13 +2248,63 @@ function renderBacklog(){
   }
 }
 
+function renderBacklogCell(w, key){
+  switch(key){
+    case 'type': {
+      const tm = TYPE_META[w.type] || TYPE_META.task;
+      return `<div><span class="type-ico" title="${esc(tm.label)}">${tm.ico}</span> <span style="font-size:12px;color:var(--text2)">${esc(tm.label)}</span></div>`;
+    }
+    case 'priority': {
+      if(!w.priority) return '<div></div>';
+      return `<div><span class="pri p${w.priority}">P${w.priority}</span></div>`;
+    }
+    case 'assignee': {
+      const av = w.assignee
+        ? `<span class="av" title="${esc(w.assignee.display_name)}">${esc(initial(w.assignee.display_name))}</span><span>${esc(w.assignee.display_name)}</span>`
+        : '<span style="color:var(--muted)">—</span>';
+      return `<div class="av-name">${av}</div>`;
+    }
+    case 'state': {
+      const sm = STATE_META[w.state] || STATE_META.new;
+      return `<div><span class="state ${sm.class}">${esc(sm.label)}</span></div>`;
+    }
+    case 'tags': {
+      const tags = (w.tags||[]).slice(0,3).map(t => renderTagChip(t)).join(' ');
+      return `<div style="display:flex;gap:3px;flex-wrap:wrap;overflow:hidden">${tags || '<span style="color:var(--muted)">—</span>'}</div>`;
+    }
+    case 'iteration': {
+      const it = state.iterations.find(i => i.id === w.iteration_id);
+      return `<div style="font-size:12px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${it ? esc(it.name) : '<span style="color:var(--muted)">—</span>'}</div>`;
+    }
+    case 'target': {
+      const td = w.custom_fields?.target_date;
+      if(!td) return '<div style="color:var(--muted)">—</div>';
+      const todayIso = new Date().toISOString().slice(0,10);
+      const late = td <= todayIso && w.state !== 'closed';
+      return `<div style="font-size:12px;color:${late ? 'var(--red)' : 'var(--text2)'}">${esc(td)}</div>`;
+    }
+    case 'points':
+      return `<div class="rem-work">${w.story_points != null ? w.story_points : ''}</div>`;
+    case 'remaining':
+      return `<div class="rem-work">${w.remaining_work != null ? w.remaining_work : ''}</div>`;
+    case 'updated':
+      return `<div style="font-size:11px;color:var(--muted)">${esc(fmtTime(w.updated_at))}</div>`;
+    default:
+      return '<div></div>';
+  }
+}
+
 function renderBacklogRow(w, depth, hasKids, isExp){
   const tm = TYPE_META[w.type] || TYPE_META.task;
-  const sm = STATE_META[w.state] || STATE_META.new;
-  const av = w.assignee ? `<span class="av" title="${esc(w.assignee.display_name)}">${esc(initial(w.assignee.display_name))}</span><span>${esc(w.assignee.display_name)}</span>` : '<span style="color:var(--muted)">—</span>';
   const childTypes = TYPE_META[w.type].children;
   const canAdd = childTypes.length > 0;
-  return `<div class="bl-row depth-${Math.min(depth,4)}" data-id="${esc(w.id)}">
+  const isNarrow = window.matchMedia && window.matchMedia('(max-width:720px)').matches;
+  const allCols = activeBacklogColumns();
+  const cols = isNarrow ? allCols.slice(0, 1) : allCols;
+  const lead = ['24px','24px','70px','1fr'];
+  const tmpl = [...lead, ...cols.map(c => c.width)].join(' ');
+  const cells = cols.map(c => renderBacklogCell(w, c.key)).join('');
+  return `<div class="bl-row depth-${Math.min(depth,4)}" data-id="${esc(w.id)}" style="grid-template-columns:${tmpl}">
     <div class="drag-handle" title="Σύρετε για αλλαγή σειράς">⋮⋮</div>
     <div class="expand ${hasKids?'':'none'} ${isExp?'open':''}">▶</div>
     <div class="id-cell">
@@ -2212,12 +2313,9 @@ function renderBacklogRow(w, depth, hasKids, isExp){
     </div>
     <div class="title-cell">
       <span class="ti">${esc(w.title)}</span>
-      ${(w.tags||[]).slice(0,2).map(t => renderTagChip(t)).join(' ')}
       ${canAdd ? '<button class="add-child" title="Προσθήκη υποεργασίας">+</button>' : ''}
     </div>
-    <div class="av-name">${av}</div>
-    <div><span class="state ${sm.class}">${esc(sm.label)}</span></div>
-    <div class="rem-work">${w.remaining_work != null ? w.remaining_work : ''}</div>
+    ${cells}
   </div>`;
 }
 
@@ -3125,6 +3223,56 @@ function openManageIterationsModal(){
     toast('Η περίοδος δημιουργήθηκε','ok');
   };
 }
+// ════════════════════════════════════════════════════════════════════
+// SETTINGS PAGE
+// ════════════════════════════════════════════════════════════════════
+function renderSettings(){
+  const el = $('settings-content');
+  const chosen = state.backlogColumns || [];
+  el.innerHTML = `
+    <h2 style="font-size:16px;font-weight:600;margin-bottom:6px">Ρυθμίσεις</h2>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:20px">Οι ρυθμίσεις αποθηκεύονται σε αυτή τη συσκευή για τον τρέχοντα χώρο εργασίας.</p>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);padding:16px;margin-bottom:16px">
+      <h3 style="font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:4px">Στήλες λίστας εργασιών</h3>
+      <p style="color:var(--muted);font-size:12px;margin-bottom:12px">Επιλέξτε ποιες στήλες θα εμφανίζονται. Το ID και ο Τίτλος εμφανίζονται πάντα.</p>
+      <div id="settings-cols" style="display:flex;flex-direction:column;gap:2px"></div>
+      <div style="margin-top:14px;display:flex;gap:8px">
+        <button class="btn ghost sm" id="settings-reset">Επαναφορά προεπιλογών</button>
+      </div>
+    </div>`;
+
+  function renderColList(){
+    const box = $('settings-cols');
+    box.innerHTML = BACKLOG_COLUMNS.map(c => {
+      const on = state.backlogColumns.includes(c.key);
+      return `<label style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--r);cursor:pointer" class="settings-col-row">
+        <input type="checkbox" data-col="${esc(c.key)}" ${on?'checked':''} style="width:16px;height:16px;cursor:pointer">
+        <span style="flex:1;font-size:13px">${esc(c.label)}</span>
+        <span style="font-size:11px;color:var(--muted);font-family:var(--mono)">${esc(c.width)}</span>
+      </label>`;
+    }).join('');
+    box.querySelectorAll('input[data-col]').forEach(cb => cb.onchange = ()=>{
+      const key = cb.dataset.col;
+      if(cb.checked){
+        if(!state.backlogColumns.includes(key)) state.backlogColumns.push(key);
+      } else {
+        state.backlogColumns = state.backlogColumns.filter(k => k !== key);
+      }
+      saveBacklogColumns();
+      toast('Οι στήλες ενημερώθηκαν', 'ok');
+    });
+  }
+  renderColList();
+
+  $('settings-reset').onclick = ()=>{
+    state.backlogColumns = BACKLOG_COLUMNS.filter(c => c.on).map(c => c.key);
+    saveBacklogColumns();
+    renderColList();
+    toast('Έγινε επαναφορά', 'ok');
+  };
+}
+
 // ════════════════════════════════════════════════════════════════════
 // MEMBERS PAGE (minimal — list + invite)
 // ════════════════════════════════════════════════════════════════════
