@@ -148,7 +148,11 @@ a:hover{text-decoration:underline}
 .sb-nav button .ico{font-size:14px;width:18px;display:inline-block;text-align:center}
 .sb-nav .group{padding:10px 14px 4px;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 
-.sb-projects-list{padding:0 0 6px;border-top:1px solid var(--border);max-height:40vh;overflow-y:auto}
+.sb-projects-list{padding:4px 0 6px;border-bottom:1px solid var(--border);max-height:32vh;overflow-y:auto}
+.sb-projects-list .proj-list-head{display:flex;align-items:center;gap:8px;padding:8px 14px 4px;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;cursor:pointer;user-select:none}
+.sb-projects-list .proj-list-head:hover{color:var(--text)}
+.sb-projects-list .proj-list-head .chev{font-size:9px;transition:transform .15s;display:inline-block}
+.sb-projects-list .proj-list-head .chev.open{transform:rotate(90deg)}
 .sb-projects-list .pi{display:flex;align-items:center;gap:8px;padding:6px 14px;cursor:pointer;font-size:13px;color:var(--text2)}
 .sb-projects-list .pi:hover{background:var(--hover);color:var(--text)}
 .sb-projects-list .pi.active{background:var(--blue-dim);color:var(--blue);font-weight:600}
@@ -555,6 +559,9 @@ a:hover{text-decoration:underline}
         <div class="nm" id="cur-proj-nm">Χωρίς έργο</div>
         <button class="add" id="btn-new-proj" title="Νέο έργο">+</button>
       </div>
+      <div class="sb-projects-list" id="proj-list">
+        <div class="empty">Φόρτωση έργων…</div>
+      </div>
       <div class="sb-nav">
         <div class="group">Σχεδιασμός</div>
         <button id="nav-board"   ><span class="ico">▤</span>Ροή εργασιών</button>
@@ -564,9 +571,6 @@ a:hover{text-decoration:underline}
         <button id="nav-overview" class="active"><span class="ico">⌂</span>Επισκόπηση</button>
         <button id="nav-members" ><span class="ico">👥</span>Ομάδα</button>
         <button id="nav-settings" ><span class="ico">⚙</span>Ρυθμίσεις</button>
-      </div>
-      <div class="sb-projects-list" id="proj-list">
-        <div class="empty">Φόρτωση έργων…</div>
       </div>
     </aside>
 
@@ -1513,17 +1517,33 @@ async function loadProjects(){
   }
 }
 
+function projListCollapsed(){
+  return localStorage.getItem('pm-ado:proj-collapsed') === '1';
+}
 function renderProjectsSidebar(){
   const el = $('proj-list');
   if(!state.projects.length){
-    el.innerHTML = '<div class="empty">No projects yet</div>';
+    el.innerHTML = '<div class="empty">Δεν υπάρχουν έργα ακόμη</div>';
     return;
   }
-  el.innerHTML = '<div style="padding:8px 14px 4px;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">Projects</div>' +
+  const collapsed = projListCollapsed();
+  el.innerHTML =
+    `<div class="proj-list-head" id="proj-list-head">
+       <span class="chev ${collapsed?'':'open'}">▶</span>
+       <span style="flex:1">Έργα</span>
+       <span style="font-family:var(--mono);font-size:11px;color:var(--muted)">${state.projects.length}</span>
+     </div>
+     <div class="proj-list-body ${collapsed?'hidden':''}" id="proj-list-body">` +
     state.projects.map(p => `
       <div class="pi ${p.id===state.currentProjectId?'active':''}" data-id="${esc(p.id)}">
         <span class="hash">#</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}</span>
-      </div>`).join('');
+      </div>`).join('') +
+    `</div>`;
+  $('proj-list-head').onclick = ()=>{
+    const next = !projListCollapsed();
+    try{ localStorage.setItem('pm-ado:proj-collapsed', next ? '1' : '0'); }catch{}
+    renderProjectsSidebar();
+  };
   el.querySelectorAll('[data-id]').forEach(n => n.onclick = ()=> selectProject(n.dataset.id));
 }
 
