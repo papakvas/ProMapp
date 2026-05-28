@@ -301,8 +301,11 @@ a:hover{text-decoration:underline}
 .inbox-item{padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;font-size:13px}
 .inbox-item:last-child{border-bottom:none}
 .inbox-item:hover{background:var(--hover)}
-.inbox-item .head{display:flex;align-items:center;gap:6px;margin-bottom:3px;font-size:12px;color:var(--muted)}
+.inbox-item .head{display:flex;align-items:center;gap:6px;margin-bottom:3px;font-size:12px;color:var(--muted);flex-wrap:wrap}
 .inbox-item .head .id{font-family:var(--mono);font-weight:600}
+.inbox-item .head .notif-ico{font-size:12px}
+.watch-btn.watching{background:var(--blue-dim) !important;color:var(--blue) !important;border-color:var(--blue) !important}
+.watch-btn .watch-count{font-family:var(--mono);font-size:11px;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:0 5px;margin-left:2px}
 .inbox-item .body{color:var(--text);line-height:1.4}
 .inbox-item .ts{font-size:10px;color:var(--muted);margin-top:3px}
 
@@ -701,7 +704,6 @@ a:hover{text-decoration:underline}
 const SUPABASE_URL      = 'https://ouppawndgtiejiebamph.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_9gI5pdoJHW9DxvJ98KjGaw_C-7VsMP5';
 
-
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: { persistSession: true, autoRefreshToken: true, storageKey: 'pm-ado-auth' }
 });
@@ -724,7 +726,7 @@ const state = {
   currentIterationId: null,    // which sprint is the Sprints page showing
   members: [],
   filters: { type:'all', state:'open', tag:null },
-  unreadMentions: [],          // unread @mentions for the current user (workspace-wide)
+  notifications: [],           // unread notifications (mentions + watch events) for current user
   backlogColumns: null,        // user's chosen columns (loaded from localStorage)
   channels: { wi:null, wic:null, wicol:null, it:null, mentions:null },
 };
@@ -1057,25 +1059,75 @@ function wireMentionAutocomplete(ta){
 }
 
 // ── Inbox: unread mentions of the current user ───────────────────────
-async function loadUnreadMentions(){
+// ── Watchers ─────────────────────────────────────────────────────────
+// Local cache of watch state for the currently-open item.
+let detailWatching = false;
+let detailWatcherCount = 0;
+
+async function loadWatchState(workItemId){
+  detailWatching = false;
+  detailWatcherCount = 0;
+  if(!workItemId) return;
+  const { data } = await sb
+    .from('work_item_watchers')
+    .select('user_id')
+    .eq('work_item_id', workItemId);
+  const rows = data || [];
+  detailWatcherCount = rows.length;
+  detailWatching = rows.some(r => r.user_id === state.user.id);
+  const btn = document.getElementById('watch-btn');
+  if(btn) updateWatchBtn(btn);
+}
+function updateWatchBtn(btn){
+  btn.classList.toggle('watching', detailWatching);
+  btn.innerHTML = (detailWatching ? '👁 Παρακολουθείτε' : '👁 Παρακολούθηση') +
+    (detailWatcherCount ? ` <span class="watch-count">${detailWatcherCount}</span>` : '');
+}
+async function ensureWatching(workItemId){
+  // Idempotent: add a watch row for the current user if not present.
+  const { error } = await sb.from('work_item_watchers')
+    .upsert({ work_item_id: workItemId, user_id: state.user.id }, { onConflict: 'work_item_id,user_id', ignoreDuplicates: true });
+  if(error) console.warn('ensureWatching failed:', error);
+}
+async function toggleWatch(workItemId){
+  if(detailWatching){
+    const { error } = await sb.from('work_item_watchers')
+      .delete().eq('work_item_id', workItemId).eq('user_id', state.user.id);
+    if(error){ toast(friendlyError(error),'err'); return; }
+    detailWatching = false;
+    detailWatcherCount = Math.max(0, detailWatcherCount - 1);
+    toast('Σταματήσατε την παρακολούθηση', 'ok');
+  } else {
+    const { error } = await sb.from('work_item_watchers')
+      .insert({ work_item_id: workItemId, user_id: state.user.id });
+    if(error){ toast(friendlyError(error),'err'); return; }
+    detailWatching = true;
+    detailWatcherCount += 1;
+    toast('Παρακολουθείτε αυτή την εργασία', 'ok');
+  }
+  const btn = document.getElementById('watch-btn');
+  if(btn) updateWatchBtn(btn);
+}
+
+async function loadNotifications(){
   if(!state.user) return;
   const { data, error } = await sb
-    .from('work_item_mentions')
-    .select('id, work_item_id, comment_id, created_at, mentioned_by, work_items:work_item_id(display_id, title, project_id, projects:project_id(name, workspace_id)), comment:comment_id(body), author:mentioned_by(display_name)')
-    .eq('mentioned_user_id', state.user.id)
+    .from('notifications')
+    .select('id, kind, detail, work_item_id, comment_id, created_at, actor_id, work_items:work_item_id(display_id, title, project_id, projects:project_id(name, workspace_id)), comment:comment_id(body), actor:actor_id(display_name)')
+    .eq('recipient_id', state.user.id)
     .is('read_at', null)
     .order('created_at', { ascending: false })
-    .limit(40);
-  if(error){ console.warn('Mentions load failed:', error); return; }
+    .limit(50);
+  if(error){ console.warn('Notifications load failed:', error); return; }
   // Filter to current workspace
-  state.unreadMentions = (data || []).filter(m =>
-    m.work_items?.projects?.workspace_id === state.currentWsId
+  state.notifications = (data || []).filter(n =>
+    n.work_items?.projects?.workspace_id === state.currentWsId
   );
   renderBellBadge();
 }
 
 function renderBellBadge(){
-  const n = state.unreadMentions.length;
+  const n = state.notifications.length;
   const bell = $('bell-btn');
   const cnt = $('bell-count');
   if(!bell || !cnt) return;
@@ -1089,48 +1141,61 @@ function renderBellBadge(){
   }
 }
 
+// Compose the headline for one notification by kind
+function notifLine(n){
+  const who = esc(n.actor?.display_name || 'Κάποιος');
+  switch(n.kind){
+    case 'mention':  return `<strong>${who}</strong> σας ανέφερε`;
+    case 'state':    return `<strong>${who}</strong> άλλαξε κατάσταση`;
+    case 'assignee': return `<strong>${who}</strong> άλλαξε υπεύθυνο`;
+    case 'comment':  return `<strong>${who}</strong> σχολίασε`;
+    default:         return `<strong>${who}</strong>`;
+  }
+}
+function notifIcon(kind){
+  return kind === 'mention' ? '@' : kind === 'comment' ? '💬' : kind === 'state' ? '◔' : '👤';
+}
+
 function openInbox(){
-  // Close existing if open
   const existing = document.getElementById('inbox-panel');
   if(existing){ existing.remove(); return; }
+  const list = state.notifications;
   const panel = document.createElement('div');
   panel.id = 'inbox-panel';
   panel.className = 'inbox-panel';
   panel.innerHTML = `
     <div class="inbox-h">
-      <h3>Αναφορές</h3>
-      ${state.unreadMentions.length ? '<button class="btn ghost sm" id="inbox-mark-all">Σήμανση όλων</button>' : ''}
+      <h3>Ειδοποιήσεις</h3>
+      ${list.length ? '<button class="btn ghost sm" id="inbox-mark-all">Σήμανση όλων</button>' : ''}
     </div>
-    ${state.unreadMentions.length ? state.unreadMentions.map(m => {
-      const wi = m.work_items;
+    ${list.length ? list.map(n => {
+      const wi = n.work_items;
       const proj = wi?.projects;
-      const snippet = (m.comment?.body || '').slice(0, 140);
-      return `<div class="inbox-item" data-mid="${esc(m.id)}" data-wid="${esc(m.work_item_id)}" data-pid="${esc(proj?.workspace_id ? wi.project_id : '')}">
+      const snippet = n.kind === 'mention' || n.kind === 'comment'
+        ? (n.comment?.body || '').slice(0, 140)
+        : (n.detail || '');
+      const more = (n.comment?.body || '').length > 140 ? '…' : '';
+      return `<div class="inbox-item" data-nid="${esc(n.id)}" data-wid="${esc(n.work_item_id)}">
         <div class="head">
-          <strong>${esc(m.author?.display_name || 'Κάποιος')}</strong>
-          <span>σας ανέφερε στο</span>
+          <span class="notif-ico">${notifIcon(n.kind)}</span>
+          ${notifLine(n)}
           <span class="id">#${wi?.display_id || '—'}</span>
           ${proj ? `<span style="color:var(--muted)">${esc(proj.name)}</span>` : ''}
         </div>
         <div class="body">${esc(wi?.title || '')}</div>
-        <div class="body" style="color:var(--muted);font-style:italic;margin-top:3px">"${esc(snippet)}${(m.comment?.body || '').length > 140 ? '…' : ''}"</div>
-        <div class="ts">${esc(fmtTime(m.created_at))}</div>
+        ${snippet ? `<div class="body" style="color:var(--muted);font-style:italic;margin-top:3px">${n.kind==='state'||n.kind==='assignee' ? esc(snippet) : '"'+esc(snippet)+more+'"'}</div>` : ''}
+        <div class="ts">${esc(fmtTime(n.created_at))}</div>
       </div>`;
-    }).join('') : '<div class="inbox-empty">Καμία νέα αναφορά 🎉</div>'}
+    }).join('') : '<div class="inbox-empty">Καμία νέα ειδοποίηση 🎉</div>'}
   `;
   document.body.appendChild(panel);
   panel.querySelectorAll('.inbox-item').forEach(it => it.onclick = async ()=>{
-    const mid = it.dataset.mid;
+    const nid = it.dataset.nid;
     const wid = it.dataset.wid;
-    // Mark read
-    await sb.from('work_item_mentions').update({ read_at: new Date().toISOString() }).eq('id', mid);
-    state.unreadMentions = state.unreadMentions.filter(m => m.id !== mid);
+    await sb.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', nid);
+    state.notifications = state.notifications.filter(n => String(n.id) !== String(nid));
     renderBellBadge();
     panel.remove();
-    // Open the work item — switching project if needed
-    const wi = state.unreadMentions.find(m => m.id === mid)?.work_items
-            || state.workItems.find(w => w.id === wid);
-    // We may not have the project loaded; do a fast fetch for project_id if missing
     let pid = state.workItems.find(w => w.id === wid)?.project_id;
     if(!pid){
       const { data } = await sb.from('work_items').select('project_id').eq('id', wid).maybeSingle();
@@ -1144,15 +1209,14 @@ function openInbox(){
   const ma = $('inbox-mark-all');
   if(ma) ma.onclick = async (e)=>{
     e.stopPropagation();
-    const ids = state.unreadMentions.map(m => m.id);
+    const ids = state.notifications.map(n => n.id);
     if(!ids.length) return;
-    const { error } = await sb.from('work_item_mentions').update({ read_at: new Date().toISOString() }).in('id', ids);
+    const { error } = await sb.from('notifications').update({ read_at: new Date().toISOString() }).in('id', ids);
     if(error){ toast(friendlyError(error),'err'); return; }
-    state.unreadMentions = [];
+    state.notifications = [];
     renderBellBadge();
     panel.remove();
   };
-  // Click-outside dismiss
   setTimeout(()=>{
     const off = (e)=>{
       if(!panel.contains(e.target) && !e.target.closest('#bell-btn')){
@@ -1441,7 +1505,7 @@ async function setActiveWorkspace(wsId){
   state.workItems = [];
   unsubAll();
   loadBacklogColumns();
-  await Promise.all([ loadProjects(), loadMembers(), loadIterations(), loadUnreadMentions() ]);
+  await Promise.all([ loadProjects(), loadMembers(), loadIterations(), loadNotifications() ]);
   goPage('overview');
 }
 
@@ -1688,6 +1752,8 @@ async function createWorkItem(payload){
   }
   const { error } = await sb.from('work_items').insert(payload);
   if(error){ toast(friendlyError(error),'err'); return null; }
+  // Creator auto-watches their new item
+  ensureWatching(payload.id);
   await loadWorkItems();
   return payload.id;
 }
@@ -1735,11 +1801,11 @@ function unsubAll(){
 // Called once after first workspace load.
 function subscribeUserMentions(){
   if(state.channels.mentions) return;
-  state.channels.mentions = sb.channel('mentions-'+state.user.id)
+  state.channels.mentions = sb.channel('notif-'+state.user.id)
     .on('postgres_changes', {
-      event: '*', schema: 'public', table: 'work_item_mentions',
-      filter: `mentioned_user_id=eq.${state.user.id}`,
-    }, ()=> loadUnreadMentions())
+      event: '*', schema: 'public', table: 'notifications',
+      filter: `recipient_id=eq.${state.user.id}`,
+    }, ()=> loadNotifications())
     .subscribe();
 }
 
@@ -2678,9 +2744,8 @@ async function deleteComment(cid){
   if(!confirm('Διαγραφή σχολίου;')) return;
   const { error } = await sb.from('work_item_comments').delete().eq('id', cid);
   if(error){ toast(friendlyError(error),'err'); return; }
-  // Also clear any mention rows pointing to this comment (cascade should
-  // handle it, but if not we don't want stale inbox entries)
-  await sb.from('work_item_mentions').delete().eq('comment_id', cid);
+  // Clear notifications tied to this comment (cascade also handles it)
+  await sb.from('notifications').delete().eq('comment_id', cid);
   toast('Διαγράφηκε', 'ok');
   loadDetailComments();
 }
@@ -2734,15 +2799,16 @@ function startEditComment(cid, el){
       .update({ body: v, edited_at: new Date().toISOString() })
       .eq('id', cid);
     if(error){ toast(friendlyError(error),'err'); return; }
-    // Recompute mention rows: drop old, insert new (excluding self)
-    await sb.from('work_item_mentions').delete().eq('comment_id', cid);
+    // Recompute mention notifications: drop old mention rows for this comment, insert new
+    await sb.from('notifications').delete().eq('comment_id', cid).eq('kind', 'mention');
     const mentions = parseMentions(v).filter(m => m.id !== state.user.id);
     if(mentions.length){
-      await sb.from('work_item_mentions').insert(mentions.map(m => ({
-        comment_id: cid,
+      await sb.from('notifications').insert(mentions.map(m => ({
+        recipient_id: m.id,
+        actor_id: state.user.id,
         work_item_id: c.work_item_id || state.currentItemId,
-        mentioned_user_id: m.id,
-        mentioned_by: state.user.id,
+        comment_id: cid,
+        kind: 'mention',
       })));
     }
     toast('Αποθηκεύτηκε', 'ok');
@@ -2775,6 +2841,7 @@ async function renderDetail(){
       <button class="back" id="back-btn">← Πίσω</button>
       <div class="badge"><span class="type-ico">${tm.ico}</span>${esc(tm.label)}</div>
       <h2><span class="id">#${w.display_id || '—'}</span><span id="det-title-text">${esc(w.title)}</span></h2>
+      <button class="btn ghost sm watch-btn" id="watch-btn">👁 Παρακολούθηση</button>
       <button class="btn ghost sm" id="del-btn">Διαγραφή</button>
     </div>
     <div class="det-body">
@@ -2892,6 +2959,11 @@ async function renderDetail(){
   // Wire
   $('back-btn').onclick = ()=> goPage(state.backFrom || 'backlog');
   $('del-btn').onclick  = ()=> deleteWorkItem(id);
+  const watchBtn = $('watch-btn');
+  if(watchBtn){
+    watchBtn.onclick = ()=> toggleWatch(id);
+    loadWatchState(id);
+  }
 
   // Title save on blur
   $('det-title').onblur = async (e)=>{
@@ -3076,20 +3148,20 @@ async function renderDetail(){
       id: commentId, work_item_id: id, user_id: state.user.id, body
     });
     if(error){ toast(friendlyError(error),'err'); return; }
-    // Write mention rows (skip self-mentions)
+    // Auto-watch: commenting means you care about this item
+    await ensureWatching(id);
+    // Write mention notifications (skip self-mentions)
     const mentions = parseMentions(body).filter(m => m.id !== state.user.id);
     if(mentions.length){
       const rows = mentions.map(m => ({
-        comment_id: commentId,
+        recipient_id: m.id,
+        actor_id: state.user.id,
         work_item_id: id,
-        mentioned_user_id: m.id,
-        mentioned_by: state.user.id,
+        comment_id: commentId,
+        kind: 'mention',
       }));
-      const { error: mErr } = await sb.from('work_item_mentions').insert(rows);
-      if(mErr){
-        // Non-fatal — comment is already in.
-        console.warn('Mention rows failed:', mErr);
-      }
+      const { error: mErr } = await sb.from('notifications').insert(rows);
+      if(mErr){ console.warn('Mention notifications failed:', mErr); }
     }
     loadDetailComments();
   };
