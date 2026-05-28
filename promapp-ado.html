@@ -369,7 +369,8 @@ a:hover{text-decoration:underline}
 .sv-chip .x:hover{opacity:1}
 .sv-label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-right:2px}
 .backlog-toolbar select{padding:4px 8px;font-size:13px}
-.bl-table{background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);overflow:hidden}
+.bl-table{background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+#bl-tree{display:block}
 .bl-h{display:grid;grid-template-columns:24px 40px 80px 1fr 140px 120px 80px;gap:8px;padding:8px 12px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
 .bl-row{display:grid;grid-template-columns:24px 40px 80px 1fr 140px 120px 80px;gap:8px;padding:8px 12px;border-bottom:1px solid var(--border);font-size:13px;cursor:pointer;align-items:center;position:relative;background:var(--surface)}
 .bl-row:hover{background:var(--hover)}
@@ -639,7 +640,7 @@ a:hover{text-decoration:underline}
             <button class="btn ghost" id="bl-save-view">★ Αποθήκευση προβολής</button>
             <button class="btn" id="bl-new-top">+ Νέα εργασία</button>
           </div>
-          <div class="bl-table" id="bl-tree"></div>
+          <div class="bl-table"><div id="bl-tree"></div></div>
         </div>
       </div>
 
@@ -699,6 +700,7 @@ a:hover{text-decoration:underline}
 // ════════════════════════════════════════════════════════════════════
 const SUPABASE_URL      = 'https://ouppawndgtiejiebamph.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_9gI5pdoJHW9DxvJ98KjGaw_C-7VsMP5';
+
 
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: { persistSession: true, autoRefreshToken: true, storageKey: 'pm-ado-auth' }
@@ -2238,14 +2240,15 @@ function renderBacklog(){
     for(const r of roots) walk(r, 0);
   }
 
-  const isNarrow = window.matchMedia && window.matchMedia('(max-width:720px)').matches;
-  const allCols = activeBacklogColumns();
-  const cols = isNarrow ? allCols.slice(0, 1) : allCols;
-  const lead = ['24px','24px','70px','1fr'];
+  const cols = activeBacklogColumns();
+  const lead = ['24px','24px','70px','minmax(160px,1fr)'];
   const tmpl = [...lead, ...cols.map(c => c.width)].join(' ');
+  // Total min width so the table can overflow-scroll on narrow screens
+  const minW = 24 + 24 + 70 + 160 + cols.reduce((s,c)=> s + (parseInt(c.width)||100), 0) + (cols.length+4)*8;
   const headCells = cols.map(c =>
     `<div${(c.key==='remaining'||c.key==='points') ? ' style="text-align:right"' : ''}>${esc(c.label)}</div>`
   ).join('');
+  $('bl-tree').style.minWidth = minW + 'px';
   $('bl-tree').innerHTML = `
     <div class="bl-h" style="grid-template-columns:${tmpl}">
       <div></div>
@@ -2406,10 +2409,8 @@ function renderBacklogRow(w, depth, hasKids, isExp){
   const tm = TYPE_META[w.type] || TYPE_META.task;
   const childTypes = TYPE_META[w.type].children;
   const canAdd = childTypes.length > 0;
-  const isNarrow = window.matchMedia && window.matchMedia('(max-width:720px)').matches;
-  const allCols = activeBacklogColumns();
-  const cols = isNarrow ? allCols.slice(0, 1) : allCols;
-  const lead = ['24px','24px','70px','1fr'];
+  const cols = activeBacklogColumns();
+  const lead = ['24px','24px','70px','minmax(160px,1fr)'];
   const tmpl = [...lead, ...cols.map(c => c.width)].join(' ');
   const cells = cols.map(c => renderBacklogCell(w, c.key)).join('');
   return `<div class="bl-row depth-${Math.min(depth,4)}" data-id="${esc(w.id)}" style="grid-template-columns:${tmpl}">
