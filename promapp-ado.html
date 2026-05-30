@@ -290,6 +290,7 @@ a:hover{text-decoration:underline}
 .bell:hover{background:var(--hover);color:var(--text)}
 .bell .dot{position:absolute;top:4px;right:5px;width:8px;height:8px;border-radius:50%;background:var(--red);border:1.5px solid var(--surface)}
 .bell.has-unread .dot{display:block}
+.bell.other-ws-unread .dot{display:block;background:var(--muted)}
 .bell .dot{display:none}
 .bell .count{position:absolute;top:0px;right:-2px;background:var(--red);color:#fff;font-size:9px;font-weight:700;border-radius:999px;padding:1px 5px;min-width:14px;text-align:center;line-height:1.2}
 
@@ -308,6 +309,10 @@ a:hover{text-decoration:underline}
 .watch-btn .watch-count{font-family:var(--mono);font-size:11px;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:0 5px;margin-left:2px}
 .inbox-item .body{color:var(--text);line-height:1.4}
 .inbox-item .ts{font-size:10px;color:var(--muted);margin-top:3px}
+.inbox-item.is-read{opacity:.55}
+.inbox-item.is-read:hover{opacity:.8}
+.inbox-section{padding:6px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:var(--surface2);border-bottom:1px solid var(--border);border-top:1px solid var(--border)}
+.inbox-otherws{padding:8px 14px;font-size:12px;color:var(--muted);text-align:center;border-bottom:1px solid var(--border)}
 
 
 .activity{display:flex;flex-direction:column;gap:8px}
@@ -727,6 +732,8 @@ const state = {
   members: [],
   filters: { type:'all', state:'open', tag:null },
   notifications: [],           // unread notifications (mentions + watch events) for current user
+  notificationsRead: [],       // up to 5 most-recent already-read (history)
+  notificationsOtherWs: 0,     // count of unread in other workspaces (badge hint)
   backlogColumns: null,        // user's chosen columns (loaded from localStorage)
   channels: { wi:null, wic:null, wicol:null, it:null, mentions:null },
 };
@@ -1111,18 +1118,29 @@ async function toggleWatch(workItemId){
 
 async function loadNotifications(){
   if(!state.user) return;
+  // Server-side filter by workspace_id (denormalized) — correct and fast.
+  // Fetch unread + a small tail of read for the "recent" history section.
   const { data, error } = await sb
     .from('notifications')
-    .select('id, kind, detail, work_item_id, comment_id, created_at, actor_id, work_items:work_item_id(display_id, title, project_id, projects:project_id(name, workspace_id)), comment:comment_id(body), actor:actor_id(display_name)')
+    .select('id, kind, detail, work_item_id, comment_id, created_at, read_at, actor_id, work_items:work_item_id(display_id, title, project_id, projects:project_id(name, workspace_id)), comment:comment_id(body), actor:actor_id(display_name)')
     .eq('recipient_id', state.user.id)
-    .is('read_at', null)
+    .eq('workspace_id', state.currentWsId)
     .order('created_at', { ascending: false })
-    .limit(50);
+    .limit(60);
   if(error){ console.warn('Notifications load failed:', error); return; }
-  // Filter to current workspace
-  state.notifications = (data || []).filter(n =>
-    n.work_items?.projects?.workspace_id === state.currentWsId
-  );
+  const all = data || [];
+  state.notifications = all.filter(n => !n.read_at);
+  state.notificationsRead = all.filter(n => n.read_at).slice(0, 5);
+
+  // Count unread in OTHER workspaces (cheap head-count query).
+  const { count } = await sb
+    .from('notifications')
+    .select('id', { count: 'exact', head: true })
+    .eq('recipient_id', state.user.id)
+    .neq('workspace_id', state.currentWsId)
+    .is('read_at', null);
+  state.notificationsOtherWs = count || 0;
+
   renderBellBadge();
 }
 
@@ -1139,6 +1157,9 @@ function renderBellBadge(){
     bell.classList.remove('has-unread');
     cnt.classList.add('hidden');
   }
+  // Hint that other workspaces have unread notifications, even when this
+  // workspace is clear.
+  bell.classList.toggle('other-ws-unread', n === 0 && state.notificationsOtherWs > 0);
 }
 
 // Compose the headline for one notification by kind
@@ -1156,45 +1177,60 @@ function notifIcon(kind){
   return kind === 'mention' ? '@' : kind === 'comment' ? '💬' : kind === 'state' ? '◔' : '👤';
 }
 
+function notifItemHtml(n, isRead){
+  const wi = n.work_items;
+  const proj = wi?.projects;
+  const snippet = n.kind === 'mention' || n.kind === 'comment'
+    ? (n.comment?.body || '').slice(0, 140)
+    : (n.detail || '');
+  const more = (n.comment?.body || '').length > 140 ? '…' : '';
+  return `<div class="inbox-item ${isRead?'is-read':''}" data-nid="${esc(n.id)}" data-wid="${esc(n.work_item_id)}">
+    <div class="head">
+      <span class="notif-ico">${notifIcon(n.kind)}</span>
+      ${notifLine(n)}
+      <span class="id">#${wi?.display_id || '—'}</span>
+      ${proj ? `<span style="color:var(--muted)">${esc(proj.name)}</span>` : ''}
+    </div>
+    <div class="body">${esc(wi?.title || '')}</div>
+    ${snippet ? `<div class="body" style="color:var(--muted);font-style:italic;margin-top:3px">${n.kind==='state'||n.kind==='assignee' ? esc(snippet) : '"'+esc(snippet)+more+'"'}</div>` : ''}
+    <div class="ts">${esc(fmtTime(n.created_at))}</div>
+  </div>`;
+}
+
 function openInbox(){
   const existing = document.getElementById('inbox-panel');
   if(existing){ existing.remove(); return; }
-  const list = state.notifications;
+  const unread = state.notifications;
+  const readHist = state.notificationsRead || [];
   const panel = document.createElement('div');
   panel.id = 'inbox-panel';
   panel.className = 'inbox-panel';
+
+  const otherHint = state.notificationsOtherWs > 0
+    ? `<div class="inbox-otherws">+${state.notificationsOtherWs} σε άλλους χώρους εργασίας</div>`
+    : '';
+
+  let body;
+  if(!unread.length && !readHist.length){
+    body = '<div class="inbox-empty">Καμία ειδοποίηση 🎉</div>' + otherHint;
+  } else {
+    body =
+      (unread.length ? unread.map(n => notifItemHtml(n, false)).join('') : '<div class="inbox-empty" style="padding:14px">Καμία νέα ειδοποίηση 🎉</div>') +
+      otherHint +
+      (readHist.length ? `<div class="inbox-section">Πρόσφατα</div>` + readHist.map(n => notifItemHtml(n, true)).join('') : '');
+  }
+
   panel.innerHTML = `
     <div class="inbox-h">
       <h3>Ειδοποιήσεις</h3>
-      ${list.length ? '<button class="btn ghost sm" id="inbox-mark-all">Σήμανση όλων</button>' : ''}
+      ${unread.length ? '<button class="btn ghost sm" id="inbox-mark-all">Σήμανση όλων</button>' : ''}
     </div>
-    ${list.length ? list.map(n => {
-      const wi = n.work_items;
-      const proj = wi?.projects;
-      const snippet = n.kind === 'mention' || n.kind === 'comment'
-        ? (n.comment?.body || '').slice(0, 140)
-        : (n.detail || '');
-      const more = (n.comment?.body || '').length > 140 ? '…' : '';
-      return `<div class="inbox-item" data-nid="${esc(n.id)}" data-wid="${esc(n.work_item_id)}">
-        <div class="head">
-          <span class="notif-ico">${notifIcon(n.kind)}</span>
-          ${notifLine(n)}
-          <span class="id">#${wi?.display_id || '—'}</span>
-          ${proj ? `<span style="color:var(--muted)">${esc(proj.name)}</span>` : ''}
-        </div>
-        <div class="body">${esc(wi?.title || '')}</div>
-        ${snippet ? `<div class="body" style="color:var(--muted);font-style:italic;margin-top:3px">${n.kind==='state'||n.kind==='assignee' ? esc(snippet) : '"'+esc(snippet)+more+'"'}</div>` : ''}
-        <div class="ts">${esc(fmtTime(n.created_at))}</div>
-      </div>`;
-    }).join('') : '<div class="inbox-empty">Καμία νέα ειδοποίηση 🎉</div>'}
+    ${body}
   `;
   document.body.appendChild(panel);
-  panel.querySelectorAll('.inbox-item').forEach(it => it.onclick = async ()=>{
-    const nid = it.dataset.nid;
-    const wid = it.dataset.wid;
-    await sb.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', nid);
-    state.notifications = state.notifications.filter(n => String(n.id) !== String(nid));
-    renderBellBadge();
+
+  // Navigate to an item (used by both unread and read rows).
+  async function goToItem(wid){
     panel.remove();
     let pid = state.workItems.find(w => w.id === wid)?.project_id;
     if(!pid){
@@ -1205,7 +1241,21 @@ function openInbox(){
       await selectProject(pid);
     }
     openDetail(wid);
+  }
+
+  panel.querySelectorAll('.inbox-item').forEach(it => it.onclick = async ()=>{
+    const nid = it.dataset.nid;
+    const wid = it.dataset.wid;
+    const wasUnread = !it.classList.contains('is-read');
+    if(wasUnread){
+      const { error } = await sb.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', nid);
+      if(error){ toast(friendlyError(error),'err'); return; }
+      state.notifications = state.notifications.filter(n => String(n.id) !== String(nid));
+      renderBellBadge();
+    }
+    await goToItem(wid);
   });
+
   const ma = $('inbox-mark-all');
   if(ma) ma.onclick = async (e)=>{
     e.stopPropagation();
@@ -1216,7 +1266,9 @@ function openInbox(){
     state.notifications = [];
     renderBellBadge();
     panel.remove();
+    loadNotifications();  // refresh read-history to include the just-read ones
   };
+
   setTimeout(()=>{
     const off = (e)=>{
       if(!panel.contains(e.target) && !e.target.closest('#bell-btn')){
@@ -2807,6 +2859,7 @@ function startEditComment(cid, el){
         recipient_id: m.id,
         actor_id: state.user.id,
         work_item_id: c.work_item_id || state.currentItemId,
+        workspace_id: state.currentWsId,
         comment_id: cid,
         kind: 'mention',
       })));
@@ -3157,6 +3210,7 @@ async function renderDetail(){
         recipient_id: m.id,
         actor_id: state.user.id,
         work_item_id: id,
+        workspace_id: state.currentWsId,
         comment_id: commentId,
         kind: 'mention',
       }));
@@ -3243,9 +3297,11 @@ async function renderSprintsPage(){
       <div class="sp-empty">
         <div class="ti">Δεν υπάρχουν περίοδοι ακόμη</div>
         <div>Οι περίοδοι ομαδοποιούν την εργασία σε χρονικά πλαίσια. Δημιουργήστε μία για να ξεκινήσετε.</div>
-        <button class="btn" style="margin-top:12px" onclick="document.getElementById('sp-manage').click()">+ Νέα περίοδος</button>
+        <button class="btn" style="margin-top:12px" id="sp-empty-new">+ Νέα περίοδος</button>
       </div>`;
     $('sp-meta').textContent = '';
+    const emptyNew = $('sp-empty-new');
+    if(emptyNew) emptyNew.onclick = openManageIterationsModal;
     return;
   }
   if(!state.currentIterationId){
