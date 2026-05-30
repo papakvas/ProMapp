@@ -447,6 +447,12 @@ a:hover{text-decoration:underline}
 
 .det-section{margin-bottom:22px}
 .det-section h3{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+/* Collapsible sections (title/description/discussion) */
+.det-section.collapsible > h3{cursor:pointer;display:flex;align-items:center;gap:8px;user-select:none}
+.det-section.collapsible > h3 .chev{font-size:9px;transition:transform .15s;color:var(--muted)}
+.det-section.collapsible.open > h3 .chev{transform:rotate(90deg)}
+.det-section.collapsible > .sec-body{overflow:hidden}
+.det-section.collapsible:not(.open) > .sec-body{display:none}
 .det-field{margin-bottom:14px}
 .det-field label{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
 .det-field input,.det-field select,.det-field textarea{width:100%}
@@ -2899,27 +2905,29 @@ async function renderDetail(){
     </div>
     <div class="det-body">
       <div class="det-left">
-        <div class="det-section">
-          <div class="det-field">
-            <label>Τίτλος</label>
-            <input class="det-title-input" id="det-title" value="${esc(w.title)}" maxlength="200">
+        <div class="det-section collapsible open" data-sec="desc">
+          <h3><span class="chev">▶</span>Τίτλος &amp; Περιγραφή</h3>
+          <div class="sec-body">
+            <div class="det-field">
+              <label>Τίτλος</label>
+              <input class="det-title-input" id="det-title" value="${esc(w.title)}" maxlength="200">
+            </div>
+            <div class="det-desc ${w.description?'md-body':'empty'}" id="det-desc">${w.description ? renderMarkdown(w.description) : 'Πατήστε για να προσθέσετε περιγραφή…'}</div>
           </div>
         </div>
-        <div class="det-section">
-          <h3>Περιγραφή</h3>
-          <div class="det-desc ${w.description?'md-body':'empty'}" id="det-desc">${w.description ? renderMarkdown(w.description) : 'Πατήστε για να προσθέσετε περιγραφή…'}</div>
-        </div>
-        <div class="det-section">
-          <h3>Συζήτηση</h3>
-          <div class="comments" id="det-comments"></div>
-          <div class="comment-input-wrap" id="det-comment-wrap">
-            <textarea id="det-comment-input" placeholder="Γράψτε σχόλιο…"></textarea>
-            <div class="attach-bar">
-              <button type="button" class="attach-btn" id="det-comment-att-btn"><span class="ico">📎</span>Εικόνα</button>
-              <input type="file" id="det-comment-att-input" accept="image/*" style="display:none">
-              <span class="attach-status" id="det-comment-att-status"></span>
-              <div style="flex:1"></div>
-              <button class="btn" id="det-comment-send">Σχόλιο</button>
+        <div class="det-section collapsible open" data-sec="discussion">
+          <h3><span class="chev">▶</span>Συζήτηση</h3>
+          <div class="sec-body">
+            <div class="comments" id="det-comments"></div>
+            <div class="comment-input-wrap" id="det-comment-wrap">
+              <textarea id="det-comment-input" placeholder="Γράψτε σχόλιο…"></textarea>
+              <div class="attach-bar">
+                <button type="button" class="attach-btn" id="det-comment-att-btn"><span class="ico">📎</span>Εικόνα</button>
+                <input type="file" id="det-comment-att-input" accept="image/*" style="display:none">
+                <span class="attach-status" id="det-comment-att-status"></span>
+                <div style="flex:1"></div>
+                <button class="btn" id="det-comment-send">Σχόλιο</button>
+              </div>
             </div>
           </div>
         </div>
@@ -3017,6 +3025,17 @@ async function renderDetail(){
     watchBtn.onclick = ()=> toggleWatch(id);
     loadWatchState(id);
   }
+
+  // Collapsible sections (persist open/closed per section key)
+  document.querySelectorAll('.det-section.collapsible').forEach(sec => {
+    const key = 'pm-ado:sec:' + sec.dataset.sec;
+    if(localStorage.getItem(key) === 'closed') sec.classList.remove('open');
+    const h = sec.querySelector('h3');
+    if(h) h.onclick = ()=>{
+      sec.classList.toggle('open');
+      try{ localStorage.setItem(key, sec.classList.contains('open') ? 'open' : 'closed'); }catch{}
+    };
+  });
 
   // Title save on blur
   $('det-title').onblur = async (e)=>{
