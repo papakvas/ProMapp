@@ -435,6 +435,12 @@ a:hover{text-decoration:underline}
 .detail{height:100%;display:flex;flex-direction:column;background:var(--surface)}
 .det-top{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--surface2)}
 .det-top .back{padding:4px 8px;color:var(--text2);border-radius:var(--r);font-weight:500}
+.det-menu-wrap{position:relative}
+.det-menu-btn{font-size:18px;line-height:1;padding:2px 8px}
+.det-menu{position:absolute;top:100%;left:0;margin-top:4px;z-index:50;background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);box-shadow:0 6px 20px rgba(0,0,0,.16);min-width:160px;padding:4px;display:flex;flex-direction:column}
+.det-menu-item{text-align:left;padding:8px 12px;border-radius:var(--r);font-size:13px;color:var(--text);background:transparent;border:none;cursor:pointer}
+.det-menu-item:hover{background:var(--hover)}
+.det-menu-item.danger{color:var(--red)}
 .det-top .back:hover{background:var(--hover);color:var(--text)}
 .det-top .badge{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);font-family:var(--mono);font-size:12px;font-weight:600}
 .det-top .badge .type-ico{font-size:14px}
@@ -749,7 +755,7 @@ a:hover{text-decoration:underline}
 'use strict';
 
 // ════════════════════════════════════════════════════════════════════
-// CONFIG — same Supabase project as the main app
+// CONFIG — Supabase connection
 // ════════════════════════════════════════════════════════════════════
 const SUPABASE_URL      = 'https://ouppawndgtiejiebamph.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_9gI5pdoJHW9DxvJ98KjGaw_C-7VsMP5';
@@ -1609,6 +1615,24 @@ async function setActiveWorkspace(wsId){
 // Restore the page/project/item the user was on before refresh.
 // Falls back to overview if anything is missing or invalid.
 async function restoreLastView(){
+  // Honor the user's default-landing-page preference.
+  const landing = localStorage.getItem('pm-ado:landing') || 'restore';
+  if(landing !== 'restore'){
+    if(['overview','members','settings'].includes(landing)){ goPage(landing); return; }
+    // Project-scoped landing pages: use the first project if available.
+    if(['board','backlog','sprints'].includes(landing)){
+      if(landing === 'sprints'){ goPage('sprints'); return; }
+      if(state.projects.length){
+        state.currentPage = landing;
+        await selectProject(state.projects[0].id);
+        goPage(landing);
+        return;
+      }
+      goPage('overview');
+      return;
+    }
+  }
+
   let nav = null;
   try{ nav = JSON.parse(localStorage.getItem('pm-ado:nav') || 'null'); }catch{}
   if(!nav || !nav.page){ goPage('overview'); return; }
@@ -1892,6 +1916,32 @@ async function createWorkItem(payload){
   ensureWatching(payload.id);
   await loadWorkItems();
   return payload.id;
+}
+
+// Clone a work item (not its children). Copies content fields, resets
+// identity/audit fields, appends " (αντίγραφο)" to the title.
+async function duplicateWorkItem(id){
+  const src = itemById(id);
+  if(!src){ toast('Δεν βρέθηκε η εργασία','err'); return null; }
+  const payload = {
+    parent_id: src.parent_id || null,
+    type: src.type,
+    title: (src.title || '') + ' (αντίγραφο)',
+    description: src.description || '',
+    state: src.state,
+    priority: src.priority,
+    story_points: src.story_points,
+    initial_estimate: src.initial_estimate,
+    remaining_work: src.remaining_work,
+    assignee_id: src.assignee_id || null,
+    area: src.area || null,
+    iteration_id: src.iteration_id || null,
+    tags: Array.isArray(src.tags) ? [...src.tags] : [],
+    custom_fields: src.custom_fields ? JSON.parse(JSON.stringify(src.custom_fields)) : null,
+  };
+  const newId = await createWorkItem(payload);
+  if(newId){ toast('Δημιουργήθηκε αντίγραφο','ok'); }
+  return newId;
 }
 
 async function updateWorkItem(id, patch){
@@ -2985,7 +3035,13 @@ async function renderDetail(){
     <div class="det-top">
       <button class="back" id="back-btn">← Πίσω</button>
       <div class="badge"><span class="type-ico">${tm.ico}</span>${esc(tm.label)}</div>
-      <button class="btn ghost sm" id="del-btn">Διαγραφή</button>
+      <div class="det-menu-wrap">
+        <button class="btn ghost sm det-menu-btn" id="det-menu-btn" title="Ενέργειες" aria-label="Ενέργειες">⋯</button>
+        <div class="det-menu hidden" id="det-menu">
+          <button class="det-menu-item" id="dup-btn">Διπλασιασμός</button>
+          <button class="det-menu-item danger" id="del-btn">Διαγραφή</button>
+        </div>
+      </div>
       <h2><span class="id">#${w.display_id || '—'}</span><span id="det-title-text">${esc(w.title)}</span></h2>
       <button class="btn ghost sm watch-btn" id="watch-btn">👁 Παρακολούθηση</button>
       <button class="btn ghost sm det-info-btn" id="det-info-btn" title="Πληροφορίες" aria-label="Πληροφορίες">Πληροφορίες ☰</button>
@@ -3107,7 +3163,33 @@ async function renderDetail(){
 
   // Wire
   $('back-btn').onclick = ()=> goPage(state.backFrom || 'backlog');
-  $('del-btn').onclick  = ()=> deleteWorkItem(id);
+
+  // Actions ⋯ menu
+  const menuBtn = $('det-menu-btn');
+  const menu = $('det-menu');
+  function closeMenu(){ menu && menu.classList.add('hidden'); }
+  if(menuBtn && menu){
+    menuBtn.onclick = (e)=>{
+      e.stopPropagation();
+      menu.classList.toggle('hidden');
+      if(!menu.classList.contains('hidden')){
+        const off = (ev)=>{
+          if(!menu.contains(ev.target) && ev.target !== menuBtn){
+            closeMenu(); document.removeEventListener('click', off);
+          }
+        };
+        setTimeout(()=> document.addEventListener('click', off), 0);
+      }
+    };
+  }
+
+  $('del-btn').onclick  = ()=>{ closeMenu(); deleteWorkItem(id); };
+  const dupBtn = $('dup-btn');
+  if(dupBtn) dupBtn.onclick = async ()=>{
+    closeMenu();
+    const newId = await duplicateWorkItem(id);
+    if(newId) openDetail(newId);
+  };
   const watchBtn = $('watch-btn');
   if(watchBtn){
     watchBtn.onclick = ()=> toggleWatch(id);
@@ -3589,18 +3671,65 @@ function openManageIterationsModal(){
 function renderSettings(){
   const el = $('settings-content');
   const chosen = state.backlogColumns || [];
+  const landing = localStorage.getItem('pm-ado:landing') || 'restore';
   el.innerHTML = `
     <h2 style="font-size:16px;font-weight:600;margin-bottom:6px">Ρυθμίσεις</h2>
     <p style="color:var(--muted);font-size:13px;margin-bottom:20px">Οι ρυθμίσεις αποθηκεύονται σε αυτή τη συσκευή για τον τρέχοντα χώρο εργασίας.</p>
 
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);padding:16px;margin-bottom:16px">
-      <h3 style="font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:4px">Στήλες λίστας εργασιών</h3>
+    <div class="team-card">
+      <h3 class="team-h">Προφίλ</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+        <div style="flex:1;min-width:180px">
+          <label style="display:block;font-size:12px;color:var(--muted);margin-bottom:4px">Εμφανιζόμενο όνομα</label>
+          <input id="prof-name" maxlength="60" value="${esc(state.profile?.display_name || '')}" style="width:100%">
+        </div>
+        <button class="btn" id="prof-save">Αποθήκευση</button>
+      </div>
+      <div class="md-hint" style="margin-top:6px">${esc(state.profile?.email || '')}</div>
+    </div>
+
+    <div class="team-card">
+      <h3 class="team-h">Αρχική σελίδα</h3>
+      <p style="color:var(--muted);font-size:12px;margin-bottom:10px">Τι ανοίγει όταν ξεκινάτε την εφαρμογή.</p>
+      <select id="set-landing" style="width:100%;max-width:280px">
+        <option value="restore" ${landing==='restore'?'selected':''}>Η τελευταία σελίδα που είδα</option>
+        <option value="overview" ${landing==='overview'?'selected':''}>Επισκόπηση</option>
+        <option value="board" ${landing==='board'?'selected':''}>Ροή εργασιών</option>
+        <option value="backlog" ${landing==='backlog'?'selected':''}>Λίστα εργασιών</option>
+        <option value="sprints" ${landing==='sprints'?'selected':''}>Περίοδοι</option>
+      </select>
+    </div>
+
+    <div class="team-card">
+      <h3 class="team-h">Στήλες λίστας εργασιών</h3>
       <p style="color:var(--muted);font-size:12px;margin-bottom:12px">Επιλέξτε ποιες στήλες θα εμφανίζονται. Το ID και ο Τίτλος εμφανίζονται πάντα.</p>
       <div id="settings-cols" style="display:flex;flex-direction:column;gap:2px"></div>
       <div style="margin-top:14px;display:flex;gap:8px">
         <button class="btn ghost sm" id="settings-reset">Επαναφορά προεπιλογών</button>
       </div>
     </div>`;
+
+  // Profile save
+  $('prof-save').onclick = async ()=>{
+    const name = ($('prof-name').value || '').trim();
+    if(!name){ toast('Το όνομα δεν μπορεί να είναι κενό','err'); return; }
+    if(name === state.profile?.display_name){ return; }
+    const { error } = await sb.from('profiles').update({ display_name: name }).eq('id', state.user.id);
+    if(error){ toast(friendlyError(error),'err'); return; }
+    state.profile.display_name = name;
+    $('user-nm').textContent = name;
+    $('user-av').textContent = initial(name);
+    // Refresh members cache so the new name shows in pickers/assignee lists
+    const meIdx = state.members.findIndex(m => m.id === state.user.id);
+    if(meIdx >= 0) state.members[meIdx].display_name = name;
+    toast('Το προφίλ ενημερώθηκε','ok');
+  };
+
+  // Default landing page
+  $('set-landing').onchange = ()=>{
+    try{ localStorage.setItem('pm-ado:landing', $('set-landing').value); }catch{}
+    toast('Αποθηκεύτηκε','ok');
+  };
 
   function renderColList(){
     const box = $('settings-cols');
