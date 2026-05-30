@@ -342,6 +342,12 @@ a:hover{text-decoration:underline}
 .ov-row .state.s-closed{background:var(--green-dim);color:var(--green)}
 .ov-row .av{width:20px;height:20px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-size:10px;font-weight:600;flex-shrink:0}
 .settings-col-row:hover{background:var(--hover)}
+.team-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);padding:16px;margin-bottom:16px}
+.team-h{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:12px}
+.mem-list{display:flex;flex-direction:column}
+.mem-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border)}
+.mem-row:last-child{border-bottom:none}
+.mem-av{width:32px;height:32px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:600;flex-shrink:0}
 
 
 .cf-md{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:8px 10px;min-height:36px;cursor:text;font-size:13px;line-height:1.5}
@@ -3633,28 +3639,168 @@ function renderSettings(){
 async function renderMembers(){
   const el = $('members-content');
   el.innerHTML = '<div style="padding:20px;color:var(--muted)">Φόρτωση…</div>';
-  const { data } = await sb
-    .from('workspace_members')
-    .select('user_id, role, profiles:user_id(id, display_name, email)')
-    .eq('workspace_id', state.currentWsId);
-  const mems = (data || []).map(r => ({ ...r.profiles, role: r.role })).filter(p => p.id);
-  el.innerHTML = `
-    <h2 style="font-size:16px;font-weight:600;margin-bottom:14px">Μέλη ομάδας</h2>
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);overflow:hidden">
-      ${mems.map(m => `
-        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border)">
-          <div style="width:32px;height:32px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:600">${esc(initial(m.display_name))}</div>
-          <div style="flex:1;min-width:0">
-            <div style="font-weight:600;font-size:13px">${esc(m.display_name)}${m.id===state.user.id?' (εσείς)':''}</div>
-            <div style="font-size:11px;color:var(--muted)">${esc(m.email||'')}</div>
-          </div>
-          <span style="font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600">${esc(m.role)}</span>
-        </div>`).join('')}
-    </div>
-    <div style="margin-top:24px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rm)">
-      <h3 style="font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:8px">Σημείωση</h3>
-      <div style="font-size:13px;color:var(--text2)">Οι προσκλήσεις μελών γίνονται από την κύρια εφαρμογή ProMapp — αυτή η προβολή μοιράζεται τον ίδιο χώρο εργασίας, οπότε όσοι προσκληθούν εκεί εμφανίζονται και εδώ αυτόματα.</div>
+
+  const canManage = state.currentRole === 'owner' || state.currentRole === 'admin';
+
+  // Members + pending invitations in parallel
+  const [memRes, invRes] = await Promise.all([
+    sb.from('workspace_members')
+      .select('user_id, role, profiles:user_id(id, display_name, email)')
+      .eq('workspace_id', state.currentWsId),
+    sb.from('invitations')
+      .select('id, email, invited_by, created_at, expires_at, accepted_at')
+      .eq('workspace_id', state.currentWsId)
+      .is('accepted_at', null)
+      .order('created_at', { ascending: false }),
+  ]);
+  const mems = (memRes.data || []).map(r => ({ ...r.profiles, role: r.role })).filter(p => p.id);
+  const nowIso = new Date().toISOString();
+  const pending = (invRes.data || []).filter(i => i.expires_at > nowIso);
+  const expired = (invRes.data || []).filter(i => i.expires_at <= nowIso);
+
+  const roleLabel = { owner:'Ιδιοκτήτης', admin:'Διαχειριστής', member:'Μέλος' };
+
+  function memberRow(m){
+    const isSelf = m.id === state.user.id;
+    const isOwner = m.role === 'owner';
+    // Owner/admins can manage non-owner rows; nobody manages the owner via UI.
+    const showControls = canManage && !isOwner;
+    const roleCell = showControls
+      ? `<select class="mem-role" data-uid="${esc(m.id)}" style="font-size:12px;padding:3px 6px">
+           ${['admin','member'].map(r => `<option value="${r}" ${m.role===r?'selected':''}>${roleLabel[r]}</option>`).join('')}
+         </select>`
+      : `<span style="font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600">${esc(roleLabel[m.role]||m.role)}</span>`;
+    const removeBtn = (canManage && !isOwner && !isSelf)
+      ? `<button class="btn ghost sm mem-remove" data-uid="${esc(m.id)}" title="Αφαίρεση">✕</button>`
+      : (isSelf && !isOwner ? `<button class="btn ghost sm mem-leave" title="Αποχώρηση">Αποχώρηση</button>` : '');
+    return `<div class="mem-row">
+      <div class="mem-av">${esc(initial(m.display_name))}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:13px">${esc(m.display_name)}${isSelf?' (εσείς)':''}</div>
+        <div style="font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(m.email||'')}</div>
+      </div>
+      ${roleCell}
+      ${removeBtn}
     </div>`;
+  }
+
+  function inviteRow(i, isExpired){
+    const who = state.members.find(x => x.id === i.invited_by)?.display_name || '';
+    const cancel = canManage
+      ? `<button class="btn ghost sm inv-cancel" data-id="${esc(i.id)}" title="Ακύρωση">✕</button>` : '';
+    return `<div class="mem-row">
+      <div class="mem-av" style="background:var(--surface2);color:var(--muted)">✉</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:13px">${esc(i.email)}</div>
+        <div style="font-size:11px;color:var(--muted)">${isExpired ? 'Έληξε' : 'Εκκρεμεί'}${who?` · προσκλήθηκε από ${esc(who)}`:''}</div>
+      </div>
+      <span style="font-size:11px;color:${isExpired?'var(--red)':'var(--muted)'};font-weight:600">${isExpired?'ΕΛΗΞΕ':'ΕΚΚΡΕΜΕΙ'}</span>
+      ${cancel}
+    </div>`;
+  }
+
+  el.innerHTML = `
+    <h2 style="font-size:16px;font-weight:600;margin-bottom:14px">Ομάδα</h2>
+
+    ${canManage ? `
+    <div class="team-card">
+      <h3 class="team-h">Πρόσκληση μέλους</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input id="inv-email" type="email" placeholder="email@example.com" autocomplete="off"
+               style="flex:1;min-width:180px">
+        <button class="btn" id="inv-send">Αποστολή πρόσκλησης</button>
+      </div>
+      <div class="md-hint" style="margin-top:6px">Η πρόσκληση εμφανίζεται στην εφαρμογή του παραλήπτη για αποδοχή — ακόμη κι αν δεν έχει λογαριασμό ακόμη. Λήγει σε 7 ημέρες.</div>
+    </div>` : ''}
+
+    <div class="team-card">
+      <h3 class="team-h">Μέλη (${mems.length})</h3>
+      <div class="mem-list">${mems.map(memberRow).join('')}</div>
+    </div>
+
+    ${(pending.length || expired.length) ? `
+    <div class="team-card">
+      <h3 class="team-h">Προσκλήσεις σε εκκρεμότητα${pending.length?` (${pending.length})`:''}</h3>
+      <div class="mem-list">
+        ${pending.map(i => inviteRow(i, false)).join('')}
+        ${expired.map(i => inviteRow(i, true)).join('')}
+      </div>
+    </div>` : ''}
+  `;
+
+  // ── Wire: send invite ──
+  if(canManage){
+    const sendBtn = $('inv-send');
+    const emailInput = $('inv-email');
+    async function sendInvite(){
+      const email = (emailInput.value || '').trim().toLowerCase();
+      if(!email){ toast('Συμπληρώστε email','err'); return; }
+      if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ toast('Μη έγκυρο email','err'); return; }
+      // Already a member?
+      if(mems.some(m => (m.email||'').toLowerCase() === email)){
+        toast('Είναι ήδη μέλος','err'); return;
+      }
+      // Already invited (pending)?
+      if(pending.some(i => i.email.toLowerCase() === email)){
+        toast('Έχει ήδη προσκληθεί','err'); return;
+      }
+      sendBtn.disabled = true;
+      const { error } = await sb.from('invitations').insert({
+        id: crypto.randomUUID(),
+        workspace_id: state.currentWsId,
+        email,
+        invited_by: state.user.id,
+      });
+      sendBtn.disabled = false;
+      if(error){ toast(friendlyError(error),'err'); return; }
+      emailInput.value = '';
+      toast('Η πρόσκληση στάλθηκε','ok');
+      renderMembers();
+    }
+    sendBtn.onclick = sendInvite;
+    emailInput.onkeydown = (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); sendInvite(); } };
+  }
+
+  // ── Wire: change role ──
+  el.querySelectorAll('.mem-role').forEach(sel => sel.onchange = async ()=>{
+    const uid = sel.dataset.uid;
+    const newRole = sel.value;
+    const { error } = await sb.from('workspace_members')
+      .update({ role: newRole }).eq('workspace_id', state.currentWsId).eq('user_id', uid);
+    if(error){ toast(friendlyError(error),'err'); renderMembers(); return; }
+    toast('Ο ρόλος ενημερώθηκε','ok');
+  });
+
+  // ── Wire: remove member ──
+  el.querySelectorAll('.mem-remove').forEach(b => b.onclick = async ()=>{
+    const uid = b.dataset.uid;
+    const m = mems.find(x => x.id === uid);
+    if(!confirm(`Αφαίρεση ${m?.display_name || 'μέλους'} από τον χώρο εργασίας;`)) return;
+    const { error } = await sb.from('workspace_members')
+      .delete().eq('workspace_id', state.currentWsId).eq('user_id', uid);
+    if(error){ toast(friendlyError(error),'err'); return; }
+    toast('Το μέλος αφαιρέθηκε','ok');
+    renderMembers();
+  });
+
+  // ── Wire: leave workspace (self) ──
+  const leaveBtn = el.querySelector('.mem-leave');
+  if(leaveBtn) leaveBtn.onclick = async ()=>{
+    if(!confirm('Αποχώρηση από τον χώρο εργασίας;')) return;
+    const { error } = await sb.from('workspace_members')
+      .delete().eq('workspace_id', state.currentWsId).eq('user_id', state.user.id);
+    if(error){ toast(friendlyError(error),'err'); return; }
+    location.reload();
+  };
+
+  // ── Wire: cancel invite ──
+  el.querySelectorAll('.inv-cancel').forEach(b => b.onclick = async ()=>{
+    const id = b.dataset.id;
+    const { error } = await sb.from('invitations').delete().eq('id', id);
+    if(error){ toast(friendlyError(error),'err'); return; }
+    toast('Η πρόσκληση ακυρώθηκε','ok');
+    renderMembers();
+  });
 }
 
 // ════════════════════════════════════════════════════════════════════
