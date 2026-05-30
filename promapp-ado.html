@@ -437,7 +437,7 @@ a:hover{text-decoration:underline}
 .det-top .back{padding:4px 8px;color:var(--text2);border-radius:var(--r);font-weight:500}
 .det-menu-wrap{position:relative}
 .det-menu-btn{font-size:18px;line-height:1;padding:2px 8px}
-.det-menu{position:absolute;top:100%;left:0;margin-top:4px;z-index:50;background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);box-shadow:0 6px 20px rgba(0,0,0,.16);min-width:160px;padding:4px;display:flex;flex-direction:column}
+.det-menu{position:absolute;top:100%;left:0;margin-top:4px;z-index:70;background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);box-shadow:0 6px 20px rgba(0,0,0,.16);min-width:160px;padding:4px;display:flex;flex-direction:column}
 .det-menu-item{text-align:left;padding:8px 12px;border-radius:var(--r);font-size:13px;color:var(--text);background:transparent;border:none;cursor:pointer}
 .det-menu-item:hover{background:var(--hover)}
 .det-menu-item.danger{color:var(--red)}
@@ -565,7 +565,6 @@ a:hover{text-decoration:underline}
   .topbar .user .nm{display:none}
   .topbar .crumb{display:none}
   .workarea{min-width:0;max-width:100vw}
-  .det-top{overflow-x:hidden}
   .det-top h2{font-size:16px;min-width:0}
 }
 .menu-btn{display:none;width:32px;height:32px;border-radius:var(--r)}
@@ -1612,62 +1611,30 @@ async function setActiveWorkspace(wsId){
   await restoreLastView();
 }
 
-// Restore the page/project/item the user was on before refresh.
-// Falls back to overview if anything is missing or invalid.
+// On boot: decide the initial view. URL hash wins (refresh/deep link),
+// else the landing-page preference, else overview.
 async function restoreLastView(){
-  // Honor the user's default-landing-page preference.
+  const fromHash = parseHash();
+  if(fromHash){ await applyView(fromHash); return; }
+
   const landing = localStorage.getItem('pm-ado:landing') || 'restore';
-  if(landing !== 'restore'){
-    if(['overview','members','settings'].includes(landing)){ goPage(landing); return; }
-    // Project-scoped landing pages: use the first project if available.
-    if(['board','backlog','sprints'].includes(landing)){
-      if(landing === 'sprints'){ goPage('sprints'); return; }
-      if(state.projects.length){
-        state.currentPage = landing;
-        await selectProject(state.projects[0].id);
-        goPage(landing);
-        return;
-      }
-      goPage('overview');
-      return;
+  if(landing && landing !== 'restore'){
+    if(['board','backlog'].includes(landing) && state.projects.length){
+      await applyView({ page: landing, projectId: state.projects[0].id });
+    } else {
+      await applyView({ page: landing });
     }
-  }
-
-  let nav = null;
-  try{ nav = JSON.parse(localStorage.getItem('pm-ado:nav') || 'null'); }catch{}
-  if(!nav || !nav.page){ goPage('overview'); return; }
-
-  const projOk = nav.projectId && state.projects.some(p => p.id === nav.projectId);
-
-  // Restore the project context if it still exists. selectProject re-renders
-  // whatever currentPage is, so set it first.
-  if(projOk){
-    state.currentPage = (nav.page === 'detail') ? 'detail' : nav.page;
-    await selectProject(nav.projectId);
-  }
-
-  // Detail page: open the specific item if it still exists.
-  if(nav.page === 'detail' && nav.itemId){
-    const exists = state.workItems.some(w => w.id === nav.itemId)
-      || (await sb.from('work_items').select('id').eq('id', nav.itemId).maybeSingle()).data;
-    if(exists){ openDetail(nav.itemId); return; }
-    goPage(projOk ? 'board' : 'overview');
     return;
   }
-
-  // Workspace-scoped pages that don't need a project.
-  if(['overview','members','settings','sprints'].includes(nav.page)){
-    goPage(nav.page);
-    return;
-  }
-
-  // Project-scoped pages (board, backlog): only valid if the project exists.
-  if(projOk){
-    goPage(nav.page);
-  } else {
-    goPage('overview');
-  }
+  goPage('overview');
 }
+
+// Browser / phone back+forward gestures.
+window.addEventListener('popstate', ()=>{
+  if(!state.user) return;          // not in the app yet
+  const v = parseHash();
+  applyView(v);                    // applyView guards against re-pushing history
+});
 
 $('ws-pick').onclick = ()=> openWsPicker();
 function openWsPicker(){
@@ -1747,9 +1714,10 @@ async function loadProjects(){
   if(error){ toast('Έργα: '+friendlyError(error),'err'); return; }
   state.projects = data || [];
   renderProjectsSidebar();
-  // Auto-pick first project if none selected
+  // Auto-pick first project if none selected — quietly, so it doesn't
+  // override the page being restored from the URL.
   if(!state.currentProjectId && state.projects.length){
-    await selectProject(state.projects[0].id);
+    await selectProjectQuiet(state.projects[0].id);
   }
 }
 
@@ -1783,7 +1751,8 @@ function renderProjectsSidebar(){
   el.querySelectorAll('[data-id]').forEach(n => n.onclick = ()=> selectProject(n.dataset.id));
 }
 
-async function selectProject(id){
+// Load a project's data + wire sidebar/realtime WITHOUT navigating.
+async function selectProjectQuiet(id){
   state.currentProjectId = id;
   const p = state.projects.find(x => x.id === id);
   if(!p) return;
@@ -1792,9 +1761,13 @@ async function selectProject(id){
   renderProjectsSidebar();
   await loadWorkItems();
   subscribeRealtime();
-  // Re-render the page the user is on so its header/tabs/content all
-  // reflect the newly selected project. The detail page belongs to the
-  // previous project's item, so send it back to the board instead.
+}
+
+async function selectProject(id){
+  await selectProjectQuiet(id);
+  if(!state.projects.find(x => x.id === id)) return;
+  // Re-render the page the user is on. Detail belongs to the previous
+  // project's item, so send it back to the board instead.
   const target = (state.currentPage === 'detail') ? 'board' : state.currentPage;
   goPage(target);
 }
@@ -2028,16 +2001,25 @@ $('nav-members').onclick  = ()=> goPage('members');
 $('nav-settings').onclick = ()=> goPage('settings');
 $('menu-btn').onclick     = ()=> $('sidebar').classList.toggle('show');
 
+// When true, we're applying state FROM the URL, so goPage must not push a
+// new history entry (avoids loops on popstate/refresh).
+let navApplyingFromUrl = false;
+
+function buildHash(name){
+  if(name === 'detail' && state.currentItemId) return `#detail/${state.currentItemId}`;
+  if(['board','backlog'].includes(name) && state.currentProjectId) return `#${name}/${state.currentProjectId}`;
+  return `#${name}`;
+}
+
 function goPage(name){
   state.currentPage = name;
-  // Persist navigation so a refresh lands back here (see restoreLastView).
-  try{
-    localStorage.setItem('pm-ado:nav', JSON.stringify({
-      page: name,
-      projectId: state.currentProjectId || null,
-      itemId: name === 'detail' ? (state.currentItemId || null) : null,
-    }));
-  }catch{}
+  // Reflect the view in the URL so refresh + browser/phone back work.
+  if(!navApplyingFromUrl){
+    const h = buildHash(name);
+    if(location.hash !== h){
+      try{ history.pushState({ page:name }, '', h); }catch{}
+    }
+  }
   ['overview','board','backlog','sprints','detail','members','settings'].forEach(p =>
     $('page-'+p).classList.toggle('hidden', p !== name)
   );
@@ -2055,6 +2037,63 @@ function goPage(name){
   else if(name === 'detail'){ ti.textContent = ''; $('crumb-page').textContent = 'Εργασία'; renderDetail(); }
   else if(name === 'members'){ ti.textContent = 'Ομάδα'; $('crumb-page').textContent = 'Ομάδα'; renderMembers(); }
   else if(name === 'settings'){ ti.textContent = 'Ρυθμίσεις'; $('crumb-page').textContent = 'Ρυθμίσεις'; renderSettings(); }
+}
+
+// Parse the current URL hash → {page, projectId, itemId}
+function parseHash(){
+  const h = (location.hash || '').replace(/^#/, '');
+  if(!h) return null;
+  const [page, arg] = h.split('/');
+  const valid = ['overview','board','backlog','sprints','detail','members','settings'];
+  if(!valid.includes(page)) return null;
+  return {
+    page,
+    projectId: (['board','backlog'].includes(page)) ? (arg || null) : null,
+    itemId: page === 'detail' ? (arg || null) : null,
+  };
+}
+
+// Apply a parsed view (from hash) without pushing new history.
+async function applyView(view){
+  navApplyingFromUrl = true;
+  try{
+    if(!view){ goPage('overview'); return; }
+
+    // detail: need the item's project loaded for parent/child links
+    if(view.page === 'detail' && view.itemId){
+      let pid = state.workItems.find(w => w.id === view.itemId)?.project_id;
+      if(!pid){
+        const { data } = await sb.from('work_items').select('id, project_id').eq('id', view.itemId).maybeSingle();
+        if(!data){ goPage('overview'); return; }
+        pid = data.project_id;
+      }
+      if(pid && pid !== state.currentProjectId && state.projects.some(p=>p.id===pid)){
+        state.currentPage = 'detail';
+        await selectProjectQuiet(pid);
+      }
+      state.currentItemId = view.itemId;
+      goPage('detail');
+      return;
+    }
+
+    // project-scoped pages
+    if(['board','backlog'].includes(view.page)){
+      const projOk = view.projectId && state.projects.some(p => p.id === view.projectId);
+      if(projOk && view.projectId !== state.currentProjectId){
+        state.currentPage = view.page;
+        await selectProjectQuiet(view.projectId);
+      } else if(!projOk && !state.currentProjectId && state.projects.length){
+        await selectProjectQuiet(state.projects[0].id);
+      }
+      goPage(view.page);
+      return;
+    }
+
+    // workspace-scoped pages
+    goPage(view.page);
+  } finally {
+    navApplyingFromUrl = false;
+  }
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -3162,7 +3201,10 @@ async function renderDetail(){
     </div>`;
 
   // Wire
-  $('back-btn').onclick = ()=> goPage(state.backFrom || 'backlog');
+  $('back-btn').onclick = ()=>{
+    if(history.length > 1){ history.back(); }
+    else { goPage(state.backFrom || 'backlog'); }
+  };
 
   // Actions ⋯ menu
   const menuBtn = $('det-menu-btn');
@@ -4078,6 +4120,14 @@ async function enterApp(user){
   $('user-av').textContent = initial(state.profile.display_name);
   hide('auth');
   $('app').classList.add('show');
+  // Capture the deep-link hash the user arrived with (refresh/bookmark),
+  // THEN seed a baseline overview entry beneath it so the first back press
+  // stays in-app. restoreLastView() will navigate to bootHash if present.
+  const bootHash = location.hash;
+  try{ history.replaceState({ page:'overview' }, '', '#overview'); }catch{}
+  if(bootHash && bootHash !== '#overview'){
+    try{ history.pushState({}, '', bootHash); }catch{}
+  }
   await loadWorkspaces();
   subscribeUserMentions();
 }
