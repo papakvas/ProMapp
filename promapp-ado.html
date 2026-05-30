@@ -155,6 +155,9 @@ a:hover{text-decoration:underline}
 .sb-projects-list .proj-list-head .chev{font-size:9px;transition:transform .15s;display:inline-block}
 .sb-projects-list .proj-list-head .chev.open{transform:rotate(90deg)}
 .sb-projects-list .pi{display:flex;align-items:center;gap:8px;padding:6px 14px;cursor:pointer;font-size:13px;color:var(--text2)}
+.sb-projects-list .pi .pi-edit{opacity:0;background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:2px 4px;border-radius:var(--r)}
+.sb-projects-list .pi:hover .pi-edit{opacity:.7}
+.sb-projects-list .pi .pi-edit:hover{opacity:1;background:var(--hover)}
 .sb-projects-list .pi:hover{background:var(--hover);color:var(--text)}
 .sb-projects-list .pi.active{background:var(--blue-dim);color:var(--blue);font-weight:600}
 .sb-projects-list .pi .hash{color:var(--muted);font-family:var(--mono);font-size:11px}
@@ -636,6 +639,7 @@ a:hover{text-decoration:underline}
         <button id="nav-sprints" ><span class="ico">🏃</span>Περίοδοι</button>
         <div class="group">Έργο</div>
         <button id="nav-overview" class="active"><span class="ico">⌂</span>Επισκόπηση</button>
+        <button id="nav-projects" ><span class="ico">📁</span>Έργα</button>
         <button id="nav-members" ><span class="ico">👥</span>Ομάδα</button>
         <button id="nav-settings" ><span class="ico">⚙</span>Ρυθμίσεις</button>
       </div>
@@ -734,6 +738,20 @@ a:hover{text-decoration:underline}
         </div>
       </div>
 
+      <!-- PROJECTS LIST PAGE -->
+      <div class="page hidden" id="page-projects">
+        <div style="padding:24px;max-width:900px;margin:0 auto">
+          <div id="projects-content"></div>
+        </div>
+      </div>
+
+      <!-- PROJECT DETAIL PAGE -->
+      <div class="page hidden" id="page-projectdetail">
+        <div style="padding:24px;max-width:720px;margin:0 auto">
+          <div id="projectdetail-content"></div>
+        </div>
+      </div>
+
       <!-- SETTINGS PAGE -->
       <div class="page hidden" id="page-settings">
         <div style="padding:24px;max-width:680px;margin:0 auto">
@@ -759,6 +777,7 @@ a:hover{text-decoration:underline}
 const SUPABASE_URL      = 'https://ouppawndgtiejiebamph.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_9gI5pdoJHW9DxvJ98KjGaw_C-7VsMP5';
 
+
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: { persistSession: true, autoRefreshToken: true, storageKey: 'pm-ado-auth' }
 });
@@ -776,6 +795,7 @@ const state = {
   currentProjectId: null,
   currentPage: 'overview',     // 'overview' | 'board' | 'backlog' | 'sprints' | 'detail' | 'members' | 'settings'
   currentItemId: null,
+  viewProjectId: null,         // project shown on the project-detail page
   workItems: [],
   iterations: [],              // workspace-scoped sprint list
   currentIterationId: null,    // which sprint is the Sprints page showing
@@ -1554,6 +1574,7 @@ $('bell-btn').onclick = (e)=>{
 // and only act on events from THAT point on. Even then, we don't reload
 // the page — we just re-enter the app with the new user if relevant.
 let bootDone = false;
+let entering = false;
 sb.auth.onAuthStateChange((event, session)=>{
   if(!bootDone) return;
   if(event === 'SIGNED_OUT'){
@@ -1731,6 +1752,7 @@ function renderProjectsSidebar(){
     return;
   }
   const collapsed = projListCollapsed();
+  const canManage = state.currentRole === 'owner' || state.currentRole === 'admin';
   el.innerHTML =
     `<div class="proj-list-head" id="proj-list-head">
        <span class="chev ${collapsed?'':'open'}">▶</span>
@@ -1741,6 +1763,7 @@ function renderProjectsSidebar(){
     state.projects.map(p => `
       <div class="pi ${p.id===state.currentProjectId?'active':''}" data-id="${esc(p.id)}">
         <span class="hash">#</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}</span>
+        ${canManage ? `<button class="pi-edit" data-edit="${esc(p.id)}" title="Επεξεργασία έργου">✎</button>` : ''}
       </div>`).join('') +
     `</div>`;
   $('proj-list-head').onclick = ()=>{
@@ -1748,7 +1771,59 @@ function renderProjectsSidebar(){
     try{ localStorage.setItem('pm-ado:proj-collapsed', next ? '1' : '0'); }catch{}
     renderProjectsSidebar();
   };
-  el.querySelectorAll('[data-id]').forEach(n => n.onclick = ()=> selectProject(n.dataset.id));
+  el.querySelectorAll('.pi').forEach(n => n.onclick = (e)=>{
+    if(e.target.closest('[data-edit]')) return;   // edit pencil handled separately
+    selectProject(n.dataset.id);
+  });
+  el.querySelectorAll('[data-edit]').forEach(b => b.onclick = (e)=>{
+    e.stopPropagation();
+    openEditProjectModal(b.dataset.edit);
+  });
+}
+
+function openEditProjectModal(pid){
+  const p = state.projects.find(x => x.id === pid);
+  if(!p) return;
+  const root = $('modal-root');
+  root.innerHTML = `
+    <div class="modal-bg">
+      <div class="modal">
+        <div class="modal-h"><h3>Επεξεργασία έργου</h3><button class="x" id="mx">×</button></div>
+        <div class="modal-b">
+          <div class="field"><label>Όνομα</label><input id="ep-name" maxlength="60" value="${esc(p.name)}"></div>
+          <div class="field"><label>Περιγραφή</label><textarea id="ep-desc" maxlength="500">${esc(p.description||'')}</textarea></div>
+        </div>
+        <div class="modal-f">
+          <button class="btn ghost" id="cancel">Άκυρο</button>
+          <button class="btn" id="ok">Αποθήκευση</button>
+        </div>
+      </div>
+    </div>`;
+  const close = ()=> root.innerHTML='';
+  $('mx').onclick = close; $('cancel').onclick = close;
+  $('ep-name').focus();
+  $('ok').onclick = async ()=>{
+    const name = $('ep-name').value.trim();
+    if(!name){ toast('Απαιτείται όνομα','err'); return; }
+    const desc = $('ep-desc').value.trim();
+    if(name === p.name && desc === (p.description||'')){ close(); return; }
+    const { error } = await sb.from('projects')
+      .update({ name, description: desc }).eq('id', pid);
+    if(error){ toast(friendlyError(error),'err'); return; }
+    p.name = name; p.description = desc;
+    close();
+    toast('Το έργο ενημερώθηκε','ok');
+    renderProjectsSidebar();
+    // Refresh any visible labels referencing this project
+    if(state.currentProjectId === pid){
+      $('cur-proj-nm').textContent = name;
+      $('cur-proj-icon').textContent = (name||'?').charAt(0).toUpperCase();
+      if(['board','backlog'].includes(state.currentPage)) goPage(state.currentPage);
+    }
+    if(state.currentPage === 'overview') renderOverview();
+    if(state.currentPage === 'projects') renderProjectsPage();
+    if(state.currentPage === 'projectdetail') renderProjectDetail();
+  };
 }
 
 // Load a project's data + wire sidebar/realtime WITHOUT navigating.
@@ -1994,6 +2069,7 @@ function subscribeRealtime(){
 // PAGE ROUTING
 // ════════════════════════════════════════════════════════════════════
 $('nav-overview').onclick = ()=> goPage('overview');
+$('nav-projects').onclick = ()=> goPage('projects');
 $('nav-board').onclick    = ()=> goPage('board');
 $('nav-backlog').onclick  = ()=> goPage('backlog');
 $('nav-sprints').onclick  = ()=> goPage('sprints');
@@ -2007,6 +2083,7 @@ let navApplyingFromUrl = false;
 
 function buildHash(name){
   if(name === 'detail' && state.currentItemId) return `#detail/${state.currentItemId}`;
+  if(name === 'projectdetail' && state.viewProjectId) return `#projectdetail/${state.viewProjectId}`;
   if(['board','backlog'].includes(name) && state.currentProjectId) return `#${name}/${state.currentProjectId}`;
   return `#${name}`;
 }
@@ -2020,17 +2097,21 @@ function goPage(name){
       try{ history.pushState({ page:name }, '', h); }catch{}
     }
   }
-  ['overview','board','backlog','sprints','detail','members','settings'].forEach(p =>
+  ['overview','projects','projectdetail','board','backlog','sprints','detail','members','settings'].forEach(p =>
     $('page-'+p).classList.toggle('hidden', p !== name)
   );
-  ['overview','board','backlog','sprints','members','settings'].forEach(p => {
+  ['overview','projects','board','backlog','sprints','members','settings'].forEach(p => {
     const btn = $('nav-'+p);
     if(btn) btn.classList.toggle('active', p === name);
   });
+  // Project detail is reached from the Projects list, so keep Έργα highlighted.
+  if(name === 'projectdetail'){ const b = $('nav-projects'); if(b) b.classList.add('active'); }
   $('sidebar').classList.remove('show');
   const ti = $('sub-title'), tabs = $('sub-tabs'), acts = $('sub-actions');
   tabs.innerHTML = ''; acts.innerHTML = '';
   if(name === 'overview'){ ti.textContent = 'Επισκόπηση'; $('crumb-page').textContent = 'Επισκόπηση'; renderOverview(); }
+  else if(name === 'projects'){ ti.textContent = 'Έργα'; $('crumb-page').textContent = 'Έργα'; renderProjectsPage(); }
+  else if(name === 'projectdetail'){ ti.textContent = ''; $('crumb-page').textContent = 'Έργο'; renderProjectDetail(); }
   else if(name === 'board'){ ti.textContent = state.currentProjectId ? (state.projects.find(p=>p.id===state.currentProjectId)?.name || '') : 'Ροή εργασιών'; $('crumb-page').textContent = 'Ροή εργασιών'; renderBoardHeader(); renderBoard(); }
   else if(name === 'backlog'){ ti.textContent = state.currentProjectId ? (state.projects.find(p=>p.id===state.currentProjectId)?.name || '') : 'Λίστα εργασιών'; $('crumb-page').textContent = 'Λίστα εργασιών'; renderBacklog(); }
   else if(name === 'sprints'){ ti.textContent = 'Περίοδοι'; $('crumb-page').textContent = 'Περίοδοι'; renderSprintsPage(); }
@@ -2044,11 +2125,11 @@ function parseHash(){
   const h = (location.hash || '').replace(/^#/, '');
   if(!h) return null;
   const [page, arg] = h.split('/');
-  const valid = ['overview','board','backlog','sprints','detail','members','settings'];
+  const valid = ['overview','projects','projectdetail','board','backlog','sprints','detail','members','settings'];
   if(!valid.includes(page)) return null;
   return {
     page,
-    projectId: (['board','backlog'].includes(page)) ? (arg || null) : null,
+    projectId: (['board','backlog','projectdetail'].includes(page)) ? (arg || null) : null,
     itemId: page === 'detail' ? (arg || null) : null,
   };
 }
@@ -2073,6 +2154,14 @@ async function applyRoute(view){
       }
       state.currentItemId = view.itemId;
       goPage('detail');
+      return;
+    }
+
+    // project detail page (shows one project's info)
+    if(view.page === 'projectdetail' && view.projectId){
+      if(!state.projects.some(p => p.id === view.projectId)){ goPage('projects'); return; }
+      state.viewProjectId = view.projectId;
+      goPage('projectdetail');
       return;
     }
 
@@ -2245,6 +2334,114 @@ async function renderOverview(){
     el.querySelectorAll('.ov-pane').forEach(x => x.classList.toggle('hidden', x.id !== 'ov-pane-' + t));
   });
 }
+
+// ════════════════════════════════════════════════════════════════════
+// PROJECTS LIST + PROJECT DETAIL
+// ════════════════════════════════════════════════════════════════════
+async function renderProjectsPage(){
+  const el = $('projects-content');
+  const canManage = state.currentRole === 'owner' || state.currentRole === 'admin';
+  if(!state.projects.length){
+    el.innerHTML = `
+      <div class="empty-state">
+        <div class="ico">📁</div>
+        <div class="ti">Δεν υπάρχουν έργα ακόμη</div>
+        <div class="bd">Δημιουργήστε το πρώτο σας έργο για να ξεκινήσετε.</div>
+        ${canManage ? '<button class="btn" id="pp-new" style="margin-top:16px">+ Νέο έργο</button>' : ''}
+      </div>`;
+    const n = $('pp-new'); if(n) n.onclick = openNewProjectModal;
+    return;
+  }
+  // Item counts per project
+  const { data: all } = await sb.from('work_items')
+    .select('id, project_id, state').eq('workspace_id', state.currentWsId);
+  const byProj = {};
+  for(const w of (all||[])) (byProj[w.project_id] ||= []).push(w);
+
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;margin-bottom:14px">
+      <h2 style="font-size:16px;font-weight:600;flex:1">Έργα</h2>
+      ${canManage ? '<button class="btn sm" id="pp-new">+ Νέο έργο</button>' : ''}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">
+      ${state.projects.map(p => {
+        const items = byProj[p.id] || [];
+        const open = items.filter(i => i.state !== 'closed').length;
+        const closed = items.length - open;
+        return `<div class="proj-card" data-pid="${esc(p.id)}" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);padding:14px;cursor:pointer">
+          <div style="font-weight:600;font-size:14px;margin-bottom:4px">#${esc(p.name)}</div>
+          <div style="color:var(--muted);font-size:12px;margin-bottom:10px;min-height:32px">${esc(p.description||'Χωρίς περιγραφή')}</div>
+          <div style="display:flex;gap:14px;font-size:12px">
+            <span><strong>${open}</strong> <span style="color:var(--muted)">ανοιχτές</span></span>
+            <span><strong>${closed}</strong> <span style="color:var(--muted)">κλειστές</span></span>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  const n = $('pp-new'); if(n) n.onclick = openNewProjectModal;
+  el.querySelectorAll('[data-pid]').forEach(c => c.onclick = ()=>{
+    state.viewProjectId = c.dataset.pid;
+    goPage('projectdetail');
+  });
+}
+
+async function renderProjectDetail(){
+  const el = $('projectdetail-content');
+  const pid = state.viewProjectId;
+  const p = state.projects.find(x => x.id === pid);
+  if(!p){ goPage('projects'); return; }
+  const canManage = state.currentRole === 'owner' || state.currentRole === 'admin';
+
+  // Stats for this project
+  const { data: items } = await sb.from('work_items')
+    .select('id, type, state').eq('project_id', pid);
+  const list = items || [];
+  const open = list.filter(i => i.state !== 'closed').length;
+  const closed = list.length - open;
+  const byType = {};
+  for(const w of list) byType[w.type] = (byType[w.type]||0) + 1;
+
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap">
+      <button class="back" id="pd-back">← Πίσω</button>
+      <h2 style="font-size:20px;font-weight:600;flex:1;min-width:160px">#${esc(p.name)}</h2>
+      ${canManage ? '<button class="btn sm" id="pd-edit">Επεξεργασία</button>' : ''}
+    </div>
+
+    <div class="team-card">
+      <h3 class="team-h">Περιγραφή</h3>
+      <div style="font-size:13px;line-height:1.5;color:${p.description?'var(--text)':'var(--muted)'}">${esc(p.description || 'Χωρίς περιγραφή')}</div>
+    </div>
+
+    <div class="team-card">
+      <h3 class="team-h">Στατιστικά</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px">
+        <div class="ov-stat"><div class="ov-stat-l">Σύνολο</div><div class="ov-stat-v">${list.length}</div></div>
+        <div class="ov-stat"><div class="ov-stat-l">Ανοιχτές</div><div class="ov-stat-v">${open}</div></div>
+        <div class="ov-stat"><div class="ov-stat-l">Κλειστές</div><div class="ov-stat-v">${closed}</div></div>
+      </div>
+      ${list.length ? `<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+        ${TYPE_ORDER.filter(t => byType[t]).map(t => `<span style="font-size:12px;background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:3px 10px">${TYPE_META[t].ico} ${TYPE_META[t].label}: <strong>${byType[t]}</strong></span>`).join('')}
+      </div>` : ''}
+    </div>
+
+    <div class="team-card">
+      <h3 class="team-h">Πληροφορίες</h3>
+      <div style="font-size:12px;color:var(--muted)">Δημιουργήθηκε: ${esc(fmtTime(p.created_at))}</div>
+    </div>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" id="pd-open">Άνοιγμα ροής εργασιών</button>
+      <button class="btn ghost" id="pd-backlog">Λίστα εργασιών</button>
+    </div>`;
+
+  $('pd-back').onclick = ()=>{ if(history.length>1) history.back(); else goPage('projects'); };
+  const editBtn = $('pd-edit');
+  if(editBtn) editBtn.onclick = ()=> openEditProjectModal(pid);
+  $('pd-open').onclick = async ()=>{ await selectProjectQuiet(pid); goPage('board'); };
+  $('pd-backlog').onclick = async ()=>{ await selectProjectQuiet(pid); goPage('backlog'); };
+}
+
 
 // ════════════════════════════════════════════════════════════════════
 // BOARD (KANBAN)
@@ -4108,9 +4305,13 @@ applyTheme();
 async function boot(){
   try{
     const { data: { session } } = await sb.auth.getSession();
-    hide('boot');
-    if(session?.user){ await enterApp(session.user); }
-    else{ show('auth'); }
+    if(session?.user){
+      await enterApp(session.user);   // loads data + restores view before revealing
+      hide('boot');
+    } else {
+      hide('boot');
+      show('auth');
+    }
   }catch(e){
     hide('boot');
     show('auth');
@@ -4121,16 +4322,16 @@ async function boot(){
 }
 
 async function enterApp(user){
-  // Guard: if we're already showing the app for this user, do nothing.
-  if(state.user && state.user.id === user.id && $('app').classList.contains('show')){
+  // Guard: if we're already in/entering the app for this user, do nothing.
+  if(state.user && state.user.id === user.id && (entering || $('app').classList.contains('show'))){
     return;
   }
+  entering = true;
   state.user = user;
   state.profile = await ensureProfile(user);
   $('user-nm').textContent = state.profile.display_name;
   $('user-av').textContent = initial(state.profile.display_name);
   hide('auth');
-  $('app').classList.add('show');
   // Capture the deep-link hash the user arrived with (refresh/bookmark),
   // THEN seed a baseline overview entry beneath it so the first back press
   // stays in-app. restoreLastView() will navigate to bootHash if present.
@@ -4139,8 +4340,12 @@ async function enterApp(user){
   if(bootHash && bootHash !== '#overview'){
     try{ history.pushState({}, '', bootHash); }catch{}
   }
+  // Load data and restore the view BEFORE revealing the app, so the user
+  // never sees a blank overview flash on refresh.
   await loadWorkspaces();
+  $('app').classList.add('show');
   subscribeUserMentions();
+  entering = false;
 }
 
 boot();
