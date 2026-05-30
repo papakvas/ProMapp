@@ -1615,14 +1615,14 @@ async function setActiveWorkspace(wsId){
 // else the landing-page preference, else overview.
 async function restoreLastView(){
   const fromHash = parseHash();
-  if(fromHash){ await applyView(fromHash); return; }
+  if(fromHash){ await applyRoute(fromHash); return; }
 
   const landing = localStorage.getItem('pm-ado:landing') || 'restore';
   if(landing && landing !== 'restore'){
     if(['board','backlog'].includes(landing) && state.projects.length){
-      await applyView({ page: landing, projectId: state.projects[0].id });
+      await applyRoute({ page: landing, projectId: state.projects[0].id });
     } else {
-      await applyView({ page: landing });
+      await applyRoute({ page: landing });
     }
     return;
   }
@@ -1633,7 +1633,7 @@ async function restoreLastView(){
 window.addEventListener('popstate', ()=>{
   if(!state.user) return;          // not in the app yet
   const v = parseHash();
-  applyView(v);                    // applyView guards against re-pushing history
+  applyRoute(v);                   // applyRoute guards against re-pushing history
 });
 
 $('ws-pick').onclick = ()=> openWsPicker();
@@ -2054,7 +2054,7 @@ function parseHash(){
 }
 
 // Apply a parsed view (from hash) without pushing new history.
-async function applyView(view){
+async function applyRoute(view){
   navApplyingFromUrl = true;
   try{
     if(!view){ goPage('overview'); return; }
@@ -2112,11 +2112,22 @@ async function renderOverview(){
     $('ov-new-proj').onclick = openNewProjectModal;
     return;
   }
-  // Pull all workspace work items with everything we need to slice them
-  const { data: all } = await sb
-    .from('work_items')
-    .select('id, project_id, type, title, state, priority, assignee_id, iteration_id, custom_fields, display_id, updated_at, assignee:assignee_id(id, display_name)')
-    .eq('workspace_id', state.currentWsId);
+  // Pull all workspace work items. custom_fields may be absent on older DBs.
+  let all = [];
+  try{
+    const res = await sb
+      .from('work_items')
+      .select('id, project_id, type, title, state, priority, assignee_id, iteration_id, custom_fields, display_id, updated_at, assignee:assignee_id(id, display_name)')
+      .eq('workspace_id', state.currentWsId);
+    if(res.error) throw res.error;
+    all = res.data || [];
+  }catch(e){
+    const res2 = await sb
+      .from('work_items')
+      .select('id, project_id, type, title, state, priority, assignee_id, iteration_id, display_id, updated_at, assignee:assignee_id(id, display_name)')
+      .eq('workspace_id', state.currentWsId);
+    all = res2.data || [];
+  }
   const items = all || [];
   const byProj = {};
   for(const w of items) (byProj[w.project_id] ||= []).push(w);
