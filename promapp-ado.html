@@ -436,11 +436,33 @@ a:hover{text-decoration:underline}
 .det-top .spacer{flex:1}
 
 .det-body{flex:1;display:grid;grid-template-columns:1fr 320px;gap:0;overflow:hidden;min-height:0}
+.det-info-btn{display:none}
+.det-backdrop{display:none}
 @media (max-width:900px){
+  /* Single column: main content (title/desc/chat) is the page. */
   .det-body{grid-template-columns:1fr;overflow-y:auto}
-  /* On mobile, surface status/assignee/priority first */
-  .det-right{order:1;border-right:none;border-bottom:1px solid var(--border);overflow-y:visible}
-  .det-left{order:2;overflow-y:visible}
+  .det-left{order:1;overflow-y:visible}
+  /* The details column becomes an off-canvas drawer sliding in from the left. */
+  .det-right{
+    order:2;
+    position:fixed;
+    top:0; left:0; bottom:0;
+    width:86%; max-width:340px;
+    z-index:60;
+    transform:translateX(-100%);
+    transition:transform .22s ease;
+    overflow-y:auto;
+    border-right:1px solid var(--border);
+    box-shadow:2px 0 16px rgba(0,0,0,.18);
+  }
+  .det-right.open{transform:translateX(0)}
+  .det-backdrop{
+    position:fixed; inset:0; z-index:55;
+    background:rgba(0,0,0,.4);
+    opacity:0; pointer-events:none; transition:opacity .22s ease;
+  }
+  .det-backdrop.open{display:block; opacity:1; pointer-events:auto}
+  .det-info-btn{display:inline-flex}
 }
 .det-left{padding:18px 22px;overflow-y:auto;border-right:1px solid var(--border)}
 .det-right{padding:18px 22px;overflow-y:auto;background:var(--surface2);font-size:13px}
@@ -2900,9 +2922,11 @@ async function renderDetail(){
       <button class="back" id="back-btn">← Πίσω</button>
       <div class="badge"><span class="type-ico">${tm.ico}</span>${esc(tm.label)}</div>
       <h2><span class="id">#${w.display_id || '—'}</span><span id="det-title-text">${esc(w.title)}</span></h2>
+      <button class="btn ghost sm det-info-btn" id="det-info-btn" title="Λεπτομέρειες" aria-label="Λεπτομέρειες">☰ Πληροφορίες</button>
       <button class="btn ghost sm watch-btn" id="watch-btn">👁 Παρακολούθηση</button>
       <button class="btn ghost sm" id="del-btn">Διαγραφή</button>
     </div>
+    <div class="det-backdrop" id="det-backdrop"></div>
     <div class="det-body">
       <div class="det-left">
         <div class="det-section collapsible open" data-sec="desc">
@@ -3024,6 +3048,22 @@ async function renderDetail(){
   if(watchBtn){
     watchBtn.onclick = ()=> toggleWatch(id);
     loadWatchState(id);
+  }
+
+  // Mobile details drawer (det-right slides in). Desktop ignores this.
+  const infoBtn = $('det-info-btn');
+  const drawer = document.querySelector('.det-right');
+  const backdrop = $('det-backdrop');
+  function closeDrawer(){
+    drawer && drawer.classList.remove('open');
+    backdrop && backdrop.classList.remove('open');
+  }
+  if(infoBtn && drawer && backdrop){
+    infoBtn.onclick = ()=>{
+      const open = drawer.classList.toggle('open');
+      backdrop.classList.toggle('open', open);
+    };
+    backdrop.onclick = closeDrawer;
   }
 
   // Collapsible sections (persist open/closed per section key)
