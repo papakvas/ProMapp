@@ -4041,6 +4041,10 @@ function openManageIterationsModal(){
 // ════════════════════════════════════════════════════════════════════
 // SETTINGS PAGE
 // ════════════════════════════════════════════════════════════════════
+function currentWsName(){
+  const m = state.memberships.find(x => x.workspaces.id === state.currentWsId);
+  return m ? m.workspaces.name : '';
+}
 function renderSettings(){
   const el = $('settings-content');
   const chosen = state.backlogColumns || [];
@@ -4060,6 +4064,25 @@ function renderSettings(){
       </div>
       <div class="md-hint" style="margin-top:6px">${esc(state.profile?.email || '')}</div>
     </div>
+
+    ${(state.currentRole === 'owner' || state.currentRole === 'admin') ? `
+    <div class="team-card">
+      <h3 class="team-h">Χώρος εργασίας</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+        <div style="flex:1;min-width:180px">
+          <label style="display:block;font-size:12px;color:var(--muted);margin-bottom:4px">Όνομα χώρου εργασίας</label>
+          <input id="ws-name" maxlength="60" value="${esc(currentWsName())}" style="width:100%">
+        </div>
+        <button class="btn" id="ws-save">Αποθήκευση</button>
+      </div>
+      ${state.currentRole === 'owner' ? `
+      <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border)">
+        <div style="font-size:12px;font-weight:600;color:var(--red);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Επικίνδυνη ζώνη</div>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:10px">Η διαγραφή του χώρου εργασίας αφαιρεί οριστικά όλα τα έργα, τις εργασίες και τα μέλη. Δεν αναιρείται.</p>
+        <button class="btn ghost sm" id="ws-delete" style="color:var(--red);border-color:var(--red)">Διαγραφή χώρου εργασίας</button>
+      </div>` : ''}
+    </div>` : ''}
+
 
     <div class="team-card">
       <h3 class="team-h">Αρχική σελίδα</h3>
@@ -4102,6 +4125,36 @@ function renderSettings(){
   $('set-landing').onchange = ()=>{
     try{ localStorage.setItem('pm-ado:landing', $('set-landing').value); }catch{}
     toast('Αποθηκεύτηκε','ok');
+  };
+
+  // Workspace rename (owner + admin)
+  const wsSave = $('ws-save');
+  if(wsSave) wsSave.onclick = async ()=>{
+    const name = ($('ws-name').value || '').trim();
+    if(!name){ toast('Το όνομα δεν μπορεί να είναι κενό','err'); return; }
+    if(name === currentWsName()){ return; }
+    const { error } = await sb.from('workspaces').update({ name }).eq('id', state.currentWsId);
+    if(error){ toast(friendlyError(error),'err'); return; }
+    // Update local caches + visible labels
+    const m = state.memberships.find(x => x.workspaces.id === state.currentWsId);
+    if(m) m.workspaces.name = name;
+    $('ws-pick-name').textContent = name;
+    $('crumb-ws').textContent = name;
+    toast('Ο χώρος εργασίας ενημερώθηκε','ok');
+  };
+
+  // Workspace delete (owner only) — type-to-confirm
+  const wsDel = $('ws-delete');
+  if(wsDel) wsDel.onclick = async ()=>{
+    const nm = currentWsName();
+    const typed = prompt(`Αυτή η ενέργεια διαγράφει οριστικά τον χώρο «${nm}» και όλα τα περιεχόμενά του.\n\nΓια επιβεβαίωση, πληκτρολογήστε το όνομα του χώρου εργασίας:`);
+    if(typed == null) return;                       // cancelled
+    if(typed.trim() !== nm){ toast('Το όνομα δεν ταιριάζει — ακυρώθηκε','err'); return; }
+    const { error } = await sb.from('workspaces').delete().eq('id', state.currentWsId);
+    if(error){ toast(friendlyError(error),'err'); return; }
+    toast('Ο χώρος εργασίας διαγράφηκε','ok');
+    // Reload from scratch — memberships changed.
+    location.reload();
   };
 
   function renderColList(){
