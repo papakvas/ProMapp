@@ -583,6 +583,12 @@ a:hover{text-decoration:underline}
   .det-top .watch-btn{font-size:0;padding:4px 8px}
   .det-top .watch-btn::before{content:'👁';font-size:14px}
   .det-top .watch-btn .watch-count{font-size:11px}
+  /* Sub bar (board filters etc.): let controls wrap instead of overflowing. */
+  .subtopbar{padding:8px 12px}
+  .subtopbar .spacer{display:none}
+  .subtopbar .actions{flex-wrap:wrap;width:100%;gap:8px}
+  .subtopbar .actions select{flex:1 1 140px;min-width:0;max-width:100%}
+  .subtopbar .actions .btn{flex:1 1 100%}
 }
 .menu-btn{display:none;width:32px;height:32px;border-radius:var(--r)}
 .menu-btn:hover{background:var(--hover)}
