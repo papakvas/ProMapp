@@ -330,6 +330,8 @@ a:hover{text-decoration:underline}
 .ov-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);padding:14px}
 .ov-stat-l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:600}
 .ov-stat-v{font-size:28px;font-weight:600;color:var(--blue);margin-top:2px}
+.cbar{height:6px;border-radius:999px;background:var(--surface2);border:1px solid var(--border);overflow:hidden}
+.cbar-fill{height:100%;background:var(--blue);border-radius:999px;transition:width .3s ease}
 .ov-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:14px}
 .ov-tab{padding:8px 14px;border-bottom:2px solid transparent;color:var(--text2);font-weight:500;font-size:13px;cursor:pointer;background:transparent;border-top:none;border-left:none;border-right:none}
 .ov-tab:hover{color:var(--text)}
@@ -776,7 +778,6 @@ a:hover{text-decoration:underline}
 // ════════════════════════════════════════════════════════════════════
 const SUPABASE_URL      = 'https://ouppawndgtiejiebamph.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_9gI5pdoJHW9DxvJ98KjGaw_C-7VsMP5';
-
 
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: { persistSession: true, autoRefreshToken: true, storageKey: 'pm-ado-auth' }
@@ -1923,6 +1924,35 @@ function currentIteration(){
   return sorted[0] || null;
 }
 
+// ── Completion metrics ───────────────────────────────────────────────
+// Spec: leaf items only (story/task/bug); done = closed OR resolved.
+// Headline = done leaves ÷ total leaves (by count).
+// Secondary (points) = done points ÷ total points, only when at least half
+// the leaves carry a point value and total points > 0.
+const LEAF_TYPES = ['story','task','bug'];
+const DONE_STATES = ['closed','resolved'];
+function computeCompletion(items){
+  const leaves = (items || []).filter(w => LEAF_TYPES.includes(w.type));
+  const total = leaves.length;
+  const done = leaves.filter(w => DONE_STATES.includes(w.state)).length;
+  const countPct = total ? Math.round((done / total) * 100) : null;
+
+  const withPts = leaves.filter(w => typeof w.story_points === 'number' && w.story_points > 0);
+  const totalPts = withPts.reduce((s,w) => s + w.story_points, 0);
+  const donePts = withPts.filter(w => DONE_STATES.includes(w.state)).reduce((s,w) => s + w.story_points, 0);
+  // Only trust points if enough leaves have them.
+  const ptsReliable = total > 0 && withPts.length / total >= 0.5 && totalPts > 0;
+  const pointsPct = ptsReliable ? Math.round((donePts / totalPts) * 100) : null;
+
+  return { total, done, countPct, pointsPct, totalPts, donePts };
+}
+// Small inline progress bar markup.
+function completionBar(pct){
+  const v = pct == null ? 0 : pct;
+  return `<div class="cbar"><div class="cbar-fill" style="width:${v}%"></div></div>`;
+}
+
+
 // ════════════════════════════════════════════════════════════════════
 // WORK ITEMS
 // ════════════════════════════════════════════════════════════════════
@@ -2206,14 +2236,14 @@ async function renderOverview(){
   try{
     const res = await sb
       .from('work_items')
-      .select('id, project_id, type, title, state, priority, assignee_id, iteration_id, custom_fields, display_id, updated_at, assignee:assignee_id(id, display_name)')
+      .select('id, project_id, type, title, state, priority, story_points, assignee_id, iteration_id, custom_fields, display_id, updated_at, assignee:assignee_id(id, display_name)')
       .eq('workspace_id', state.currentWsId);
     if(res.error) throw res.error;
     all = res.data || [];
   }catch(e){
     const res2 = await sb
       .from('work_items')
-      .select('id, project_id, type, title, state, priority, assignee_id, iteration_id, display_id, updated_at, assignee:assignee_id(id, display_name)')
+      .select('id, project_id, type, title, state, priority, story_points, assignee_id, iteration_id, display_id, updated_at, assignee:assignee_id(id, display_name)')
       .eq('workspace_id', state.currentWsId);
     all = res2.data || [];
   }
@@ -2304,10 +2334,16 @@ async function renderOverview(){
           const its = byProj[p.id] || [];
           const open = its.filter(i => i.state !== 'closed').length;
           const closed = its.length - open;
+          const c = computeCompletion(its);
+          const pctLine = c.countPct == null
+            ? '<span style="color:var(--muted)">—</span>'
+            : `<strong>${c.countPct}%</strong>${c.pointsPct != null ? ` <span style="color:var(--muted)">· ${c.pointsPct}% με πόντους</span>` : ''}`;
           return `<div class="proj-card" data-pid="${esc(p.id)}" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);padding:14px;cursor:pointer">
             <div style="font-weight:600;font-size:14px;margin-bottom:4px">#${esc(p.name)}</div>
             <div style="color:var(--muted);font-size:12px;margin-bottom:10px;min-height:32px">${esc(p.description||'Χωρίς περιγραφή')}</div>
-            <div style="display:flex;gap:14px;font-size:12px">
+            <div style="font-size:12px;margin-bottom:6px">${pctLine}</div>
+            ${completionBar(c.countPct)}
+            <div style="display:flex;gap:14px;font-size:12px;margin-top:8px">
               <span><strong>${open}</strong> <span style="color:var(--muted)">ανοιχτές</span></span>
               <span><strong>${closed}</strong> <span style="color:var(--muted)">κλειστές</span></span>
             </div>
@@ -2354,7 +2390,7 @@ async function renderProjectsPage(){
   }
   // Item counts per project
   const { data: all } = await sb.from('work_items')
-    .select('id, project_id, state').eq('workspace_id', state.currentWsId);
+    .select('id, project_id, type, state, story_points').eq('workspace_id', state.currentWsId);
   const byProj = {};
   for(const w of (all||[])) (byProj[w.project_id] ||= []).push(w);
 
@@ -2368,10 +2404,16 @@ async function renderProjectsPage(){
         const items = byProj[p.id] || [];
         const open = items.filter(i => i.state !== 'closed').length;
         const closed = items.length - open;
+        const c = computeCompletion(items);
+        const pctLine = c.countPct == null
+          ? '<span style="color:var(--muted)">—</span>'
+          : `<strong>${c.countPct}%</strong>${c.pointsPct != null ? ` <span style="color:var(--muted)">· ${c.pointsPct}% με πόντους</span>` : ''}`;
         return `<div class="proj-card" data-pid="${esc(p.id)}" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rm);padding:14px;cursor:pointer">
           <div style="font-weight:600;font-size:14px;margin-bottom:4px">#${esc(p.name)}</div>
           <div style="color:var(--muted);font-size:12px;margin-bottom:10px;min-height:32px">${esc(p.description||'Χωρίς περιγραφή')}</div>
-          <div style="display:flex;gap:14px;font-size:12px">
+          <div style="font-size:12px;margin-bottom:6px">${pctLine}</div>
+          ${completionBar(c.countPct)}
+          <div style="display:flex;gap:14px;font-size:12px;margin-top:8px">
             <span><strong>${open}</strong> <span style="color:var(--muted)">ανοιχτές</span></span>
             <span><strong>${closed}</strong> <span style="color:var(--muted)">κλειστές</span></span>
           </div>
@@ -2394,18 +2436,34 @@ async function renderProjectDetail(){
 
   // Stats for this project
   const { data: items } = await sb.from('work_items')
-    .select('id, type, state').eq('project_id', pid);
+    .select('id, type, state, story_points').eq('project_id', pid);
   const list = items || [];
   const open = list.filter(i => i.state !== 'closed').length;
   const closed = list.length - open;
   const byType = {};
   for(const w of list) byType[w.type] = (byType[w.type]||0) + 1;
+  const comp = computeCompletion(list);
 
   el.innerHTML = `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap">
       <button class="back" id="pd-back">← Πίσω</button>
       <h2 style="font-size:20px;font-weight:600;flex:1;min-width:160px">#${esc(p.name)}</h2>
       ${canManage ? '<button class="btn sm" id="pd-edit">Επεξεργασία</button>' : ''}
+    </div>
+
+    <div class="team-card">
+      <h3 class="team-h">Ολοκλήρωση</h3>
+      ${comp.countPct == null
+        ? '<div style="color:var(--muted);font-size:13px">Δεν υπάρχουν εργασίες για μέτρηση.</div>'
+        : `<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px">
+             <span style="font-size:28px;font-weight:700;color:var(--blue)">${comp.countPct}%</span>
+             <span style="font-size:12px;color:var(--muted)">${comp.done}/${comp.total} ολοκληρωμένες</span>
+           </div>
+           ${completionBar(comp.countPct)}
+           ${comp.pointsPct != null
+             ? `<div style="margin-top:10px;font-size:12px;color:var(--muted)">Με βάση τους πόντους: <strong style="color:var(--text)">${comp.pointsPct}%</strong> (${comp.donePts}/${comp.totalPts})</div>`
+             : '<div style="margin-top:8px;font-size:11px;color:var(--muted)">Προσθέστε πόντους στις εργασίες για μέτρηση βάσει προσπάθειας.</div>'}
+           <div style="margin-top:6px;font-size:11px;color:var(--muted)">Μετρώνται μόνο Briefs, Εργασίες και Προβλήματα. «Έτοιμο» και «Κλειστό» θεωρούνται ολοκληρωμένα.</div>`}
     </div>
 
     <div class="team-card">
