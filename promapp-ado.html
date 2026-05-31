@@ -360,6 +360,7 @@ a:hover{text-decoration:underline}
 .cf-md.empty{color:var(--muted);font-style:italic}
 .card .row1 .type-ico{font-size:13px}
 .card .row1 .id{font-family:var(--mono);font-weight:600}
+.card .row1 .card-type{background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:0 7px;font-size:10px;font-weight:600;color:var(--text2)}
 .card .row1 .pts{margin-left:auto;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:1px 7px;font-family:var(--mono);font-weight:600;color:var(--text2)}
 .card .ti{font-size:13px;font-weight:500;color:var(--text);line-height:1.35}
 .card .row3{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);flex-wrap:wrap}
@@ -570,7 +571,18 @@ a:hover{text-decoration:underline}
   .topbar .user .nm{display:none}
   .topbar .crumb{display:none}
   .workarea{min-width:0;max-width:100vw}
-  .det-top h2{font-size:16px;min-width:0}
+  /* Detail top bar: keep one tidy control row, title on its own line below. */
+  .det-top{gap:6px 8px}
+  .det-top .back{order:1}
+  .det-top .badge{order:2}
+  .det-top .det-menu-wrap{order:3}
+  .det-top .watch-btn{order:4}
+  .det-top .det-info-btn{order:5;margin-left:auto}
+  .det-top h2{order:6;flex:1 1 100%;min-width:0;font-size:16px;margin-top:2px}
+  /* Watch button shrinks to its icon on mobile to free up room. */
+  .det-top .watch-btn{font-size:0;padding:4px 8px}
+  .det-top .watch-btn::before{content:'👁';font-size:14px}
+  .det-top .watch-btn .watch-count{font-size:11px}
 }
 .menu-btn{display:none;width:32px;height:32px;border-radius:var(--r)}
 .menu-btn:hover{background:var(--hover)}
@@ -797,6 +809,9 @@ const state = {
   currentPage: 'overview',     // 'overview' | 'board' | 'backlog' | 'sprints' | 'detail' | 'members' | 'settings'
   currentItemId: null,
   viewProjectId: null,         // project shown on the project-detail page
+  boardType: 'story',          // board: which type column-set to show ('all' = every type)
+  boardAssignee: null,         // board: filter by assignee id
+  boardTag: null,              // board: filter by tag
   workItems: [],
   iterations: [],              // workspace-scoped sprint list
   currentIterationId: null,    // which sprint is the Sprints page showing
@@ -2508,19 +2523,54 @@ function renderBoardHeader(){
   if(!state.currentProjectId) return;
   const tabs = $('sub-tabs');
   tabs.innerHTML = `<div class="tab active">Ροή εργασιών</div>`;
+
+  // Counts per type for the current project (respect assignee/tag filters? No —
+  // show raw type totals so the user sees how many of each exist.)
+  const all = state.workItems;
+  const cnt = t => all.filter(w => w.type === t).length;
+  const typeOpts = [
+    ['all', `Όλες (${all.length})`],
+    ['story', `Briefs (${cnt('story')})`],
+    ['epic', `Καμπάνιες (${cnt('epic')})`],
+    ['feature', `Δράσεις (${cnt('feature')})`],
+    ['task', `Εργασίες (${cnt('task')})`],
+    ['bug', `Προβλήματα (${cnt('bug')})`],
+  ];
+  const curType = state.boardType || 'story';
+
+  // Assignee filter options from members present on items
+  const assigneeIds = [...new Set(all.map(w => w.assignee_id).filter(Boolean))];
+  const assigneeOpts = assigneeIds.map(id => {
+    const m = state.members.find(x => x.id === id);
+    return `<option value="${esc(id)}" ${state.boardAssignee===id?'selected':''}>${esc(m?.display_name || '—')}</option>`;
+  }).join('');
+  // Tag filter options
+  const tagSet = new Set();
+  all.forEach(w => (w.tags||[]).forEach(t => tagSet.add(t)));
+  const tagOpts = [...tagSet].sort().map(t =>
+    `<option value="${esc(t)}" ${state.boardTag===t?'selected':''}>${esc(t)}</option>`).join('');
+
   const acts = $('sub-actions');
   acts.innerHTML = `
     <select id="board-type-filter" style="font-size:12px;padding:4px 8px">
-      <option value="story">Briefs</option>
-      <option value="epic">Καμπάνιες</option>
-      <option value="feature">Δράσεις</option>
-      <option value="task">Εργασίες</option>
-      <option value="bug">Προβλήματα</option>
+      ${typeOpts.map(([v,l]) => `<option value="${v}" ${curType===v?'selected':''}>${l}</option>`).join('')}
     </select>
+    <select id="board-assignee-filter" style="font-size:12px;padding:4px 8px">
+      <option value="">Όλοι οι υπεύθυνοι</option>
+      ${assigneeOpts}
+    </select>
+    ${tagOpts ? `<select id="board-tag-filter" style="font-size:12px;padding:4px 8px">
+      <option value="">Όλες οι ετικέτες</option>
+      ${tagOpts}
+    </select>` : ''}
     <button class="btn sm" id="board-new">+ Προσθήκη</button>`;
-  $('board-type-filter').onchange = renderBoard;
+
+  $('board-type-filter').onchange = (e)=>{ state.boardType = e.target.value; renderBoard(); };
+  $('board-assignee-filter').onchange = (e)=>{ state.boardAssignee = e.target.value || null; renderBoard(); };
+  const tagSel = $('board-tag-filter');
+  if(tagSel) tagSel.onchange = (e)=>{ state.boardTag = e.target.value || null; renderBoard(); };
   $('board-new').onclick = ()=>{
-    const type = $('board-type-filter').value;
+    const type = (state.boardType && state.boardType !== 'all') ? state.boardType : 'story';
     openNewItemModal({ type });
   };
 }
@@ -2530,8 +2580,15 @@ function renderBoard(){
     $('board-cols').innerHTML = '<div class="empty-state"><div class="ti">Δεν έχει επιλεγεί έργο</div><div class="bd">Επιλέξτε ένα έργο από το πλαϊνό μενού.</div></div>';
     return;
   }
-  const typeFilter = $('board-type-filter')?.value || 'story';
-  const items = state.workItems.filter(w => w.type === typeFilter);
+  const typeFilter = state.boardType || 'story';
+  let items = (typeFilter === 'all')
+    ? state.workItems.slice()
+    : state.workItems.filter(w => w.type === typeFilter);
+  // Apply assignee + tag filters
+  if(state.boardAssignee) items = items.filter(w => w.assignee_id === state.boardAssignee);
+  if(state.boardTag) items = items.filter(w => (w.tags||[]).includes(state.boardTag));
+
+  const showTypeBadge = (typeFilter === 'all');
   const byState = { new:[], active:[], resolved:[], closed:[] };
   for(const w of items){ (byState[w.state] || byState.new).push(w); }
 
@@ -2544,14 +2601,14 @@ function renderBoard(){
         <div class="cnt">${list.length}</div>
       </div>
       <div class="col-body">
-        ${list.map(w => renderCard(w)).join('')}
+        ${list.map(w => renderCard(w, showTypeBadge)).join('')}
       </div>
       <div class="add-card" data-state="${s}">+ Προσθήκη εργασίας</div>
     </div>`;
   }).join('');
   $('board-cols').innerHTML = html;
   $('board-cols').querySelectorAll('.card').forEach(c => c.onclick = ()=> openDetail(c.dataset.id));
-  $('board-cols').querySelectorAll('.add-card').forEach(b => b.onclick = ()=> openNewItemModal({ type: typeFilter, state: b.dataset.state }));
+  $('board-cols').querySelectorAll('.add-card').forEach(b => b.onclick = ()=> openNewItemModal({ type: (typeFilter==='all'?'story':typeFilter), state: b.dataset.state }));
 
   // Enable drag-and-drop on each column body
   if(window.Sortable){
@@ -2611,7 +2668,7 @@ function renderBoard(){
   }
 }
 
-function renderCard(w){
+function renderCard(w, showType){
   const tm = TYPE_META[w.type] || TYPE_META.task;
   const av = w.assignee ? `<span class="av" title="${esc(w.assignee.display_name)}">${esc(initial(w.assignee.display_name))}</span>` : '';
   const kids = childrenOf(w.id);
@@ -2620,10 +2677,12 @@ function renderCard(w){
   const pts = w.story_points != null ? `<span class="pts">${w.story_points}</span>` : '';
   const pri = w.priority ? `<span class="pri p${w.priority}" title="Priority ${w.priority}">P${w.priority}</span>` : '';
   const tags = (w.tags || []).slice(0, 3).map(t => renderTagChip(t)).join(' ');
+  const typeBadge = showType ? `<span class="card-type">${tm.label}</span>` : '';
   return `<div class="card t-${w.type}" data-id="${esc(w.id)}">
     <div class="row1">
       <span class="type-ico">${tm.ico}</span>
       <span class="id">#${w.display_id || '—'}</span>
+      ${typeBadge}
       ${pts}
     </div>
     <div class="ti">${esc(w.title)}</div>
