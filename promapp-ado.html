@@ -332,6 +332,15 @@ a:hover{text-decoration:underline}
 .ov-stat-v{font-size:28px;font-weight:600;color:var(--blue);margin-top:2px}
 .cbar{height:6px;border-radius:999px;background:var(--surface2);border:1px solid var(--border);overflow:hidden}
 .cbar-fill{height:100%;background:var(--blue);border-radius:999px;transition:width .3s ease}
+.prog-presets{display:flex;gap:4px;margin-top:6px}
+.prog-preset{flex:1;padding:3px 0;font-size:11px;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);color:var(--text2);cursor:pointer}
+.prog-preset:hover{background:var(--hover);color:var(--text)}
+.card-prog{height:4px;border-radius:999px;background:var(--surface2);overflow:hidden;margin:6px 0 2px}
+.card-prog-fill{height:100%;background:var(--blue);border-radius:999px}
+.bl-prog{display:flex;align-items:center;gap:6px}
+.bl-prog-bar{flex:1;height:5px;border-radius:999px;background:var(--surface2);border:1px solid var(--border);overflow:hidden;min-width:30px}
+.bl-prog-fill{height:100%;background:var(--blue)}
+.bl-prog-num{font-size:11px;font-family:var(--mono);color:var(--text2)}
 .ov-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:14px}
 .ov-tab{padding:8px 14px;border-bottom:2px solid transparent;color:var(--text2);font-weight:500;font-size:13px;cursor:pointer;background:transparent;border-top:none;border-left:none;border-right:none}
 .ov-tab:hover{color:var(--text)}
@@ -844,6 +853,7 @@ const BACKLOG_COLUMNS = [
   { key:'iteration', label:'Περίοδος',      width:'120px', on:false },
   { key:'target',    label:'Προθεσμία',     width:'110px', on:false },
   { key:'points',    label:'Πόντοι',        width:'70px',  on:false },
+  { key:'progress',  label:'Πρόοδος',       width:'110px', on:true  },
   { key:'remaining', label:'Υπόλοιπο',      width:'80px',  on:true  },
   { key:'updated',   label:'Ενημέρωση',     width:'110px', on:false },
 ];
@@ -1945,6 +1955,24 @@ function currentIteration(){
   return sorted[0] || null;
 }
 
+// ── Manual progress (user-set % per item) ───────────────────────────
+// Stored in custom_fields.progress as a number 0..100. Distinct from the
+// automatic project rollup — this is the user's own judgment per item.
+function itemProgress(w){
+  const v = w && w.custom_fields ? w.custom_fields.progress : null;
+  const n = typeof v === 'number' ? v : parseInt(v, 10);
+  if(isNaN(n)) return null;
+  return Math.max(0, Math.min(100, n));
+}
+async function setItemProgress(id, pct){
+  const w = itemById(id);
+  if(!w) return false;
+  const next = { ...(w.custom_fields || {}), progress: pct };
+  const ok = await updateWorkItem(id, { custom_fields: next });
+  if(ok){ w.custom_fields = next; }
+  return ok;
+}
+
 // ── Completion metrics ───────────────────────────────────────────────
 // Spec: leaf items only (story/task/bug); done = closed OR resolved.
 // Headline = done leaves ÷ total leaves (by count).
@@ -2684,6 +2712,8 @@ function renderCard(w, showType){
   const pri = w.priority ? `<span class="pri p${w.priority}" title="Priority ${w.priority}">P${w.priority}</span>` : '';
   const tags = (w.tags || []).slice(0, 3).map(t => renderTagChip(t)).join(' ');
   const typeBadge = showType ? `<span class="card-type">${tm.label}</span>` : '';
+  const prog = itemProgress(w);
+  const progHtml = prog != null ? `<div class="card-prog" title="Πρόοδος ${prog}%"><div class="card-prog-fill" style="width:${prog}%"></div></div>` : '';
   return `<div class="card t-${w.type}" data-id="${esc(w.id)}">
     <div class="row1">
       <span class="type-ico">${tm.ico}</span>
@@ -2692,6 +2722,7 @@ function renderCard(w, showType){
       ${pts}
     </div>
     <div class="ti">${esc(w.title)}</div>
+    ${progHtml}
     <div class="row3">
       ${pri}
       ${tags}
@@ -3026,6 +3057,11 @@ function renderBacklogCell(w, key){
     }
     case 'points':
       return `<div class="rem-work">${w.story_points != null ? w.story_points : ''}</div>`;
+    case 'progress': {
+      const p = itemProgress(w);
+      if(p == null) return '<div style="color:var(--muted)">—</div>';
+      return `<div class="bl-prog" title="${p}%"><div class="bl-prog-bar"><div class="bl-prog-fill" style="width:${p}%"></div></div><span class="bl-prog-num">${p}%</span></div>`;
+    }
     case 'remaining':
       return `<div class="rem-work">${w.remaining_work != null ? w.remaining_work : ''}</div>`;
     case 'updated':
@@ -3454,6 +3490,13 @@ async function renderDetail(){
             <select id="det-state">${STATE_ORDER.map(s => `<option value="${s}" ${s===w.state?'selected':''}>${STATE_META[s].label}</option>`).join('')}</select>
           </div>
           <div class="det-field">
+            <label>Πρόοδος <span id="det-prog-val" style="font-family:var(--mono);color:var(--blue);font-weight:600">${itemProgress(w) ?? 0}%</span></label>
+            <input type="range" id="det-progress" min="0" max="100" step="5" value="${itemProgress(w) ?? 0}" style="width:100%">
+            <div class="prog-presets" id="det-prog-presets">
+              ${[0,25,50,75,100].map(v => `<button type="button" class="prog-preset" data-v="${v}">${v}%</button>`).join('')}
+            </div>
+          </div>
+          <div class="det-field">
             <label>Υπεύθυνος</label>
             <select id="det-assignee">
               <option value="">— Χωρίς ανάθεση —</option>
@@ -3677,6 +3720,18 @@ async function renderDetail(){
 
   // Status fields autosave on change
   $('det-state').onchange     = ()=> updateWorkItem(id, { state: $('det-state').value });
+  // Manual progress slider
+  const progEl = $('det-progress');
+  const progVal = $('det-prog-val');
+  if(progEl){
+    progEl.oninput = ()=>{ progVal.textContent = progEl.value + '%'; };
+    progEl.onchange = ()=> setItemProgress(id, parseInt(progEl.value, 10));
+    document.querySelectorAll('#det-prog-presets .prog-preset').forEach(b => b.onclick = ()=>{
+      const v = parseInt(b.dataset.v, 10);
+      progEl.value = v; progVal.textContent = v + '%';
+      setItemProgress(id, v);
+    });
+  }
   $('det-assignee').onchange  = ()=>{
     const v = $('det-assignee').value || null;
     updateWorkItem(id, { assignee_id: v }).then(()=>{
