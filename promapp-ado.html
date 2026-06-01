@@ -1171,6 +1171,7 @@ function wireMentionAutocomplete(ta){
 // ── Watchers ─────────────────────────────────────────────────────────
 // Local cache of watch state for the currently-open item.
 let detailWatching = false;
+let detailDrawerOpen = false;
 let detailWatcherCount = 0;
 
 async function loadWatchState(workItemId){
@@ -1973,6 +1974,22 @@ async function setItemProgress(id, pct){
   return ok;
 }
 
+// Effective progress used for display/rollup.
+// Leaf: manual % if set; else 100 if done (closed/resolved); else 0.
+// Parent: average of its direct children's effective progress (recursive).
+function effectiveProgress(w){
+  if(!w) return 0;
+  const kids = childrenOf(w.id);
+  if(kids.length){
+    const sum = kids.reduce((s,k) => s + effectiveProgress(k), 0);
+    return Math.round(sum / kids.length);
+  }
+  const manual = itemProgress(w);
+  if(manual != null) return manual;
+  return DONE_STATES.includes(w.state) ? 100 : 0;
+}
+function hasChildren(w){ return childrenOf(w.id).length > 0; }
+
 // ── Completion metrics ───────────────────────────────────────────────
 // Spec: leaf items only (story/task/bug); done = closed OR resolved.
 // Headline = done leaves ÷ total leaves (by count).
@@ -2712,8 +2729,9 @@ function renderCard(w, showType){
   const pri = w.priority ? `<span class="pri p${w.priority}" title="Priority ${w.priority}">P${w.priority}</span>` : '';
   const tags = (w.tags || []).slice(0, 3).map(t => renderTagChip(t)).join(' ');
   const typeBadge = showType ? `<span class="card-type">${tm.label}</span>` : '';
-  const prog = itemProgress(w);
-  const progHtml = prog != null ? `<div class="card-prog" title="Πρόοδος ${prog}%"><div class="card-prog-fill" style="width:${prog}%"></div></div>` : '';
+  const prog = effectiveProgress(w);
+  const showProg = hasChildren(w) || itemProgress(w) != null;
+  const progHtml = showProg ? `<div class="card-prog" title="Πρόοδος ${prog}%"><div class="card-prog-fill" style="width:${prog}%"></div></div>` : '';
   return `<div class="card t-${w.type}" data-id="${esc(w.id)}">
     <div class="row1">
       <span class="type-ico">${tm.ico}</span>
@@ -3058,9 +3076,11 @@ function renderBacklogCell(w, key){
     case 'points':
       return `<div class="rem-work">${w.story_points != null ? w.story_points : ''}</div>`;
     case 'progress': {
-      const p = itemProgress(w);
-      if(p == null) return '<div style="color:var(--muted)">—</div>';
-      return `<div class="bl-prog" title="${p}%"><div class="bl-prog-bar"><div class="bl-prog-fill" style="width:${p}%"></div></div><span class="bl-prog-num">${p}%</span></div>`;
+      const isParent = hasChildren(w);
+      const manual = itemProgress(w);
+      if(!isParent && manual == null) return '<div style="color:var(--muted)">—</div>';
+      const p = effectiveProgress(w);
+      return `<div class="bl-prog" title="${p}%${isParent?' (αυτόματα)':''}"><div class="bl-prog-bar"><div class="bl-prog-fill" style="width:${p}%"></div></div><span class="bl-prog-num">${p}%</span></div>`;
     }
     case 'remaining':
       return `<div class="rem-work">${w.remaining_work != null ? w.remaining_work : ''}</div>`;
@@ -3204,6 +3224,7 @@ function openNewItemModal({ type, parent_id, state: itemState }){
 // ════════════════════════════════════════════════════════════════════
 function openDetail(id){
   state.backFrom = state.currentPage === 'detail' ? state.backFrom : state.currentPage;
+  if(state.currentItemId !== id) detailDrawerOpen = false;  // fresh item starts closed
   state.currentItemId = id;
   goPage('detail');
 }
@@ -3490,11 +3511,14 @@ async function renderDetail(){
             <select id="det-state">${STATE_ORDER.map(s => `<option value="${s}" ${s===w.state?'selected':''}>${STATE_META[s].label}</option>`).join('')}</select>
           </div>
           <div class="det-field">
-            <label>Πρόοδος <span id="det-prog-val" style="font-family:var(--mono);color:var(--blue);font-weight:600">${itemProgress(w) ?? 0}%</span></label>
-            <input type="range" id="det-progress" min="0" max="100" step="5" value="${itemProgress(w) ?? 0}" style="width:100%">
-            <div class="prog-presets" id="det-prog-presets">
-              ${[0,25,50,75,100].map(v => `<button type="button" class="prog-preset" data-v="${v}">${v}%</button>`).join('')}
-            </div>
+            ${hasChildren(w)
+              ? `<label>Πρόοδος <span style="font-family:var(--mono);color:var(--blue);font-weight:600">${effectiveProgress(w)}%</span> <span style="color:var(--muted);font-weight:400">(αυτόματα από υποεργασίες)</span></label>
+                 <div class="cbar" style="margin-top:4px"><div class="cbar-fill" style="width:${effectiveProgress(w)}%"></div></div>`
+              : `<label>Πρόοδος <span id="det-prog-val" style="font-family:var(--mono);color:var(--blue);font-weight:600">${itemProgress(w) ?? 0}%</span></label>
+                 <input type="range" id="det-progress" min="0" max="100" step="5" value="${itemProgress(w) ?? 0}" style="width:100%">
+                 <div class="prog-presets" id="det-prog-presets">
+                   ${[0,25,50,75,100].map(v => `<button type="button" class="prog-preset" data-v="${v}">${v}%</button>`).join('')}
+                 </div>`}
           </div>
           <div class="det-field">
             <label>Υπεύθυνος</label>
@@ -3616,16 +3640,17 @@ async function renderDetail(){
   const infoBtn = $('det-info-btn');
   const drawer = document.querySelector('.det-right');
   const backdrop = $('det-backdrop');
-  function closeDrawer(){
-    drawer && drawer.classList.remove('open');
-    backdrop && backdrop.classList.remove('open');
+  function setDrawer(open){
+    if(drawer) drawer.classList.toggle('open', open);
+    if(backdrop) backdrop.classList.toggle('open', open);
+    detailDrawerOpen = open;
   }
+  function closeDrawer(){ setDrawer(false); }
   if(infoBtn && drawer && backdrop){
-    infoBtn.onclick = ()=>{
-      const open = drawer.classList.toggle('open');
-      backdrop.classList.toggle('open', open);
-    };
+    infoBtn.onclick = ()=> setDrawer(!drawer.classList.contains('open'));
     backdrop.onclick = closeDrawer;
+    // Restore open state after a re-render (e.g. realtime update on field change)
+    if(detailDrawerOpen) setDrawer(true);
   }
 
   // Collapsible sections (persist open/closed per section key)
